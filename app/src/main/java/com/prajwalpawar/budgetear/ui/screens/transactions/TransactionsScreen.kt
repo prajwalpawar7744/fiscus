@@ -1,0 +1,105 @@
+package com.prajwalpawar.budgetear.ui.screens.transactions
+
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.prajwalpawar.budgetear.ui.screens.dashboard.TransactionItem
+import com.prajwalpawar.budgetear.ui.utils.formatCurrency
+import java.text.NumberFormat
+import java.time.format.DateTimeFormatter
+import java.util.*
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
+fun TransactionsScreen(
+    viewModel: TransactionsViewModel
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val monthFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
+    val dateHeaderFormatter = DateTimeFormatter.ofPattern("EEEE, MMM dd", Locale.getDefault())
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Transactions", fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        }
+    ) { padding ->
+        if (uiState.groupedTransactions.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No transactions found",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                uiState.groupedTransactions.forEach { (monthYear, dateGroups) ->
+                    // Month Sticky Header
+                    stickyHeader {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
+                            tonalElevation = 2.dp
+                        ) {
+                            Text(
+                                text = monthYear,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+                    dateGroups.forEach { (date, transactions) ->
+                        // Date Header
+                        item {
+                            Text(
+                                text = date.format(dateHeaderFormatter),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                        // Transaction Items
+                        items(transactions) { transaction ->
+                            TransactionItem(
+                                transaction = transaction,
+                                category = uiState.categories[transaction.categoryId],
+                                currencyCode = uiState.currency
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

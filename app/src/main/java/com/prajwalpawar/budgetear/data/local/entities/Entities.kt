@@ -20,7 +20,8 @@ data class CategoryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
     val icon: String,
-    val color: Int
+    val color: Int,
+    val type: String? = null
 )
 
 @Entity(tableName = "accounts")

@@ -21,7 +21,8 @@ data class Category(
     val id: Long? = null,
     val name: String,
     val icon: String,
-    val color: Int
+    val color: Int,
+    val type: TransactionType? = null
 )
 
 data class Account(

@@ -11,21 +11,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.prajwalpawar.budgetear.domain.model.Transaction
 import com.prajwalpawar.budgetear.domain.model.TransactionType
 import com.prajwalpawar.budgetear.ui.screens.transactions.AddTransactionScreen
 import com.prajwalpawar.budgetear.ui.screens.transactions.AddTransactionViewModel
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
 import java.util.*
 import androidx.compose.material.icons.Icons
+import com.prajwalpawar.budgetear.ui.utils.formatCurrency
 import androidx.compose.material.icons.filled.Add
+import androidx.hilt.navigation.compose.hiltViewModel
+
+import com.prajwalpawar.budgetear.ui.utils.getCategoryIcon
+import com.prajwalpawar.budgetear.domain.model.Category
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
-    viewModel: DashboardViewModel
+    viewModel: DashboardViewModel,
+    onSeeAllTransactions: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val addTransactionViewModel: AddTransactionViewModel = hiltViewModel()
@@ -73,7 +77,7 @@ fun DashboardScreen(
                 )
             )
         },
-        floatingActionButton = {
+        floatingActionButton = @androidx.compose.runtime.Composable {
             ExtendedFloatingActionButton(
                 onClick = { showBottomSheet = true },
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -83,10 +87,6 @@ fun DashboardScreen(
             )
         }
     ) { padding ->
-        val currencyFormatter = remember { 
-            NumberFormat.getCurrencyInstance(Locale.getDefault()) 
-        }
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -99,16 +99,24 @@ fun DashboardScreen(
                     balance = uiState.balance,
                     income = uiState.totalIncome,
                     expense = uiState.totalExpense,
-                    currencyFormatter = currencyFormatter
+                    currencyCode = uiState.currency
                 )
             }
 
             item {
-                Text(
-                    text = "Recent Transactions",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Recent Transactions",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    TextButton(onClick = onSeeAllTransactions) {
+                        Text("See All")
+                    }
+                }
             }
 
             items(
@@ -117,7 +125,8 @@ fun DashboardScreen(
             ) { transaction ->
                 TransactionItem(
                     transaction = transaction,
-                    currencyFormatter = currencyFormatter
+                    category = uiState.categories[transaction.categoryId],
+                    currencyCode = uiState.currency
                 )
             }
 
@@ -146,7 +155,7 @@ fun BalanceCard(
     balance: Double,
     income: Double,
     expense: Double,
-    currencyFormatter: NumberFormat
+    currencyCode: String
 ) {
     Card(
         modifier = Modifier
@@ -166,7 +175,7 @@ fun BalanceCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = currencyFormatter.format(balance),
+                text = formatCurrency(balance, currencyCode),
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -185,12 +194,12 @@ fun BalanceCard(
                 ) {
                     SummaryItem(
                         label = "Income",
-                        amount = currencyFormatter.format(income),
+                        amount = formatCurrency(income, currencyCode),
                         color = MaterialTheme.colorScheme.primary
                     )
                     SummaryItem(
                         label = "Expense",
-                        amount = currencyFormatter.format(expense),
+                        amount = formatCurrency(expense, currencyCode),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
@@ -219,7 +228,8 @@ fun SummaryItem(label: String, amount: String, color: Color) {
 @Composable
 fun TransactionItem(
     transaction: Transaction,
-    currencyFormatter: NumberFormat
+    category: Category?,
+    currencyCode: String
 ) {
     val color = if (transaction.type == TransactionType.INCOME) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
     val prefix = if (transaction.type == TransactionType.INCOME) "+" else "-"
@@ -233,15 +243,56 @@ fun TransactionItem(
             )
         },
         supportingContent = {
-            Text(
-                text = "Category ID: ${transaction.categoryId}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Column {
+                if (transaction.note.isNotBlank()) {
+                    Text(
+                        text = transaction.note,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = category?.name ?: "No Category",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "•",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    val dateFormatter = remember { java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault()) }
+                    Text(
+                        text = dateFormatter.format(transaction.date),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+            }
+        },
+        leadingContent = {
+            Surface(
+                color = category?.color?.let { Color(it).copy(alpha = 0.1f) } ?: MaterialTheme.colorScheme.surfaceVariant,
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.size(40.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = getCategoryIcon(category?.icon ?: ""),
+                        contentDescription = null,
+                        tint = category?.color?.let { Color(it) } ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
         },
         trailingContent = {
             Text(
-                text = "$prefix${currencyFormatter.format(transaction.amount)}",
+                text = "$prefix${formatCurrency(transaction.amount, currencyCode)}",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = color

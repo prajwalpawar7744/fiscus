@@ -24,6 +24,9 @@ interface TransactionDao {
 
     @Delete
     suspend fun deleteTransaction(transaction: TransactionEntity)
+
+    @Query("DELETE FROM transactions")
+    suspend fun deleteAllTransactions()
 }
 
 @Dao
@@ -33,6 +36,9 @@ interface CategoryDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCategory(category: CategoryEntity)
+
+    @Query("DELETE FROM categories")
+    suspend fun deleteAllCategories()
 }
 
 @Dao
@@ -42,4 +48,7 @@ interface AccountDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAccount(account: AccountEntity)
+
+    @Query("DELETE FROM accounts")
+    suspend fun deleteAllAccounts()
 }

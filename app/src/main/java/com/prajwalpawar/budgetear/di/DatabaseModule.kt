@@ -23,7 +23,8 @@ object DatabaseModule {
             app,
             BudgetDatabase::class.java,
             BudgetDatabase.DATABASE_NAME
-        ).build()
+        ).fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides

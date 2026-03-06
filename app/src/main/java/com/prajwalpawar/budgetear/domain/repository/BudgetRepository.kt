@@ -18,4 +18,6 @@ interface BudgetRepository {
     // Accounts
     fun getAccounts(): Flow<List<Account>>
     suspend fun insertAccount(account: Account)
+
+    suspend fun clearAllData()
 }

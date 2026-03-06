@@ -55,6 +55,12 @@ class BudgetRepositoryImpl @Inject constructor(
     override suspend fun insertAccount(account: Account) {
         accountDao.insertAccount(account.toEntity())
     }
+
+    override suspend fun clearAllData() {
+        transactionDao.deleteAllTransactions()
+        categoryDao.deleteAllCategories()
+        accountDao.deleteAllAccounts()
+    }
 }
 
 // Mappers
@@ -80,7 +86,7 @@ fun Transaction.toEntity() = TransactionEntity(
     note = note
 )
 
-fun CategoryEntity.toDomain() = Category(id, name, icon, color)
-fun Category.toEntity() = CategoryEntity(id ?: 0, name, icon, color)
+fun CategoryEntity.toDomain() = Category(id, name, icon, color, type?.let { TransactionType.valueOf(it) })
+fun Category.toEntity() = CategoryEntity(id ?: 0, name, icon, color, type?.name)
 fun AccountEntity.toDomain() = Account(id, name, balance, icon)
 fun Account.toEntity() = AccountEntity(id ?: 0, name, balance, icon)

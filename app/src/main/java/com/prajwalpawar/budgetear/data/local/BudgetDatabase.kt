@@ -11,7 +11,7 @@ import com.prajwalpawar.budgetear.data.local.entities.TransactionEntity
 
 @Database(
     entities = [TransactionEntity::class, CategoryEntity::class, AccountEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class BudgetDatabase : RoomDatabase() {
