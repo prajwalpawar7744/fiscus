@@ -7,19 +7,29 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.prajwalpawar.budgetear.ui.utils.formatCurrency
 import com.prajwalpawar.budgetear.ui.utils.getCategoryIcon
 import java.text.NumberFormat
-import java.util.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Analytics
+import com.prajwalpawar.budgetear.ui.utils.EmptyState
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalysisScreen(
-    viewModel: AnalysisViewModel
+    viewModel: AnalysisViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     Scaffold(
@@ -36,11 +46,50 @@ fun AnalysisScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 24.dp)
+                .padding(padding),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Spending Overview",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    SingleChoiceSegmentedButtonRow {
+                        SegmentedButton(
+                            selected = uiState.granularity == AnalysisGranularity.DAILY,
+                            onClick = { viewModel.setGranularity(AnalysisGranularity.DAILY) },
+                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                            label = { Text("Daily") }
+                        )
+                        SegmentedButton(
+                            selected = uiState.granularity == AnalysisGranularity.MONTHLY,
+                            onClick = { viewModel.setGranularity(AnalysisGranularity.MONTHLY) },
+                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                            label = { Text("Monthly") }
+                        )
+                    }
+                }
+            }
+
+            item {
+                BarChart(
+                    dataPoints = uiState.expenseDataPoints,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
             item {
                 AnalysisSummaryCard(
                     income = uiState.totalIncome,
@@ -59,18 +108,10 @@ fun AnalysisScreen(
 
             if (uiState.categoryBreakdown.isEmpty()) {
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No expenses to analyze yet",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    EmptyState(
+                        message = "No expenses to analyze yet",
+                        icon = Icons.Default.Analytics
+                    )
                 }
             } else {
                 items(uiState.categoryBreakdown) { analysis ->
@@ -90,11 +131,16 @@ fun AnalysisSummaryCard(
     expense: Double,
     currencyCode: String
 ) {
-    Card(
+    ElevatedCard(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        ),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp),
+        shape = MaterialTheme.shapes.extraLarge
     ) {
-        Column(modifier = Modifier.padding(24.dp)) {
+        Column(modifier = Modifier.padding(28.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -104,13 +150,13 @@ fun AnalysisSummaryCard(
                     Text(
                         text = "Total Spending",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
                     )
                     Text(
                         text = formatCurrency(expense, currencyCode),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                 }
                 
@@ -120,9 +166,10 @@ fun AnalysisSummaryCard(
                     CircularProgressIndicator(
                         progress = { ratio },
                         modifier = Modifier.size(64.dp),
-                        color = MaterialTheme.colorScheme.error,
-                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                        strokeWidth = 8.dp
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.2f),
+                        strokeWidth = 8.dp,
+                        strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
                     )
                 }
             }
@@ -186,5 +233,56 @@ fun CategoryAnalysisItem(
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
             strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
         )
+    }
+}
+@Composable
+fun BarChart(
+    dataPoints: List<TimeDataPoint>,
+    modifier: Modifier = Modifier,
+    color: Color
+) {
+    if (dataPoints.isEmpty()) {
+        Box(modifier = modifier, contentAlignment = Alignment.Center) {
+            Text("No data available", style = MaterialTheme.typography.bodyMedium)
+        }
+        return
+    }
+
+    val maxAmount = remember(dataPoints) { dataPoints.maxOfOrNull { it.amount } ?: 1.0 }
+    
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.Bottom
+    ) {
+        dataPoints.forEach { point ->
+            val barHeightRatio = (point.amount / maxAmount).toFloat()
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .drawBehind {
+                            val barHeight = size.height * barHeightRatio
+                            drawRoundRect(
+                                color = color,
+                                topLeft = Offset(0f, size.height - barHeight),
+                                size = Size(size.width, barHeight),
+                                cornerRadius = CornerRadius(4.dp.toPx())
+                            )
+                        }
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = point.label,
+                    style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }

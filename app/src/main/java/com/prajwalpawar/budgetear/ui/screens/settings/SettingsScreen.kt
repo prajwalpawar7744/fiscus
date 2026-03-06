@@ -20,6 +20,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import kotlinx.coroutines.launch
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,12 +43,68 @@ fun SettingsScreen(
     
     var showCurrencyDialog by remember { mutableStateOf(false) }
 
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json"),
+        onResult = { uri ->
+            uri?.let {
+                scope.launch {
+                    val jsonData = viewModel.exportData()
+                    if (jsonData != null) {
+                        try {
+                            context.contentResolver.openOutputStream(it)?.use { output ->
+                                output.write(jsonData.toByteArray())
+                            }
+                            snackbarHostState.showSnackbar("Data exported successfully")
+                        } catch (e: Exception) {
+                            snackbarHostState.showSnackbar("Export failed: ${e.message}")
+                        }
+                    } else {
+                        snackbarHostState.showSnackbar("Export failed: No data")
+                    }
+                }
+            }
+        }
+    )
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            uri?.let {
+                scope.launch {
+                    try {
+                        val inputStream = context.contentResolver.openInputStream(it)
+                        val reader = BufferedReader(InputStreamReader(inputStream))
+                        val jsonData = reader.readText()
+                        inputStream?.close()
+                        
+                        val success = viewModel.importData(jsonData)
+                        if (success) {
+                            snackbarHostState.showSnackbar("Data imported successfully")
+                        } else {
+                            snackbarHostState.showSnackbar("Import failed: Invalid data")
+                        }
+                    } catch (e: Exception) {
+                        snackbarHostState.showSnackbar("Import failed: ${e.message}")
+                    }
+                }
+            }
+        }
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings", fontWeight = FontWeight.Bold) }
+                title = { Text("Settings", fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -54,6 +113,7 @@ fun SettingsScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
             // Profile Section
             item {
                 Column(
@@ -125,12 +185,12 @@ fun SettingsScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Fingerprint, contentDescription = null)
+                            Icon(Icons.Default.Fingerprint, contentDescription = null, tint = LocalContentColor.current)
                             Spacer(modifier = Modifier.width(16.dp))
                             Column {
                                 Text("Biometric Lock", style = MaterialTheme.typography.bodyLarge)
@@ -143,7 +203,8 @@ fun SettingsScreen(
                         }
                         Switch(
                             checked = uiState.isBiometricEnabled,
-                            onCheckedChange = { viewModel.updateBiometricEnabled(it) }
+                            onCheckedChange = { viewModel.updateBiometricEnabled(it) },
+                            modifier = Modifier.padding(end = 16.dp)
                         )
                     }
                 }
@@ -156,6 +217,24 @@ fun SettingsScreen(
                         title = "Currency",
                         subtitle = uiState.currency,
                         onClick = { showCurrencyDialog = true }
+                    )
+                }
+            }
+
+            // Backup & Restore Section
+            item {
+                SettingsGroup(title = "Backup & Restore") {
+                    SettingsItem(
+                        title = "Export Data",
+                        subtitle = "Save your data to a JSON file",
+                        icon = Icons.Default.CloudDownload,
+                        onClick = { exportLauncher.launch("budgetear_backup_${System.currentTimeMillis()}.json") }
+                    )
+                    SettingsItem(
+                        title = "Import Data",
+                        subtitle = "Restore data from a JSON file",
+                        icon = Icons.Default.CloudUpload,
+                        onClick = { importLauncher.launch("application/json") }
                     )
                 }
             }
@@ -227,14 +306,22 @@ fun SettingsScreen(
 
 @Composable
 fun SettingsGroup(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = title,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(vertical = 8.dp)
+            modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp)
         )
-        content()
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            shape = MaterialTheme.shapes.large,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                content()
+            }
+        }
     }
 }
 
@@ -250,7 +337,7 @@ fun SettingsItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, contentDescription = null, tint = if (textColor != MaterialTheme.colorScheme.onSurface) textColor else LocalContentColor.current)

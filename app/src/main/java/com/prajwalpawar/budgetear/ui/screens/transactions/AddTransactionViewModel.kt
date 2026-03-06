@@ -23,7 +23,8 @@ data class AddTransactionUiState(
     val categoryId: Long? = null,
     val categories: List<Category> = emptyList(),
     val accountId: Long = 1, // Default account
-    val isSaved: Boolean = false
+    val isSaved: Boolean = false,
+    val transactionId: Long? = null
 )
 
 @HiltViewModel
@@ -123,15 +124,54 @@ class AddTransactionViewModel @Inject constructor(
         )
     }
 
+    fun setTransactionForEdit(transaction: Transaction) {
+        _uiState.update {
+            it.copy(
+                transactionId = transaction.id,
+                title = transaction.title,
+                amount = transaction.amount.toString(),
+                note = transaction.note,
+                type = transaction.type,
+                categoryId = transaction.categoryId,
+                accountId = transaction.accountId
+            )
+        }
+    }
+
     fun saveTransaction() {
         val currentState = _uiState.value
         val amountValue = currentState.amount.toDoubleOrNull() ?: 0.0
         if (currentState.title.isNotBlank() && amountValue > 0) {
             viewModelScope.launch {
-                repository.insertTransaction(
+                val transaction = Transaction(
+                    id = currentState.transactionId,
+                    title = currentState.title,
+                    amount = amountValue,
+                    type = currentState.type,
+                    categoryId = currentState.categoryId ?: 1L,
+                    accountId = currentState.accountId,
+                    date = Date(),
+                    note = currentState.note
+                )
+                if (currentState.transactionId == null) {
+                    repository.insertTransaction(transaction)
+                } else {
+                    repository.updateTransaction(transaction)
+                }
+                _uiState.update { it.copy(isSaved = true) }
+            }
+        }
+    }
+
+    fun deleteTransaction() {
+        val currentState = _uiState.value
+        if (currentState.transactionId != null) {
+            viewModelScope.launch {
+                repository.deleteTransaction(
                     Transaction(
+                        id = currentState.transactionId,
                         title = currentState.title,
-                        amount = amountValue,
+                        amount = currentState.amount.toDoubleOrNull() ?: 0.0,
                         type = currentState.type,
                         categoryId = currentState.categoryId ?: 1L,
                         accountId = currentState.accountId,

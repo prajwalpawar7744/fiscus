@@ -18,7 +18,9 @@ data class DashboardUiState(
     val totalExpense: Double = 0.0,
     val recentTransactions: List<Transaction> = emptyList(),
     val categories: Map<Long, Category> = emptyMap(),
-    val currency: String = "USD"
+    val currency: String = "USD",
+    val userName: String = "",
+    val userPhotoUri: String? = null
 )
 
 @HiltViewModel
@@ -33,8 +35,10 @@ class DashboardViewModel @Inject constructor(
     val uiState: StateFlow<DashboardUiState> = combine(
         repository.getTransactions(),
         _categories,
-        preferenceManager.currency
-    ) { transactions, categories, currency ->
+        preferenceManager.currency,
+        preferenceManager.userName,
+        preferenceManager.userPhotoUri
+    ) { transactions, categories, currency, name, photo ->
         var income = 0.0
         var expense = 0.0
         
@@ -52,7 +56,9 @@ class DashboardViewModel @Inject constructor(
             totalExpense = expense,
             recentTransactions = transactions.take(5),
             categories = categories.associateBy { it.id ?: 0L },
-            currency = currency
+            currency = currency,
+            userName = name,
+            userPhotoUri = photo
         )
     }.flowOn(Dispatchers.IO)
     .stateIn(

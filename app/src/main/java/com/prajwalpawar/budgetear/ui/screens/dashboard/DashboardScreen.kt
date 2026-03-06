@@ -16,14 +16,26 @@ import com.prajwalpawar.budgetear.domain.model.TransactionType
 import com.prajwalpawar.budgetear.ui.screens.transactions.AddTransactionScreen
 import com.prajwalpawar.budgetear.ui.screens.transactions.AddTransactionViewModel
 import kotlinx.coroutines.launch
-import java.util.*
-import androidx.compose.material.icons.Icons
-import com.prajwalpawar.budgetear.ui.utils.formatCurrency
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.hilt.navigation.compose.hiltViewModel
 
 import com.prajwalpawar.budgetear.ui.utils.getCategoryIcon
+import com.prajwalpawar.budgetear.ui.utils.EmptyState
 import com.prajwalpawar.budgetear.domain.model.Category
+import coil.compose.AsyncImage
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import com.prajwalpawar.budgetear.ui.utils.formatCurrency
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,6 +107,13 @@ fun DashboardScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
+                ProfileHeader(
+                    userName = uiState.userName,
+                    userPhotoUri = uiState.userPhotoUri
+                )
+            }
+
+            item {
                 BalanceCard(
                     balance = uiState.balance,
                     income = uiState.totalIncome,
@@ -126,24 +145,20 @@ fun DashboardScreen(
                 TransactionItem(
                     transaction = transaction,
                     category = uiState.categories[transaction.categoryId],
-                    currencyCode = uiState.currency
+                    currencyCode = uiState.currency,
+                    onClick = {
+                        addTransactionViewModel.setTransactionForEdit(transaction)
+                        showBottomSheet = true
+                    }
                 )
             }
 
             if (uiState.recentTransactions.isEmpty()) {
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No transactions yet",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    EmptyState(
+                        message = "No transactions yet",
+                        icon = Icons.Default.ReceiptLong
+                    )
                 }
             }
         }
@@ -157,50 +172,57 @@ fun BalanceCard(
     expense: Double,
     currencyCode: String
 ) {
-    Card(
+    ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        )
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        ),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp),
+        shape = MaterialTheme.shapes.extraLarge
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier.padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "Total Balance",
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
             )
             Text(
                 text = formatCurrency(balance, currencyCode),
-                style = MaterialTheme.typography.displaySmall,
+                style = MaterialTheme.typography.displayMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Surface(
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                shape = MaterialTheme.shapes.large,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     SummaryItem(
                         label = "Income",
                         amount = formatCurrency(income, currencyCode),
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        icon = Icons.Default.ArrowDownward
                     )
                     SummaryItem(
                         label = "Expense",
                         amount = formatCurrency(expense, currencyCode),
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
+                        icon = Icons.Default.ArrowUpward
                     )
                 }
             }
@@ -209,19 +231,36 @@ fun BalanceCard(
 }
 
 @Composable
-fun SummaryItem(label: String, amount: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = amount,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = color
-        )
+fun SummaryItem(label: String, amount: String, color: Color, icon: ImageVector) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Surface(
+            shape = CircleShape,
+            color = color.copy(alpha = 0.15f),
+            modifier = Modifier.size(44.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = amount,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = color
+            )
+        }
     }
 }
 
@@ -229,12 +268,16 @@ fun SummaryItem(label: String, amount: String, color: Color) {
 fun TransactionItem(
     transaction: Transaction,
     category: Category?,
-    currencyCode: String
+    currencyCode: String,
+    onClick: () -> Unit = {}
 ) {
     val color = if (transaction.type == TransactionType.INCOME) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
     val prefix = if (transaction.type == TransactionType.INCOME) "+" else "-"
 
     ListItem(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         headlineContent = {
             Text(
                 text = transaction.title,
@@ -300,12 +343,70 @@ fun TransactionItem(
         },
         colors = ListItemDefaults.colors(
             containerColor = Color.Transparent
-        ),
-        modifier = Modifier.fillMaxWidth()
+        )
     )
     HorizontalDivider(
         modifier = Modifier.padding(horizontal = 16.dp),
         thickness = 1.dp,
         color = MaterialTheme.colorScheme.outlineVariant
     )
+}
+@Composable
+fun ProfileHeader(
+    userName: String,
+    userPhotoUri: String?
+) {
+    val welcomeMessage = remember {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        when (hour) {
+            in 0..11 -> "Good Morning"
+            in 12..16 -> "Good Afternoon"
+            else -> "Good Evening"
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = welcomeMessage,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = userName.ifBlank { "User" },
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            if (userPhotoUri != null) {
+                AsyncImage(
+                    model = userPhotoUri,
+                    contentDescription = "Profile Photo",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
 }

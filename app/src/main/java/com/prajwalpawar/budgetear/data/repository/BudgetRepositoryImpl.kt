@@ -32,6 +32,10 @@ class BudgetRepositoryImpl @Inject constructor(
         transactionDao.insertTransaction(transaction.toEntity())
     }
 
+    override suspend fun updateTransaction(transaction: Transaction) {
+        transactionDao.updateTransaction(transaction.toEntity())
+    }
+
     override suspend fun deleteTransaction(transaction: Transaction) {
         transactionDao.deleteTransaction(transaction.toEntity())
     }

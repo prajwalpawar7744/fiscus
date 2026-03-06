@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prajwalpawar.budgetear.data.local.pref.PreferenceManager
 import com.prajwalpawar.budgetear.domain.repository.BudgetRepository
+import com.prajwalpawar.budgetear.data.local.backup.BackupManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -20,7 +21,8 @@ data class SettingsUiState(
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val preferenceManager: PreferenceManager,
-    private val repository: BudgetRepository
+    private val repository: BudgetRepository,
+    private val backupManager: BackupManager
 ) : ViewModel() {
 
     val uiState: StateFlow<SettingsUiState> = combine(
@@ -67,5 +69,13 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             repository.clearAllData()
         }
+    }
+
+    suspend fun exportData(): String? {
+        return backupManager.exportData()
+    }
+
+    suspend fun importData(jsonData: String): Boolean {
+        return backupManager.importData(jsonData)
     }
 }

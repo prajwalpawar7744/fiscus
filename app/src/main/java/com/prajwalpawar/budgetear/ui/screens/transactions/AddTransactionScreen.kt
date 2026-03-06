@@ -49,7 +49,7 @@ fun AddTransactionScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "Add Transaction",
+            text = if (uiState.transactionId == null) "Add Transaction" else "Edit Transaction",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.SemiBold
         )
@@ -144,7 +144,23 @@ fun AddTransactionScreen(
             shape = MaterialTheme.shapes.large,
             enabled = uiState.title.isNotBlank() && uiState.amount.isNotBlank()
         ) {
-            Text("Save Transaction", style = MaterialTheme.typography.titleMedium)
+            val buttonText = if (uiState.transactionId == null) "Save Transaction" else "Update Transaction"
+            Text(buttonText, style = MaterialTheme.typography.titleMedium)
+        }
+
+        if (uiState.transactionId != null) {
+            OutlinedButton(
+                onClick = viewModel::deleteTransaction,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = MaterialTheme.shapes.large,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("Delete Transaction", style = MaterialTheme.typography.titleMedium)
+            }
         }
         
         Spacer(modifier = Modifier.height(16.dp))
