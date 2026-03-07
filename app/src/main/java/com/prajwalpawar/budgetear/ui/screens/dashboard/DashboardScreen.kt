@@ -278,7 +278,7 @@ fun SummaryItem(label: String, amount: String, color: Color, icon: ImageVector) 
     Row(verticalAlignment = Alignment.CenterVertically) {
         Surface(
             shape = CircleShape,
-            color = color.copy(alpha = 0.15f),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
             modifier = Modifier.size(44.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
@@ -362,7 +362,7 @@ fun TransactionItem(
         },
         leadingContent = {
             Surface(
-                color = category?.color?.let { Color(it).copy(alpha = 0.1f) } ?: MaterialTheme.colorScheme.surfaceVariant,
+                color = category?.color?.let { Color(it).copy(alpha = 0.12f) } ?: MaterialTheme.colorScheme.surfaceContainerHigh,
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.size(40.dp)
             ) {
