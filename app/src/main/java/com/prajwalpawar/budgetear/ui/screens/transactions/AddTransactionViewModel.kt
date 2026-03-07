@@ -51,12 +51,13 @@ class AddTransactionViewModel @Inject constructor(
     private fun fetchCategories() {
         viewModelScope.launch {
             repository.getCategories().collect { categories ->
+                _allCategories.value = categories.distinctBy { it.name + it.type?.name }
+                
                 if (categories.isEmpty()) {
                     seedDefaultCategories()
                 } else {
-                    _allCategories.value = categories
                     _uiState.update { currentState ->
-                        val filtered = categories.filter { it.type == null || it.type == currentState.type }
+                        val filtered = _allCategories.value.filter { it.type == null || it.type == currentState.type }
                         currentState.copy(
                             categoryId = currentState.categoryId ?: filtered.firstOrNull()?.id
                         )

@@ -53,7 +53,7 @@ fun DashboardScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(showBottomSheet) {
-        if (showBottomSheet) {
+        if (!showBottomSheet) {
             addTransactionViewModel.resetState()
         }
     }
@@ -82,16 +82,66 @@ fun DashboardScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Budgetear", fontWeight = FontWeight.Bold) },
+                title = {
+                    Column {
+                        val welcomeMessage = remember {
+                            val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+                            when (hour) {
+                                in 0..11 -> "Good Morning"
+                                in 12..16 -> "Good Afternoon"
+                                else -> "Good Evening"
+                            }
+                        }
+                        Text(
+                            text = welcomeMessage,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = uiState.userName.ifBlank { "User" },
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                },
+                actions = {
+                    Box(
+                        modifier = Modifier
+                            .padding(end = 16.dp)
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (uiState.userPhotoUri != null) {
+                            AsyncImage(
+                                model = uiState.userPhotoUri,
+                                contentDescription = "Profile Photo",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
-        floatingActionButton = @androidx.compose.runtime.Composable {
+        floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { showBottomSheet = true },
+                onClick = { 
+                    addTransactionViewModel.resetState()
+                    showBottomSheet = true 
+                },
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
@@ -106,13 +156,6 @@ fun DashboardScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item {
-                ProfileHeader(
-                    userName = uiState.userName,
-                    userPhotoUri = uiState.userPhotoUri
-                )
-            }
-
             item {
                 BalanceCard(
                     balance = uiState.balance,
@@ -351,62 +394,4 @@ fun TransactionItem(
         color = MaterialTheme.colorScheme.outlineVariant
     )
 }
-@Composable
-fun ProfileHeader(
-    userName: String,
-    userPhotoUri: String?
-) {
-    val welcomeMessage = remember {
-        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        when (hour) {
-            in 0..11 -> "Good Morning"
-            in 12..16 -> "Good Afternoon"
-            else -> "Good Evening"
-        }
-    }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = welcomeMessage,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = userName.ifBlank { "User" },
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentAlignment = Alignment.Center
-        ) {
-            if (userPhotoUri != null) {
-                AsyncImage(
-                    model = userPhotoUri,
-                    contentDescription = "Profile Photo",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
