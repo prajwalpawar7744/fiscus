@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
+import com.prajwalpawar.budgetear.ui.components.ConfirmationDialog
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -42,6 +43,8 @@ fun SettingsScreen(
     var tempName by remember { mutableStateOf("") }
     
     var showCurrencyDialog by remember { mutableStateOf(false) }
+    var showResetDialog by remember { mutableStateOf(false) }
+    var showImportWarning by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -234,7 +237,7 @@ fun SettingsScreen(
                         title = "Import Data",
                         subtitle = "Restore data from a JSON file",
                         icon = Icons.Default.CloudUpload,
-                        onClick = { importLauncher.launch("application/json") }
+                        onClick = { showImportWarning = true }
                     )
                 }
             }
@@ -246,11 +249,45 @@ fun SettingsScreen(
                         title = "Reset Data",
                         subtitle = "Clear all transactions and accounts",
                         textColor = MaterialTheme.colorScheme.error,
-                        onClick = { viewModel.resetData() }
+                        onClick = { showResetDialog = true }
                     )
                 }
             }
         }
+    }
+
+    if (showResetDialog) {
+        ConfirmationDialog(
+            onDismissRequest = { showResetDialog = false },
+            onConfirm = {
+                viewModel.resetData()
+                showResetDialog = false
+                scope.launch {
+                    snackbarHostState.showSnackbar("All data has been reset")
+                }
+            },
+            title = "Reset All Data?",
+            text = "This will permanently delete ALL transactions, accounts, and categories. This action cannot be undone.",
+            confirmButtonText = "Reset Everything",
+            icon = Icons.Default.Warning
+        )
+    }
+
+    if (showImportWarning) {
+        ConfirmationDialog(
+            onDismissRequest = { showImportWarning = false },
+            onConfirm = {
+                showImportWarning = false
+                importLauncher.launch("application/json")
+            },
+            title = "Import Data?",
+            text = "Importing data will replace your current transactions, accounts, and categories with the data from the backup file. Proceed?",
+            confirmButtonText = "Import",
+            icon = Icons.Default.CloudUpload,
+            confirmButtonColor = ButtonDefaults.textButtonColors(
+                contentColor = MaterialTheme.colorScheme.primary
+            )
+        )
     }
 
     if (showNameDialog) {

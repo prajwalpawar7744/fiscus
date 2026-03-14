@@ -54,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.prajwalpawar.budgetear.domain.model.TransactionType
+import com.prajwalpawar.budgetear.ui.components.ConfirmationDialog
 import com.prajwalpawar.budgetear.ui.utils.getCategoryIcon
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -71,6 +72,7 @@ fun AddTransactionScreen(
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = uiState.date.time
     )
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
 
@@ -250,7 +252,7 @@ fun AddTransactionScreen(
 
         if (uiState.transactionId != null) {
             OutlinedButton(
-                onClick = viewModel::deleteTransaction,
+                onClick = { showDeleteDialog = true },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -272,5 +274,19 @@ fun AddTransactionScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+    }
+
+    if (showDeleteDialog) {
+        ConfirmationDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            onConfirm = {
+                viewModel.deleteTransaction()
+                showDeleteDialog = false
+            },
+            title = "Delete Transaction?",
+            text = "Are you sure you want to delete this transaction? This action cannot be undone.",
+            confirmButtonText = "Delete",
+            icon = Icons.Default.Delete
+        )
     }
 }

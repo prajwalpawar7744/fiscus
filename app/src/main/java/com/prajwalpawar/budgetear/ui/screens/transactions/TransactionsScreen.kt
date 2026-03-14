@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.text.style.TextOverflow
+import com.prajwalpawar.budgetear.ui.components.ConfirmationDialog
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -38,8 +39,12 @@ fun TransactionsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by remember { mutableStateOf(false) }
+
+    var transactionToDelete by remember { mutableStateOf<com.prajwalpawar.budgetear.domain.model.Transaction?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     
     LaunchedEffect(showBottomSheet) {
         if (!showBottomSheet) {
@@ -72,7 +77,8 @@ fun TransactionsScreen(
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -333,8 +339,8 @@ fun TransactionsScreen(
                                         showBottomSheet = true
                                     },
                                     onDelete = {
-                                        addTransactionViewModel.setTransactionForEdit(item.transaction)
-                                        addTransactionViewModel.deleteTransaction()
+                                        transactionToDelete = item.transaction
+                                        showDeleteDialog = true
                                     }
                                 )
                             }
@@ -343,6 +349,30 @@ fun TransactionsScreen(
                 }
             }
         }
+    }
+
+    if (showDeleteDialog && transactionToDelete != null) {
+        ConfirmationDialog(
+            onDismissRequest = { 
+                showDeleteDialog = false
+                transactionToDelete = null
+            },
+            onConfirm = {
+                transactionToDelete?.let { transaction ->
+                    addTransactionViewModel.setTransactionForEdit(transaction)
+                    addTransactionViewModel.deleteTransaction()
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Transaction deleted")
+                    }
+                }
+                showDeleteDialog = false
+                transactionToDelete = null
+            },
+            title = "Delete Transaction?",
+            text = "Are you sure you want to delete this transaction? This action cannot be undone.",
+            confirmButtonText = "Delete",
+            icon = Icons.Default.Delete
+        )
     }
     if (showBottomSheet) {
         ModalBottomSheet(
