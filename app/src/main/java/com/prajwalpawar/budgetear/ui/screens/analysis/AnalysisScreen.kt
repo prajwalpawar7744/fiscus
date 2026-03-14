@@ -1,40 +1,15 @@
 package com.prajwalpawar.budgetear.ui.screens.analysis
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Analytics
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -42,16 +17,22 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.prajwalpawar.budgetear.ui.utils.EmptyState
 import com.prajwalpawar.budgetear.ui.utils.formatCurrency
 import com.prajwalpawar.budgetear.ui.utils.getCategoryIcon
-
-
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-
+import com.prajwalpawar.budgetear.domain.model.TransactionType
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +40,7 @@ fun AnalysisScreen(
     viewModel: AnalysisViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    
     Scaffold(
         topBar = {
             TopAppBar(
@@ -88,19 +70,212 @@ fun AnalysisScreen(
                         fontWeight = FontWeight.Bold
                     )
 
-                    SingleChoiceSegmentedButtonRow {
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                         SegmentedButton(
                             selected = uiState.granularity == AnalysisGranularity.DAILY,
                             onClick = { viewModel.setGranularity(AnalysisGranularity.DAILY) },
                             shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                            label = { Text("Daily") }
+                            label = { Text("Daily", style = MaterialTheme.typography.labelMedium) }
                         )
                         SegmentedButton(
                             selected = uiState.granularity == AnalysisGranularity.MONTHLY,
                             onClick = { viewModel.setGranularity(AnalysisGranularity.MONTHLY) },
                             shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                            label = { Text("Monthly") }
+                            label = { Text("Monthly", style = MaterialTheme.typography.labelMedium) }
                         )
+                    }
+
+                    // Advanced Filters Surface
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.surfaceContainerLow,
+                        shape = MaterialTheme.shapes.large,
+                        tonalElevation = 1.dp
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            // First row: Transaction Type & Time Range
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                // Transaction Type Dropdown
+                                var typeExpanded by remember { mutableStateOf(false) }
+                                ExposedDropdownMenuBox(
+                                    expanded = typeExpanded,
+                                    onExpandedChange = { typeExpanded = !typeExpanded },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    OutlinedTextField(
+                                        value = when(uiState.selectedTransactionType) {
+                                            TransactionType.EXPENSE -> "Expenses"
+                                            TransactionType.INCOME -> "Income"
+                                            null -> "All Types"
+                                        },
+                                        onValueChange = {},
+                                        readOnly = true,
+                                        maxLines = 1,
+                                        label = { Text("Type", style = MaterialTheme.typography.labelSmall) },
+                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
+                                        modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
+                                        shape = MaterialTheme.shapes.medium,
+                                        textStyle = MaterialTheme.typography.bodySmall,
+                                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                                        )
+                                    )
+                                    ExposedDropdownMenu(
+                                        expanded = typeExpanded,
+                                        onDismissRequest = { typeExpanded = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Expenses") },
+                                            onClick = { viewModel.onTransactionTypeSelected(TransactionType.EXPENSE); typeExpanded = false },
+                                            leadingIcon = { Icon(Icons.Default.ArrowDownward, contentDescription = null, tint = Color.Red) }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Income") },
+                                            onClick = { viewModel.onTransactionTypeSelected(TransactionType.INCOME); typeExpanded = false },
+                                            leadingIcon = { Icon(Icons.Default.ArrowUpward, contentDescription = null, tint = Color.Green) }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("All") },
+                                            onClick = { viewModel.onTransactionTypeSelected(null); typeExpanded = false },
+                                            leadingIcon = { Icon(Icons.Default.HorizontalRule, contentDescription = null) }
+                                        )
+                                    }
+                                }
+
+                                // Time Range Dropdown
+                                var timeExpanded by remember { mutableStateOf(false) }
+                                var showDatePicker by remember { mutableStateOf(false) }
+                                ExposedDropdownMenuBox(
+                                    expanded = timeExpanded,
+                                    onExpandedChange = { timeExpanded = !timeExpanded },
+                                    modifier = Modifier.weight(1.2f)
+                                ) {
+                                    val timeLabel = when (uiState.selectedTimeRange) {
+                                        TimeRange.CUSTOM -> if (uiState.startDate != null && uiState.endDate != null) {
+                                            "${uiState.startDate} - ${uiState.endDate}"
+                                        } else "Custom"
+                                        else -> uiState.selectedTimeRange.name.lowercase().replaceFirstChar { it.uppercase() }.replace("_", " ")
+                                    }
+                                    OutlinedTextField(
+                                        value = timeLabel,
+                                        onValueChange = {},
+                                        readOnly = true,
+                                        maxLines = 1,
+                                        label = { Text("Period", style = MaterialTheme.typography.labelSmall) },
+                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = timeExpanded) },
+                                        modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
+                                        shape = MaterialTheme.shapes.medium,
+                                        textStyle = MaterialTheme.typography.bodySmall,
+                                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                                        )
+                                    )
+                                    ExposedDropdownMenu(
+                                        expanded = timeExpanded,
+                                        onDismissRequest = { timeExpanded = false }
+                                    ) {
+                                        TimeRange.entries.forEach { range ->
+                                            DropdownMenuItem(
+                                                text = { Text(range.name.lowercase().replaceFirstChar { it.uppercase() }.replace("_", " ")) },
+                                                onClick = {
+                                                    viewModel.onTimeRangeSelected(range)
+                                                    timeExpanded = false
+                                                    if (range == TimeRange.CUSTOM) showDatePicker = true
+                                                },
+                                                leadingIcon = {
+                                                    Icon(when(range) {
+                                                        TimeRange.TODAY -> Icons.Default.Today
+                                                        TimeRange.THIS_WEEK -> Icons.Default.DateRange
+                                                        TimeRange.THIS_MONTH -> Icons.Default.CalendarMonth
+                                                        TimeRange.THIS_YEAR -> Icons.Default.CalendarToday
+                                                        TimeRange.CUSTOM -> Icons.Default.EditCalendar
+                                                        else -> Icons.Default.History
+                                                    }, contentDescription = null)
+                                                }
+                                            )
+                                        }
+                                    }
+
+                                    if (showDatePicker) {
+                                        val dateRangePickerState = rememberDateRangePickerState()
+                                        DatePickerDialog(
+                                            onDismissRequest = { showDatePicker = false },
+                                            confirmButton = {
+                                                TextButton(onClick = {
+                                                    val start = dateRangePickerState.selectedStartDateMillis?.let {
+                                                        Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                                                    }
+                                                    val end = dateRangePickerState.selectedEndDateMillis?.let {
+                                                        Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                                                    }
+                                                    viewModel.onDateRangeSelected(start, end)
+                                                    showDatePicker = false
+                                                }) { Text("Confirm") }
+                                            },
+                                            dismissButton = {
+                                                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                                            }
+                                        ) {
+                                            DateRangePicker(
+                                                state = dateRangePickerState,
+                                                modifier = Modifier.weight(1f).padding(16.dp),
+                                                title = { Text("Select Date Range", modifier = Modifier.padding(16.dp)) }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Second row: Category Dropdown
+                            var categoryExpanded by remember { mutableStateOf(false) }
+                            ExposedDropdownMenuBox(
+                                expanded = categoryExpanded,
+                                onExpandedChange = { categoryExpanded = !categoryExpanded },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                val selectedCategory = uiState.allCategories.find { it.id == uiState.selectedCategoryId }
+                                OutlinedTextField(
+                                    value = selectedCategory?.name ?: "All Categories",
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    maxLines = 1,
+                                    label = { Text("Category Filter", style = MaterialTheme.typography.labelSmall) },
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                                    modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true),
+                                    shape = MaterialTheme.shapes.medium,
+                                    textStyle = MaterialTheme.typography.bodySmall,
+                                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                                    )
+                                )
+                                ExposedDropdownMenu(
+                                    expanded = categoryExpanded,
+                                    onDismissRequest = { categoryExpanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("All Categories") },
+                                        onClick = { viewModel.onCategorySelected(null); categoryExpanded = false },
+                                        leadingIcon = { Icon(Icons.Default.Category, contentDescription = null) }
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                                    uiState.allCategories.forEach { category ->
+                                        DropdownMenuItem(
+                                            text = { Text(category.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                            onClick = { viewModel.onCategorySelected(category.id); categoryExpanded = false },
+                                            leadingIcon = {
+                                                Box(modifier = Modifier.size(12.dp).background(Color(category.color), CircleShape))
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -173,7 +348,7 @@ fun AnalysisSummaryCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
-            ) {
+              ) {
                 Column {
                     Text(
                         text = "Total Spending",
@@ -197,7 +372,7 @@ fun AnalysisSummaryCard(
                         color = MaterialTheme.colorScheme.primary,
                         trackColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.2f),
                         strokeWidth = 8.dp,
-                        strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+                        strokeCap = StrokeCap.Round
                     )
                 }
             }
@@ -259,7 +434,7 @@ fun CategoryAnalysisItem(
                 .height(8.dp),
             color = Color(analysis.category.color),
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
-            strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+            strokeCap = StrokeCap.Round
         )
     }
 }
