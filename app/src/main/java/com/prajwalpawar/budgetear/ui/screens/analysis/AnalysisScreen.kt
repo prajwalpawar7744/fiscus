@@ -9,10 +9,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.*
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -36,7 +38,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.math.*
-import kotlinx.coroutines.launch
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,15 +46,19 @@ fun AnalysisScreen(
     viewModel: AnalysisViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = { Text("Analysis", fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+                scrollBehavior = scrollBehavior
             )
         }
     ) { padding ->
@@ -93,8 +99,8 @@ fun AnalysisScreen(
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         color = MaterialTheme.colorScheme.surfaceContainerLow,
-                        shape = MaterialTheme.shapes.large,
-                        tonalElevation = 1.dp
+                        shape = MaterialTheme.shapes.extraLarge,
+                        tonalElevation = 2.dp
                     ) {
                         Column(
                             modifier = Modifier.padding(12.dp),
@@ -297,7 +303,7 @@ fun AnalysisScreen(
                                         Icon(
                                             imageVector = when(type) {
                                                 AnalysisChartType.BAR -> Icons.Default.BarChart
-                                                AnalysisChartType.LINE -> Icons.Default.ShowChart
+                                                AnalysisChartType.LINE -> Icons.AutoMirrored.Filled.ShowChart
                                                 AnalysisChartType.PIE -> Icons.Default.PieChart
                                             },
                                             contentDescription = null,
@@ -311,34 +317,44 @@ fun AnalysisScreen(
                         }
                     }
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(240.dp)
-                            .padding(vertical = 8.dp)
+                    ElevatedCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+                        shape = MaterialTheme.shapes.large
                     ) {
-                        when (uiState.selectedChartType) {
-                            AnalysisChartType.BAR -> {
-                                BarChart(
-                                    dataPoints = if (uiState.selectedTransactionType == TransactionType.INCOME) uiState.incomeDataPoints else uiState.expenseDataPoints,
-                                    modifier = Modifier.fillMaxSize(),
-                                    color = if (uiState.selectedTransactionType == TransactionType.INCOME) Color.Green else MaterialTheme.colorScheme.primary
-                                )
-                            }
-                            AnalysisChartType.LINE -> {
-                                LineChart(
-                                    expensePoints = uiState.expenseDataPoints,
-                                    incomePoints = uiState.incomeDataPoints,
-                                    showExpense = uiState.selectedTransactionType == TransactionType.EXPENSE || uiState.selectedTransactionType == null,
-                                    showIncome = uiState.selectedTransactionType == TransactionType.INCOME || uiState.selectedTransactionType == null,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                            AnalysisChartType.PIE -> {
-                                PieChart(
-                                    breakdown = uiState.categoryBreakdown,
-                                    modifier = Modifier.fillMaxSize()
-                                )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(260.dp)
+                                .padding(16.dp)
+                        ) {
+                            when (uiState.selectedChartType) {
+                                AnalysisChartType.BAR -> {
+                                    BarChart(
+                                        dataPoints = if (uiState.selectedTransactionType == TransactionType.INCOME) uiState.incomeDataPoints else uiState.expenseDataPoints,
+                                        modifier = Modifier.fillMaxSize(),
+                                        color = if (uiState.selectedTransactionType == TransactionType.INCOME) Color.Green else MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                AnalysisChartType.LINE -> {
+                                    LineChart(
+                                        expensePoints = uiState.expenseDataPoints,
+                                        incomePoints = uiState.incomeDataPoints,
+                                        showExpense = uiState.selectedTransactionType == TransactionType.EXPENSE || uiState.selectedTransactionType == null,
+                                        showIncome = uiState.selectedTransactionType == TransactionType.INCOME || uiState.selectedTransactionType == null,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+                                AnalysisChartType.PIE -> {
+                                    PieChart(
+                                        breakdown = uiState.categoryBreakdown,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
                             }
                         }
                     }
@@ -356,8 +372,10 @@ fun AnalysisScreen(
             item {
                 Text(
                     text = "Expense Breakdown",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(top = 8.dp)
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
                 )
             }
 
@@ -439,57 +457,89 @@ fun CategoryAnalysisItem(
     analysis: CategoryAnalysis,
     currencyCode: String
 ) {
-    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp, horizontal = 2.dp)
+            .clip(MaterialTheme.shapes.medium),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp, horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                Surface(
-                    color = Color(analysis.category.color).copy(alpha = 0.1f),
-                    shape = MaterialTheme.shapes.small,
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = getCategoryIcon(analysis.category.icon),
-                            contentDescription = null,
-                            tint = Color(analysis.category.color),
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
+            Surface(
+                shape = MaterialTheme.shapes.medium,
+                color = Color(analysis.category.color).copy(alpha = 0.12f),
+                modifier = Modifier.size(48.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = getCategoryIcon(analysis.category.icon ?: ""),
+                        contentDescription = null,
+                        tint = Color(analysis.category.color),
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = analysis.category.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
-                )
             }
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = formatCurrency(analysis.amount, currencyCode),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "${(analysis.percentage * 100).toInt()}%",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = analysis.category.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = formatCurrency(analysis.amount, currencyCode),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.error // Since it's an expense breakdown usually
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${analysis.transactionCount} transactions",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "${(analysis.percentage * 100).toInt()}%",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                LinearProgressIndicator(
+                    progress = { analysis.percentage },
+                    modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
+                    color = Color(analysis.category.color),
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
             }
         }
-
-        LinearProgressIndicator(
-            progress = { analysis.percentage },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp),
-            color = Color(analysis.category.color),
-            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-            strokeCap = StrokeCap.Round
-        )
     }
 }
 

@@ -20,7 +20,7 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -138,6 +138,12 @@ fun BudgetearAppContent(
     val currentDestination = navBackStackEntry?.destination?.route
 
     NavigationSuiteScaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
+        navigationSuiteColors = NavigationSuiteDefaults.colors(
+            navigationBarContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            navigationBarContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        ),
         navigationSuiteItems = {
             item(
                 selected = currentDestination == "dashboard",
@@ -148,8 +154,13 @@ fun BudgetearAppContent(
                         restoreState = true
                     }
                 },
-                icon = { Icon(Icons.Default.Dashboard, contentDescription = "Dashboard") },
-                label = { Text("Dashboard") }
+                icon = { 
+                    Icon(
+                        imageVector = if (currentDestination == "dashboard") Icons.Default.Dashboard else Icons.Default.Dashboard, 
+                        contentDescription = "Dashboard"
+                    ) 
+                },
+                label = { Text("Overview") }
             )
             item(
                 selected = currentDestination == "transactions",
@@ -160,8 +171,13 @@ fun BudgetearAppContent(
                         restoreState = true
                     }
                 },
-                icon = { Icon(Icons.Default.History, contentDescription = "Transactions") },
-                label = { Text("Transactions") }
+                icon = { 
+                    Icon(
+                        imageVector = if (currentDestination == "transactions") Icons.Default.History else Icons.Default.History, 
+                        contentDescription = "Transactions"
+                    ) 
+                },
+                label = { Text("History") }
             )
             item(
                 selected = currentDestination == "analysis",
@@ -172,7 +188,12 @@ fun BudgetearAppContent(
                         restoreState = true
                     }
                 },
-                icon = { Icon(Icons.Default.Analytics, contentDescription = "Analysis") },
+                icon = { 
+                    Icon(
+                        imageVector = if (currentDestination == "analysis") Icons.Default.Analytics else Icons.Default.Analytics, 
+                        contentDescription = "Analysis"
+                    ) 
+                },
                 label = { Text("Analysis") }
             )
             item(
@@ -184,7 +205,12 @@ fun BudgetearAppContent(
                         restoreState = true
                     }
                 },
-                icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
+                icon = { 
+                    Icon(
+                        imageVector = if (currentDestination == "settings") Icons.Default.Settings else Icons.Default.Settings, 
+                        contentDescription = "Settings"
+                    ) 
+                },
                 label = { Text("Settings") }
             )
         }

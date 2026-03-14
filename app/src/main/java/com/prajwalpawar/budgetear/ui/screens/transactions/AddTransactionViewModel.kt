@@ -94,8 +94,12 @@ class AddTransactionViewModel @Inject constructor(
     }
 
     fun onAmountChange(amount: String) {
-        if (amount.isEmpty() || amount.toDoubleOrNull() != null) {
-            _uiState.update { it.copy(amount = amount) }
+        // Only allow digits and a single decimal point
+        val filteredAmount = amount.filter { it.isDigit() || it == '.' }
+        val dotCount = filteredAmount.count { it == '.' }
+        
+        if (dotCount <= 1) {
+            _uiState.update { it.copy(amount = filteredAmount) }
         }
     }
 

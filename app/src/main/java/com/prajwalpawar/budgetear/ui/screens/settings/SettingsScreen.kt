@@ -19,6 +19,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import com.prajwalpawar.budgetear.ui.components.ConfirmationDialog
@@ -48,6 +49,7 @@ fun SettingsScreen(
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json"),
@@ -119,50 +121,66 @@ fun SettingsScreen(
 
             // Profile Section
             item {
-                Column(
+                ElevatedCard(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .clickable { photoLauncher.launch("image/*") },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (uiState.userPhotoUri != null) {
-                            AsyncImage(
-                                model = uiState.userPhotoUri,
-                                contentDescription = "Profile Photo",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = null,
-                                modifier = Modifier.size(48.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Text(
-                        text = uiState.userName.ifBlank { "Add Name" },
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.clickable { 
-                            tempName = uiState.userName
-                            showNameDialog = true 
-                        }
+                    shape = MaterialTheme.shapes.extraLarge,
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                     )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(112.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                                .clickable { photoLauncher.launch("image/*") },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (uiState.userPhotoUri != null) {
+                                AsyncImage(
+                                    model = uiState.userPhotoUri,
+                                    contentDescription = "Profile Photo",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.PhotoCamera,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(40.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Text(
+                            text = uiState.userName.ifBlank { "Add Name" },
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clickable { 
+                                tempName = uiState.userName
+                                showNameDialog = true 
+                            }
+                        )
+                        
+                        Text(
+                            text = "Tap to edit profile",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                        )
+                    }
                 }
             }
 
-            item { HorizontalDivider() }
+            item { Spacer(modifier = Modifier.height(8.dp)) }
 
             // Preferences
             item {
@@ -185,31 +203,18 @@ fun SettingsScreen(
 
             item {
                 SettingsGroup(title = "Security") {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Fingerprint, contentDescription = null, tint = LocalContentColor.current)
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Column {
-                                Text("Biometric Lock", style = MaterialTheme.typography.bodyLarge)
-                                Text(
-                                    "Require fingerprint to open app",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                        Switch(
-                            checked = uiState.isBiometricEnabled,
-                            onCheckedChange = { viewModel.updateBiometricEnabled(it) },
-                            modifier = Modifier.padding(end = 16.dp)
-                        )
-                    }
+                    SettingsItem(
+                        icon = Icons.Default.Fingerprint,
+                        title = "Biometric Lock",
+                        subtitle = "Require fingerprint to open app",
+                        trailingContent = {
+                            Switch(
+                                checked = uiState.isBiometricEnabled,
+                                onCheckedChange = { viewModel.updateBiometricEnabled(it) }
+                            )
+                        },
+                        onClick = { viewModel.updateBiometricEnabled(!uiState.isBiometricEnabled) }
+                    )
                 }
             }
 
@@ -315,7 +320,7 @@ fun SettingsScreen(
     }
 
     if (showCurrencyDialog) {
-        val currencies = listOf("USD", "EUR", "GBP", "INR", "JPY")
+        val currencies = listOf("INR", "USD", "EUR", "GBP", "JPY")
         AlertDialog(
             onDismissRequest = { showCurrencyDialog = false },
             title = { Text("Select Currency") },
@@ -348,14 +353,15 @@ fun SettingsGroup(title: String, content: @Composable ColumnScope.() -> Unit) {
             text = title,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp)
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp)
         )
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainer,
-            shape = MaterialTheme.shapes.large,
+            shape = MaterialTheme.shapes.extraLarge,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+            Column(modifier = Modifier.padding(vertical = 8.dp)) {
                 content()
             }
         }
@@ -368,26 +374,38 @@ fun SettingsItem(
     title: String,
     subtitle: String? = null,
     textColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface,
+    trailingContent: @Composable (() -> Unit)? = null,
     onClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(icon, contentDescription = null, tint = if (textColor != MaterialTheme.colorScheme.onSurface) textColor else LocalContentColor.current)
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(title, style = MaterialTheme.typography.bodyLarge, color = textColor)
-            if (subtitle != null) {
+    ListItem(
+        modifier = Modifier.clickable(onClick = onClick),
+        headlineContent = {
+            Text(
+                title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = textColor
+            )
+        },
+        supportingContent = subtitle?.let {
+            {
                 Text(
-                    subtitle,
-                    style = MaterialTheme.typography.bodySmall,
+                    it,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        }
-    }
+        },
+        leadingContent = {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = if (textColor != MaterialTheme.colorScheme.onSurface) textColor else MaterialTheme.colorScheme.primary
+            )
+        },
+        trailingContent = trailingContent,
+        colors = ListItemDefaults.colors(
+            containerColor = androidx.compose.ui.graphics.Color.Transparent
+        )
+    )
 }

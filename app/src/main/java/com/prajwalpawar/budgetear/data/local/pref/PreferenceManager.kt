@@ -42,7 +42,7 @@ class PreferenceManager @Inject constructor(
     }
 
     val currency: Flow<String> = dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.CURRENCY] ?: "USD"
+        preferences[PreferencesKeys.CURRENCY] ?: "INR"
     }
 
     suspend fun updateUserName(name: String) {

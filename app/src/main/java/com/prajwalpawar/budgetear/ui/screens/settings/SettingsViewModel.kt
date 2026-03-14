@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 data class SettingsUiState(
     val userName: String = "",
@@ -49,7 +50,7 @@ class SettingsViewModel @Inject constructor(
 
     fun updateUserPhotoUri(uriString: String) {
         viewModelScope.launch {
-            val uri = Uri.parse(uriString)
+            val uri = uriString.toUri()
             val localPath = saveImageToInternalStorage(uri)
             if (localPath != null) {
                 preferenceManager.updateUserPhotoUri(localPath)

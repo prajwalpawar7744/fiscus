@@ -53,7 +53,8 @@ data class AnalysisUiState(
 data class CategoryAnalysis(
     val category: Category,
     val amount: Double,
-    val percentage: Float
+    val percentage: Float,
+    val transactionCount: Int
 )
 
 @HiltViewModel
@@ -154,7 +155,8 @@ class AnalysisViewModel @Inject constructor(
             CategoryAnalysis(
                 category = category,
                 amount = amount,
-                percentage = if (total > 0) (amount / total).toFloat() else 0f
+                percentage = if (total > 0) (amount / total).toFloat() else 0f,
+                transactionCount = transList.size
             )
         }.sortedByDescending { it.amount }
 
