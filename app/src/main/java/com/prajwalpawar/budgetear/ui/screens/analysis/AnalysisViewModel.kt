@@ -20,6 +20,10 @@ enum class AnalysisGranularity {
     DAILY, MONTHLY
 }
 
+enum class AnalysisChartType {
+    BAR, LINE, PIE
+}
+
 data class TimeDataPoint(
     val label: String,
     val amount: Double
@@ -42,7 +46,8 @@ data class AnalysisUiState(
     val endDate: LocalDate? = null,
     val selectedTransactionType: TransactionType? = TransactionType.EXPENSE,
     val allCategories: List<Category> = emptyList(),
-    val selectedCategoryId: Long? = null
+    val selectedCategoryId: Long? = null,
+    val selectedChartType: AnalysisChartType = AnalysisChartType.BAR
 )
 
 data class CategoryAnalysis(
@@ -63,6 +68,7 @@ class AnalysisViewModel @Inject constructor(
     private val _endDate = MutableStateFlow<LocalDate?>(null)
     private val _selectedTransactionType = MutableStateFlow<TransactionType?>(TransactionType.EXPENSE)
     private val _selectedCategoryId = MutableStateFlow<Long?>(null)
+    private val _selectedChartType = MutableStateFlow(AnalysisChartType.BAR)
 
     private val _categories = repository.getCategories()
         .distinctUntilChanged()
@@ -74,7 +80,8 @@ class AnalysisViewModel @Inject constructor(
         _startDate,
         _endDate,
         _selectedTransactionType,
-        _selectedCategoryId
+        _selectedCategoryId,
+        _selectedChartType
     ) { params ->
         FilterParams(
             granularity = params[0] as AnalysisGranularity,
@@ -82,7 +89,8 @@ class AnalysisViewModel @Inject constructor(
             startDate = params[2] as? LocalDate,
             endDate = params[3] as? LocalDate,
             type = params[4] as? TransactionType,
-            categoryId = params[5] as? Long
+            categoryId = params[5] as? Long,
+            chartType = params[6] as AnalysisChartType
         )
     }
 
@@ -92,7 +100,8 @@ class AnalysisViewModel @Inject constructor(
         val startDate: LocalDate?,
         val endDate: LocalDate?,
         val type: TransactionType?,
-        val categoryId: Long?
+        val categoryId: Long?,
+        val chartType: AnalysisChartType
     )
 
     val uiState: StateFlow<AnalysisUiState> = combine(
@@ -165,7 +174,8 @@ class AnalysisViewModel @Inject constructor(
             endDate = filters.endDate,
             selectedTransactionType = filters.type,
             allCategories = categories.distinctBy { "${it.name}-${it.type}" },
-            selectedCategoryId = filters.categoryId
+            selectedCategoryId = filters.categoryId,
+            selectedChartType = filters.chartType
         )
     }.flowOn(Dispatchers.Default)
     .stateIn(
@@ -193,6 +203,10 @@ class AnalysisViewModel @Inject constructor(
 
     fun onCategorySelected(categoryId: Long?) {
         _selectedCategoryId.value = categoryId
+    }
+
+    fun onChartTypeSelected(chartType: AnalysisChartType) {
+        _selectedChartType.value = chartType
     }
 
     private fun aggregateByTime(transactions: List<Transaction>, granularity: AnalysisGranularity): List<TimeDataPoint> {

@@ -1,5 +1,6 @@
 package com.prajwalpawar.budgetear.ui.screens.analysis
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,7 +18,9 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -32,6 +35,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.math.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -281,14 +285,64 @@ fun AnalysisScreen(
             }
 
             item {
-                BarChart(
-                    dataPoints = uiState.expenseDataPoints,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .padding(vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                        AnalysisChartType.entries.forEachIndexed { index, type ->
+                            SegmentedButton(
+                                selected = uiState.selectedChartType == type,
+                                onClick = { viewModel.onChartTypeSelected(type) },
+                                shape = SegmentedButtonDefaults.itemShape(index = index, count = AnalysisChartType.entries.size),
+                                label = { 
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = when(type) {
+                                                AnalysisChartType.BAR -> Icons.Default.BarChart
+                                                AnalysisChartType.LINE -> Icons.Default.ShowChart
+                                                AnalysisChartType.PIE -> Icons.Default.PieChart
+                                            },
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(Modifier.width(4.dp))
+                                        Text(type.name.lowercase().replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.labelSmall)
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(240.dp)
+                            .padding(vertical = 8.dp)
+                    ) {
+                        when (uiState.selectedChartType) {
+                            AnalysisChartType.BAR -> {
+                                BarChart(
+                                    dataPoints = if (uiState.selectedTransactionType == TransactionType.INCOME) uiState.incomeDataPoints else uiState.expenseDataPoints,
+                                    modifier = Modifier.fillMaxSize(),
+                                    color = if (uiState.selectedTransactionType == TransactionType.INCOME) Color.Green else MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            AnalysisChartType.LINE -> {
+                                LineChart(
+                                    expensePoints = uiState.expenseDataPoints,
+                                    incomePoints = uiState.incomeDataPoints,
+                                    showExpense = uiState.selectedTransactionType == TransactionType.EXPENSE || uiState.selectedTransactionType == null,
+                                    showIncome = uiState.selectedTransactionType == TransactionType.INCOME || uiState.selectedTransactionType == null,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                            AnalysisChartType.PIE -> {
+                                PieChart(
+                                    breakdown = uiState.categoryBreakdown,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             item {
@@ -487,6 +541,93 @@ fun BarChart(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun PieChart(
+    breakdown: List<CategoryAnalysis>,
+    modifier: Modifier = Modifier
+) {
+    if (breakdown.isEmpty()) {
+        Box(modifier = modifier, contentAlignment = Alignment.Center) {
+            Text("No data for pie chart", style = MaterialTheme.typography.bodyMedium)
+        }
+        return
+    }
+
+    val surfaceColor = MaterialTheme.colorScheme.surface
+
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Canvas(modifier = Modifier.size(200.dp)) {
+            var startAngle = -90f
+            breakdown.forEach { analysis ->
+                val sweepAngle = analysis.percentage * 360f
+                drawArc(
+                    color = Color(analysis.category.color),
+                    startAngle = startAngle,
+                    sweepAngle = sweepAngle,
+                    useCenter = true,
+                    size = size
+                )
+                startAngle += sweepAngle
+            }
+            // Draw center hole for donut style
+            drawCircle(
+                color = surfaceColor,
+                radius = size.minDimension / 4f
+            )
+        }
+    }
+}
+
+@Composable
+fun LineChart(
+    expensePoints: List<TimeDataPoint>,
+    incomePoints: List<TimeDataPoint>,
+    showExpense: Boolean,
+    showIncome: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val allPoints = (if (showExpense) expensePoints else emptyList()) + (if (showIncome) incomePoints else emptyList())
+    if (allPoints.isEmpty() || (showExpense && expensePoints.size < 2 && !showIncome) || (showIncome && incomePoints.size < 2 && !showExpense)) {
+        Box(modifier = modifier, contentAlignment = Alignment.Center) {
+            Text("No data for trend graph", style = MaterialTheme.typography.bodyMedium)
+        }
+        return
+    }
+
+    val maxAmount = remember(allPoints) { allPoints.maxOfOrNull { it.amount } ?: 1.0 }
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val incomeColor = Color.Green
+
+    Canvas(modifier = modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
+        val width = size.width
+        val height = size.height
+        
+        if (showExpense && expensePoints.size >= 2) {
+            val spacing = width / (expensePoints.size - 1)
+            val path = Path()
+            expensePoints.forEachIndexed { index, point ->
+                val x = index * spacing
+                val y = height - (point.amount / maxAmount).toFloat() * height
+                if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
+                drawCircle(primaryColor, radius = 3.dp.toPx(), center = Offset(x, y))
+            }
+            drawPath(path, primaryColor, style = Stroke(width = 2.dp.toPx()))
+        }
+
+        if (showIncome && incomePoints.size >= 2) {
+            val spacing = width / (incomePoints.size - 1)
+            val path = Path()
+            incomePoints.forEachIndexed { index, point ->
+                val x = index * spacing
+                val y = height - (point.amount / maxAmount).toFloat() * height
+                if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
+                drawCircle(incomeColor, radius = 3.dp.toPx(), center = Offset(x, y))
+            }
+            drawPath(path, incomeColor, style = Stroke(width = 2.dp.toPx()))
         }
     }
 }
