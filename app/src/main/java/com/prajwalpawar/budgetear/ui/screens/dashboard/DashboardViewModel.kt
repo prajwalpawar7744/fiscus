@@ -32,35 +32,33 @@ class DashboardViewModel @Inject constructor(
     private val _categories = repository.getCategories()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val uiState: StateFlow<DashboardUiState> = combine(
-        repository.getTransactions(),
-        _categories,
+    private val _userPrefs = combine(
         preferenceManager.currency,
         preferenceManager.userName,
         preferenceManager.userPhotoUri
-    ) { transactions, categories, currency, name, photo ->
-        var income = 0.0
-        var expense = 0.0
-        
-        for (transaction in transactions) {
-            if (transaction.type == TransactionType.INCOME) {
-                income += transaction.amount
-            } else {
-                expense += transaction.amount
-            }
-        }
-        
+    ) { currency, name, photo ->
+        Triple(currency, name, photo)
+    }
+
+    val uiState: StateFlow<DashboardUiState> = combine(
+        repository.getTotalAmountByType(TransactionType.INCOME.name),
+        repository.getTotalAmountByType(TransactionType.EXPENSE.name),
+        repository.getRecentTransactions(5),
+        _categories,
+        _userPrefs
+    ) { income, expense, recent, categories, prefs ->
+        val (currency, name, photo) = prefs
         DashboardUiState(
             balance = income - expense,
             totalIncome = income,
             totalExpense = expense,
-            recentTransactions = transactions.take(5),
+            recentTransactions = recent,
             categories = categories.associateBy { it.id ?: 0L },
             currency = currency,
             userName = name,
             userPhotoUri = photo
         )
-    }.flowOn(Dispatchers.IO)
+    }.flowOn(Dispatchers.Default)
     .stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

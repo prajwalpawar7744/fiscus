@@ -11,44 +11,40 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.LaunchedEffect
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.prajwalpawar.budgetear.ui.theme.BudgetearTheme
-import dagger.hilt.android.AndroidEntryPoint
-
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.*
-import com.prajwalpawar.budgetear.ui.screens.dashboard.DashboardScreen
-import com.prajwalpawar.budgetear.ui.screens.dashboard.DashboardViewModel
-import com.prajwalpawar.budgetear.ui.screens.transactions.TransactionsScreen
-import com.prajwalpawar.budgetear.ui.screens.transactions.TransactionsViewModel
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.prajwalpawar.budgetear.ui.screens.analysis.AnalysisScreen
 import com.prajwalpawar.budgetear.ui.screens.analysis.AnalysisViewModel
+import com.prajwalpawar.budgetear.ui.screens.dashboard.DashboardScreen
+import com.prajwalpawar.budgetear.ui.screens.dashboard.DashboardViewModel
 import com.prajwalpawar.budgetear.ui.screens.settings.SettingsScreen
 import com.prajwalpawar.budgetear.ui.screens.settings.SettingsViewModel
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Analytics
-import androidx.compose.material.icons.filled.Settings
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-
-import androidx.fragment.app.FragmentActivity
+import com.prajwalpawar.budgetear.ui.screens.transactions.TransactionsScreen
+import com.prajwalpawar.budgetear.ui.screens.transactions.TransactionsViewModel
+import com.prajwalpawar.budgetear.ui.theme.BudgetearTheme
+import dagger.hilt.android.AndroidEntryPoint
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import java.util.concurrent.Executor
+import androidx.fragment.app.FragmentActivity
 
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
@@ -61,7 +57,7 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val settingsState by settingsViewModel.uiState.collectAsState()
+            val settingsState by settingsViewModel.uiState.collectAsStateWithLifecycle()
             var isAuthenticated by remember { mutableStateOf(!settingsState.isBiometricEnabled) }
             
             // Re-check authentication if biometric setting changes to true
@@ -87,7 +83,6 @@ class MainActivity : FragmentActivity() {
                     if (isAuthenticated) {
                         BudgetearAppContent(dashboardViewModel, settingsViewModel)
                     } else {
-                        // Optional: Show a locked screen or just empty surface
                         Box(contentAlignment = Alignment.Center) {
                             Button(onClick = { 
                                 showBiometricPrompt { authenticated ->
@@ -124,8 +119,8 @@ class MainActivity : FragmentActivity() {
             })
 
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Biometric login for Budgetear")
-            .setSubtitle("Log in using your biometric credential")
+            .setTitle("Biometric login")
+            .setSubtitle("Access your budgetear")
             .setNegativeButtonText("Cancel")
             .build()
 
@@ -139,15 +134,19 @@ fun BudgetearAppContent(
     settingsViewModel: SettingsViewModel
 ) {
     val navController = rememberNavController()
-    var currentDestination by remember { mutableStateOf("dashboard") }
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination?.route
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
             item(
                 selected = currentDestination == "dashboard",
                 onClick = {
-                    currentDestination = "dashboard"
-                    navController.navigate("dashboard")
+                    navController.navigate("dashboard") {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 },
                 icon = { Icon(Icons.Default.Dashboard, contentDescription = "Dashboard") },
                 label = { Text("Dashboard") }
@@ -155,9 +154,8 @@ fun BudgetearAppContent(
             item(
                 selected = currentDestination == "transactions",
                 onClick = {
-                    currentDestination = "transactions"
                     navController.navigate("transactions") {
-                        popUpTo("dashboard") { saveState = true }
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
@@ -168,9 +166,8 @@ fun BudgetearAppContent(
             item(
                 selected = currentDestination == "analysis",
                 onClick = {
-                    currentDestination = "analysis"
                     navController.navigate("analysis") {
-                        popUpTo("dashboard") { saveState = true }
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
@@ -181,9 +178,8 @@ fun BudgetearAppContent(
             item(
                 selected = currentDestination == "settings",
                 onClick = {
-                    currentDestination = "settings"
                     navController.navigate("settings") {
-                        popUpTo("dashboard") { saveState = true }
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
@@ -202,8 +198,11 @@ fun BudgetearAppContent(
                 DashboardScreen(
                     viewModel = dashboardViewModel,
                     onSeeAllTransactions = {
-                        currentDestination = "transactions"
-                        navController.navigate("transactions")
+                        navController.navigate("transactions") {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 )
             }

@@ -28,6 +28,16 @@ class BudgetRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getRecentTransactions(limit: Int): Flow<List<Transaction>> {
+        return transactionDao.getRecentTransactions(limit).map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    override fun getTotalAmountByType(type: String): Flow<Double> {
+        return transactionDao.getTotalAmountByType(type).map { it ?: 0.0 }
+    }
+
     override suspend fun insertTransaction(transaction: Transaction) {
         transactionDao.insertTransaction(transaction.toEntity())
     }

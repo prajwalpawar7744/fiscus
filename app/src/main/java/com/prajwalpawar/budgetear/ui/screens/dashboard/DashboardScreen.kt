@@ -71,13 +71,15 @@ import com.prajwalpawar.budgetear.ui.utils.getCategoryIcon
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
     onSeeAllTransactions: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val addTransactionViewModel: AddTransactionViewModel = hiltViewModel()
 
     val sheetState = rememberModalBottomSheetState(

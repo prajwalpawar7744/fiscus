@@ -50,12 +50,15 @@ import com.prajwalpawar.budgetear.ui.utils.formatCurrency
 import com.prajwalpawar.budgetear.ui.utils.getCategoryIcon
 
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalysisScreen(
     viewModel: AnalysisViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     Scaffold(
         topBar = {
             TopAppBar(

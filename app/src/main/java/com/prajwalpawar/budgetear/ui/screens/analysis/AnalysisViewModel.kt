@@ -8,6 +8,7 @@ import com.prajwalpawar.budgetear.domain.model.Transaction
 import com.prajwalpawar.budgetear.domain.model.TransactionType
 import com.prajwalpawar.budgetear.domain.repository.BudgetRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import java.util.*
 import javax.inject.Inject
@@ -85,7 +86,8 @@ class AnalysisViewModel @Inject constructor(
             expenseDataPoints = expensePoints,
             incomeDataPoints = incomePoints
         )
-    }.stateIn(
+    }.flowOn(Dispatchers.Default)
+    .stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = AnalysisUiState()

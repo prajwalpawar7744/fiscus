@@ -7,6 +7,7 @@ import com.prajwalpawar.budgetear.domain.model.Category
 import com.prajwalpawar.budgetear.domain.model.Transaction
 import com.prajwalpawar.budgetear.domain.repository.BudgetRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import java.time.LocalDate
 import java.time.ZoneId
@@ -50,7 +51,8 @@ class TransactionsViewModel @Inject constructor(
             categories = categories.associateBy { it.id ?: 0L },
             currency = currency
         )
-    }.stateIn(
+    }.flowOn(Dispatchers.Default)
+    .stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = TransactionsUiState()

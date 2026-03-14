@@ -26,13 +26,15 @@ import java.util.*
 import kotlinx.coroutines.launch
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TransactionsScreen(
     viewModel: TransactionsViewModel,
     addTransactionViewModel: AddTransactionViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -42,8 +44,22 @@ fun TransactionsScreen(
             // addTransactionViewModel.resetState() // Optionally reset
         }
     }
-    val monthFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
-    val dateHeaderFormatter = DateTimeFormatter.ofPattern("EEEE, MMM dd", Locale.getDefault())
+    val monthFormatter = remember { DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()) }
+    val dateHeaderFormatter = remember { DateTimeFormatter.ofPattern("EEEE, MMM dd", Locale.getDefault()) }
+
+    val listItems = remember(uiState.groupedTransactions) {
+        val items = mutableListOf<TransactionsListItem>()
+        uiState.groupedTransactions.forEach { (monthYear, dateGroups) ->
+            items.add(TransactionsListItem.MonthHeader(monthYear))
+            dateGroups.forEach { (date, transactions) ->
+                items.add(TransactionsListItem.DateHeader(date.format(dateHeaderFormatter)))
+                transactions.forEach { transaction ->
+                    items.add(TransactionsListItem.TransactionRow(transaction))
+                }
+            }
+        }
+        items
+    }
 
     Scaffold(
         topBar = {
@@ -56,7 +72,7 @@ fun TransactionsScreen(
             )
         }
     ) { padding ->
-        if (uiState.groupedTransactions.isEmpty()) {
+        if (listItems.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -75,52 +91,59 @@ fun TransactionsScreen(
                     .padding(padding),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-                uiState.groupedTransactions.forEach { (monthYear, dateGroups) ->
-                    // Month Sticky Header
-                    stickyHeader {
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
-                            tonalElevation = 2.dp
-                        ) {
-                            Text(
-                                text = monthYear,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
+                items(
+                    items = listItems,
+                    key = { item ->
+                        when (item) {
+                            is TransactionsListItem.MonthHeader -> "month_${item.monthYear}"
+                            is TransactionsListItem.DateHeader -> "date_${item.dateText}"
+                            is TransactionsListItem.TransactionRow -> "trans_${item.transaction.id ?: item.transaction.hashCode()}"
+                        }
+                    },
+                    contentType = { item ->
+                        when (item) {
+                            is TransactionsListItem.MonthHeader -> "month"
+                            is TransactionsListItem.DateHeader -> "date"
+                            is TransactionsListItem.TransactionRow -> "transaction"
                         }
                     }
-
-                    dateGroups.forEach { (date, transactions) ->
-                        // Date Header
-                        item {
+                ) { item ->
+                    when (item) {
+                        is TransactionsListItem.MonthHeader -> {
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
+                                tonalElevation = 2.dp
+                            ) {
+                                Text(
+                                    text = item.monthYear,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                        is TransactionsListItem.DateHeader -> {
                             Text(
-                                text = date.format(dateHeaderFormatter),
+                                text = item.dateText,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.SemiBold
                             )
                         }
-
-                        items(
-                            items = transactions,
-                            key = { it.id ?: it.hashCode() }
-                        ) { transaction ->
+                        is TransactionsListItem.TransactionRow -> {
                             SwipeableTransactionItem(
-                                transaction = transaction,
-                                category = uiState.categories[transaction.categoryId],
+                                transaction = item.transaction,
+                                category = uiState.categories[item.transaction.categoryId],
                                 currencyCode = uiState.currency,
                                 onEdit = {
-                                    addTransactionViewModel.setTransactionForEdit(transaction)
+                                    addTransactionViewModel.setTransactionForEdit(item.transaction)
                                     showBottomSheet = true
                                 },
                                 onDelete = {
-                                    // Handle direct deletion or confirmation
-                                    // For simplicity calling VM delete
-                                    addTransactionViewModel.setTransactionForEdit(transaction)
+                                    addTransactionViewModel.setTransactionForEdit(item.transaction)
                                     addTransactionViewModel.deleteTransaction()
                                 }
                             )
@@ -130,7 +153,6 @@ fun TransactionsScreen(
             }
         }
     }
-
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
@@ -151,6 +173,12 @@ fun TransactionsScreen(
             )
         }
     }
+}
+
+sealed class TransactionsListItem {
+    data class MonthHeader(val monthYear: String) : TransactionsListItem()
+    data class DateHeader(val dateText: String) : TransactionsListItem()
+    data class TransactionRow(val transaction: com.prajwalpawar.budgetear.domain.model.Transaction) : TransactionsListItem()
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
