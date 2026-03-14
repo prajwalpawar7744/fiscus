@@ -20,10 +20,10 @@ object DatabaseModule {
     @Singleton
     fun provideBudgetDatabase(app: Application): BudgetDatabase {
         return Room.databaseBuilder(
-            app,
-            BudgetDatabase::class.java,
-            BudgetDatabase.DATABASE_NAME
-        ).fallbackToDestructiveMigration()
+                app,
+                BudgetDatabase::class.java,
+                BudgetDatabase.DATABASE_NAME
+            ).fallbackToDestructiveMigration(false)
             .build()
     }
 
