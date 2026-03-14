@@ -1,28 +1,63 @@
 package com.prajwalpawar.budgetear.ui.screens.transactions
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.filled.*
-import androidx.compose.ui.graphics.vector.ImageVector
 import com.prajwalpawar.budgetear.domain.model.TransactionType
-import java.text.SimpleDateFormat
-import java.util.*
-
 import com.prajwalpawar.budgetear.ui.utils.getCategoryIcon
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -119,9 +154,9 @@ fun AddTransactionScreen(
                                 imageVector = getCategoryIcon(category.icon),
                                 contentDescription = null,
                                 modifier = Modifier.size(FilterChipDefaults.IconSize),
-                                tint = if (uiState.categoryId == category.id) 
-                                    MaterialTheme.colorScheme.onSecondaryContainer 
-                                else 
+                                tint = if (uiState.categoryId == category.id)
+                                    MaterialTheme.colorScheme.onSecondaryContainer
+                                else
                                     Color(category.color)
                             )
                         }
@@ -152,7 +187,10 @@ fun AddTransactionScreen(
             shape = MaterialTheme.shapes.large,
             trailingIcon = {
                 IconButton(onClick = { showDatePicker = true }) {
-                    Icon(imageVector = Icons.Default.CalendarToday, contentDescription = "Select Date")
+                    Icon(
+                        imageVector = Icons.Default.CalendarToday,
+                        contentDescription = "Select Date"
+                    )
                 }
             },
             enabled = true,
@@ -195,8 +233,19 @@ fun AddTransactionScreen(
             shape = MaterialTheme.shapes.large,
             enabled = uiState.title.isNotBlank() && uiState.amount.isNotBlank()
         ) {
-            val buttonText = if (uiState.transactionId == null) "Save Transaction" else "Update Transaction"
-            Text(buttonText, style = MaterialTheme.typography.titleMedium)
+            val isEdit = uiState.transactionId != null
+            val icon = if (isEdit) Icons.Default.Edit else Icons.Default.Add
+            val text = if (isEdit) "Update Transaction" else "Add Transaction"
+
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text(text, style = MaterialTheme.typography.titleMedium)
         }
 
         if (uiState.transactionId != null) {
@@ -210,10 +259,18 @@ fun AddTransactionScreen(
                     contentColor = MaterialTheme.colorScheme.error
                 )
             ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
                 Text("Delete Transaction", style = MaterialTheme.typography.titleMedium)
             }
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
     }
 }

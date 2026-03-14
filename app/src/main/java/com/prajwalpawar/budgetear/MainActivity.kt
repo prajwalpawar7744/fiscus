@@ -43,7 +43,7 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Settings
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 import androidx.fragment.app.FragmentActivity
 import androidx.biometric.BiometricPrompt

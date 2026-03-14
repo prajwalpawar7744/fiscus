@@ -5,9 +5,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material3.*
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,7 +24,7 @@ import java.text.NumberFormat
 import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlinx.coroutines.launch
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -63,7 +65,7 @@ fun TransactionsScreen(
             ) {
                 EmptyState(
                     message = "No transactions found",
-                    icon = androidx.compose.material.icons.Icons.Default.ReceiptLong
+                    icon = Icons.AutoMirrored.Filled.ReceiptLong
                 )
             }
         } else {
@@ -159,14 +161,14 @@ fun SwipeableTransactionItem(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = {
-            if (it == SwipeToDismissBoxValue.EndToStart) {
-                onDelete()
-                true
-            } else false
+    val dismissState = rememberSwipeToDismissBoxState()
+
+    LaunchedEffect(dismissState.currentValue) {
+        if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+            onDelete()
+            dismissState.snapTo(SwipeToDismissBoxValue.Settled)
         }
-    )
+    }
 
     SwipeToDismissBox(
         state = dismissState,

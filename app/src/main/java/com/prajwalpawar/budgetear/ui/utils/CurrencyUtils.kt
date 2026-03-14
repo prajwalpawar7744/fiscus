@@ -1,14 +1,16 @@
 package com.prajwalpawar.budgetear.ui.utils
 
+import android.annotation.SuppressLint
 import java.text.NumberFormat
 import java.util.*
 
+@SuppressLint("DefaultLocale")
 fun formatCurrency(amount: Double, currencyCode: String): String {
     val locale = when (currencyCode) {
+        "INR" -> Locale.forLanguageTag("en-IN")
         "USD" -> Locale.US
         "EUR" -> Locale.FRANCE
         "GBP" -> Locale.UK
-        "INR" -> Locale("en", "IN")
         "JPY" -> Locale.JAPAN
         else -> Locale.getDefault()
     }

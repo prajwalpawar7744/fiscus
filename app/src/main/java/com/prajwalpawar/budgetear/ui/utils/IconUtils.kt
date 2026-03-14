@@ -1,6 +1,7 @@
 package com.prajwalpawar.budgetear.ui.utils
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -17,7 +18,7 @@ fun getCategoryIcon(iconName: String): ImageVector {
         "payments" -> Icons.Default.Payments
         "work" -> Icons.Default.Work
         "redeem" -> Icons.Default.Redeem
-        "trending_up" -> Icons.Default.TrendingUp
+        "trending_up" -> Icons.AutoMirrored.Filled.TrendingUp
         else -> Icons.Default.Category
     }
 }
