@@ -3,10 +3,7 @@ package com.prajwalpawar.budgetear.ui.screens.transactions
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -16,11 +13,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.prajwalpawar.budgetear.domain.model.TransactionType
+import java.text.SimpleDateFormat
+import java.util.*
 
 import com.prajwalpawar.budgetear.ui.utils.getCategoryIcon
 
@@ -32,6 +32,12 @@ fun AddTransactionScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
+    var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = uiState.date.time
+    )
+
+    val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
 
     LaunchedEffect(uiState.isSaved) {
         if (uiState.isSaved) {
@@ -133,6 +139,51 @@ fun AddTransactionScreen(
             shape = MaterialTheme.shapes.large,
             minLines = 3
         )
+
+        // Date Picker Field
+        OutlinedTextField(
+            value = dateFormatter.format(uiState.date),
+            onValueChange = {},
+            label = { Text("Date") },
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showDatePicker = true },
+            shape = MaterialTheme.shapes.large,
+            trailingIcon = {
+                IconButton(onClick = { showDatePicker = true }) {
+                    Icon(imageVector = Icons.Default.CalendarToday, contentDescription = "Select Date")
+                }
+            },
+            enabled = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.outline,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+            )
+        )
+
+        if (showDatePicker) {
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        datePickerState.selectedDateMillis?.let {
+                            viewModel.onDateChange(Date(it))
+                        }
+                        showDatePicker = false
+                    }) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) {
+                        Text("Cancel")
+                    }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 

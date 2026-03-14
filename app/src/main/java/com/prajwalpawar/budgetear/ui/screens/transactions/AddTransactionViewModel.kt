@@ -24,7 +24,8 @@ data class AddTransactionUiState(
     val categories: List<Category> = emptyList(),
     val accountId: Long = 1, // Default account
     val isSaved: Boolean = false,
-    val transactionId: Long? = null
+    val transactionId: Long? = null,
+    val date: Date = Date()
 )
 
 @HiltViewModel
@@ -102,6 +103,10 @@ class AddTransactionViewModel @Inject constructor(
         _uiState.update { it.copy(note = note) }
     }
 
+    fun onDateChange(date: Date) {
+        _uiState.update { it.copy(date = date) }
+    }
+
     fun onCategoryChange(categoryId: Long) {
         _uiState.update { it.copy(categoryId = categoryId) }
     }
@@ -134,7 +139,8 @@ class AddTransactionViewModel @Inject constructor(
                 note = transaction.note,
                 type = transaction.type,
                 categoryId = transaction.categoryId,
-                accountId = transaction.accountId
+                accountId = transaction.accountId,
+                date = transaction.date
             )
         }
     }
@@ -151,7 +157,7 @@ class AddTransactionViewModel @Inject constructor(
                     type = currentState.type,
                     categoryId = currentState.categoryId ?: 1L,
                     accountId = currentState.accountId,
-                    date = Date(),
+                    date = currentState.date,
                     note = currentState.note
                 )
                 if (currentState.transactionId == null) {
@@ -176,7 +182,7 @@ class AddTransactionViewModel @Inject constructor(
                         type = currentState.type,
                         categoryId = currentState.categoryId ?: 1L,
                         accountId = currentState.accountId,
-                        date = Date(),
+                        date = currentState.date,
                         note = currentState.note
                     )
                 )
