@@ -39,6 +39,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.animation.*
+import com.prajwalpawar.budgetear.ui.utils.BudgetearAnimation
 import com.prajwalpawar.budgetear.ui.screens.analysis.AnalysisScreen
 import com.prajwalpawar.budgetear.ui.screens.analysis.AnalysisViewModel
 import com.prajwalpawar.budgetear.ui.screens.dashboard.DashboardScreen
@@ -233,7 +235,11 @@ fun BudgetearAppContent(
         NavHost(
             navController = navController,
             startDestination = "dashboard",
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            enterTransition = { BudgetearAnimation.Navigation.Enter },
+            exitTransition = { BudgetearAnimation.Navigation.Exit },
+            popEnterTransition = { BudgetearAnimation.Navigation.PopEnter },
+            popExitTransition = { BudgetearAnimation.Navigation.PopExit }
         ) {
             composable("dashboard") {
                 DashboardScreen(

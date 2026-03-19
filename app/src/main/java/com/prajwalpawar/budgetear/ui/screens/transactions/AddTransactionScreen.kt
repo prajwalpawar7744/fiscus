@@ -29,6 +29,8 @@ import androidx.compose.ui.focus.focusRequester
 import com.prajwalpawar.budgetear.domain.model.TransactionType
 import com.prajwalpawar.budgetear.ui.components.ConfirmationDialog
 import com.prajwalpawar.budgetear.ui.utils.getCategoryIcon
+import com.prajwalpawar.budgetear.ui.utils.rememberBudgetearHaptic
+import com.prajwalpawar.budgetear.ui.utils.staggeredVerticalFadeIn
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -41,6 +43,7 @@ fun AddTransactionScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
+    val haptic = rememberBudgetearHaptic()
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = uiState.date.time
@@ -73,6 +76,7 @@ fun AddTransactionScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
+                modifier = Modifier.staggeredVerticalFadeIn(0),
                 text = if (uiState.transactionId == null) "New Transaction" else "Edit Transaction",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
@@ -86,7 +90,11 @@ fun AddTransactionScreen(
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { amountFocusRequester.requestFocus() },
+                .staggeredVerticalFadeIn(1)
+                .clickable {
+                    haptic.click()
+                    amountFocusRequester.requestFocus()
+                },
             shape = MaterialTheme.shapes.extraLarge,
             colors = CardDefaults.elevatedCardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer
@@ -146,7 +154,10 @@ fun AddTransactionScreen(
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
             SegmentedButton(
                 selected = uiState.type == TransactionType.EXPENSE,
-                onClick = { viewModel.onTypeChange(TransactionType.EXPENSE) },
+                onClick = {
+                    haptic.click()
+                    viewModel.onTypeChange(TransactionType.EXPENSE)
+                },
                 shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
                 icon = { SegmentedButtonDefaults.Icon(active = uiState.type == TransactionType.EXPENSE) {
                     Icon(Icons.Default.ArrowDownward, null)
@@ -155,7 +166,10 @@ fun AddTransactionScreen(
             )
             SegmentedButton(
                 selected = uiState.type == TransactionType.INCOME,
-                onClick = { viewModel.onTypeChange(TransactionType.INCOME) },
+                onClick = {
+                    haptic.click()
+                    viewModel.onTypeChange(TransactionType.INCOME)
+                },
                 shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                 icon = { SegmentedButtonDefaults.Icon(active = uiState.type == TransactionType.INCOME) {
                     Icon(Icons.Default.ArrowUpward, null)
@@ -166,7 +180,7 @@ fun AddTransactionScreen(
 
         // Details Card
         ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(2),
             shape = MaterialTheme.shapes.extraLarge,
             colors = CardDefaults.elevatedCardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer
@@ -211,7 +225,10 @@ fun AddTransactionScreen(
                             val isSelected = uiState.categoryId == category.id
                             Surface(
                                 modifier = Modifier
-                                    .clickable { category.id?.let { viewModel.onCategoryChange(it) } },
+                                    .clickable {
+                                        haptic.click()
+                                        category.id?.let { viewModel.onCategoryChange(it) }
+                                    },
                                 shape = MaterialTheme.shapes.medium,
                                 color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                                 border = if (isSelected) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
@@ -285,6 +302,7 @@ fun AddTransactionScreen(
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Button(
                 onClick = {
+                    haptic.click()
                     when {
                         uiState.amount.isBlank() -> {
                             amountFocusRequester.requestFocus()

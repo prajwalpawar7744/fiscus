@@ -23,6 +23,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import com.prajwalpawar.budgetear.ui.components.ConfirmationDialog
+import com.prajwalpawar.budgetear.ui.utils.rememberBudgetearHaptic
+import com.prajwalpawar.budgetear.ui.utils.staggeredVerticalFadeIn
+import com.prajwalpawar.budgetear.ui.utils.budgetearClickable
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import android.os.Build
@@ -34,6 +37,7 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val haptic = rememberBudgetearHaptic()
     
     val photoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -123,7 +127,7 @@ fun SettingsScreen(
             // Profile Section
             item {
                 ElevatedCard(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(0),
                     shape = MaterialTheme.shapes.extraLarge,
                     colors = CardDefaults.elevatedCardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
@@ -140,7 +144,9 @@ fun SettingsScreen(
                                 .size(112.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.surfaceContainerLowest)
-                                .clickable { photoLauncher.launch("image/*") },
+                                .budgetearClickable(haptic = haptic) {
+                                    photoLauncher.launch("image/*")
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             if (uiState.userPhotoUri != null) {
@@ -160,13 +166,14 @@ fun SettingsScreen(
                             }
                         }
                         
+                        // Scale name and click text
                         Spacer(modifier = Modifier.height(16.dp))
                         
                         Text(
                             text = uiState.userName.ifBlank { "Add Name" },
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.clickable { 
+                            modifier = Modifier.budgetearClickable(haptic = haptic) { 
                                 tempName = uiState.userName
                                 showNameDialog = true 
                             }
@@ -185,7 +192,10 @@ fun SettingsScreen(
 
             // Preferences
             item {
-                SettingsGroup(title = "Appearance") {
+                SettingsGroup(
+                    modifier = Modifier.staggeredVerticalFadeIn(1),
+                    title = "Appearance"
+                ) {
                     SettingsItem(
                         icon = Icons.Default.Palette,
                         title = "Theme",
@@ -207,7 +217,10 @@ fun SettingsScreen(
                             trailingContent = {
                                 Switch(
                                     checked = uiState.isDynamicColorEnabled,
-                                    onCheckedChange = { viewModel.updateDynamicColorEnabled(it) }
+                                    onCheckedChange = { 
+                                        haptic.click()
+                                        viewModel.updateDynamicColorEnabled(it) 
+                                    }
                                 )
                             },
                             onClick = { viewModel.updateDynamicColorEnabled(!uiState.isDynamicColorEnabled) }
@@ -217,7 +230,10 @@ fun SettingsScreen(
             }
 
             item {
-                SettingsGroup(title = "Security") {
+                SettingsGroup(
+                    modifier = Modifier.staggeredVerticalFadeIn(2),
+                    title = "Security"
+                ) {
                     SettingsItem(
                         icon = Icons.Default.Fingerprint,
                         title = "Biometric Lock",
@@ -225,7 +241,10 @@ fun SettingsScreen(
                         trailingContent = {
                             Switch(
                                 checked = uiState.isBiometricEnabled,
-                                onCheckedChange = { viewModel.updateBiometricEnabled(it) }
+                                onCheckedChange = { 
+                                    haptic.click()
+                                    viewModel.updateBiometricEnabled(it) 
+                                }
                             )
                         },
                         onClick = { viewModel.updateBiometricEnabled(!uiState.isBiometricEnabled) }
@@ -234,7 +253,10 @@ fun SettingsScreen(
             }
 
             item {
-                SettingsGroup(title = "Localization") {
+                SettingsGroup(
+                    modifier = Modifier.staggeredVerticalFadeIn(3),
+                    title = "Localization"
+                ) {
                     SettingsItem(
                         icon = Icons.Default.AttachMoney,
                         title = "Currency",
@@ -246,7 +268,10 @@ fun SettingsScreen(
 
             // Backup & Restore Section
             item {
-                SettingsGroup(title = "Backup & Restore") {
+                SettingsGroup(
+                    modifier = Modifier.staggeredVerticalFadeIn(4),
+                    title = "Backup & Restore"
+                ) {
                     SettingsItem(
                         title = "Export Data",
                         subtitle = "Save your data to a JSON file",
@@ -263,7 +288,10 @@ fun SettingsScreen(
             }
 
             item {
-                SettingsGroup(title = "Data Management") {
+                SettingsGroup(
+                    modifier = Modifier.staggeredVerticalFadeIn(5),
+                    title = "Data Management"
+                ) {
                     SettingsItem(
                         icon = Icons.Default.DeleteForever,
                         title = "Reset Data",
@@ -345,7 +373,7 @@ fun SettingsScreen(
                         Row(
                             Modifier
                                 .fillMaxWidth()
-                                .clickable {
+                                .budgetearClickable(haptic = haptic) {
                                     viewModel.updateCurrency(currency)
                                     showCurrencyDialog = false
                                 }
@@ -362,8 +390,12 @@ fun SettingsScreen(
 }
 
 @Composable
-fun SettingsGroup(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+fun SettingsGroup(
+    title: String, 
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
             style = MaterialTheme.typography.labelLarge,
@@ -392,8 +424,11 @@ fun SettingsItem(
     trailingContent: @Composable (() -> Unit)? = null,
     onClick: () -> Unit
 ) {
+    val haptic = rememberBudgetearHaptic()
     ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = Modifier.budgetearClickable(haptic = haptic) {
+            onClick()
+        },
         headlineContent = {
             Text(
                 title,

@@ -160,8 +160,8 @@ class AnalysisViewModel @Inject constructor(
             )
         }.sortedByDescending { it.amount }
 
-        val expensePoints = aggregateByTime(expenses, filters.granularity)
-        val incomePoints = aggregateByTime(income, filters.granularity)
+        val expensePoints = aggregateByTime(expenses, filters.granularity, filters.timeRange, filters.startDate, filters.endDate)
+        val incomePoints = aggregateByTime(income, filters.granularity, filters.timeRange, filters.startDate, filters.endDate)
 
         AnalysisUiState(
             categoryBreakdown = breakdown,
@@ -211,7 +211,15 @@ class AnalysisViewModel @Inject constructor(
         _selectedChartType.value = chartType
     }
 
-    private fun aggregateByTime(transactions: List<Transaction>, granularity: AnalysisGranularity): List<TimeDataPoint> {
+    private fun aggregateByTime(
+        transactions: List<Transaction>,
+        granularity: AnalysisGranularity,
+        timeRange: TimeRange,
+        startDate: LocalDate?,
+        endDate: LocalDate?
+    ): List<TimeDataPoint> {
+        val zoneId = ZoneId.systemDefault()
+        
         val dateFormat = if (granularity == AnalysisGranularity.DAILY) {
             DateTimeFormatter.ofPattern("dd MMM", Locale.getDefault())
         } else {
@@ -219,13 +227,13 @@ class AnalysisViewModel @Inject constructor(
         }
 
         return transactions.groupBy { 
-            val date = it.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-            val groupDate = if (granularity == AnalysisGranularity.MONTHLY) {
+            val date = it.date.toInstant().atZone(zoneId).toLocalDate()
+            if (granularity == AnalysisGranularity.MONTHLY) {
                 date.withDayOfMonth(1)
             } else date
-            dateFormat.format(groupDate)
-        }.map { (label, transList) ->
-            TimeDataPoint(label, transList.sumOf { it.amount })
-        }.sortedByDescending { it.label }.reversed() // Sort chronologically
+        }.map { (date, transList) ->
+            date to TimeDataPoint(dateFormat.format(date), transList.sumOf { it.amount })
+        }.sortedBy { it.first }
+        .map { it.second }
     }
 }

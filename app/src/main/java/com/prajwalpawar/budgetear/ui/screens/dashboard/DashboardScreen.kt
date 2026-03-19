@@ -1,7 +1,13 @@
 package com.prajwalpawar.budgetear.ui.screens.dashboard
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
@@ -49,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
@@ -67,6 +74,11 @@ import com.prajwalpawar.budgetear.ui.screens.transactions.AddTransactionViewMode
 import com.prajwalpawar.budgetear.ui.utils.EmptyState
 import com.prajwalpawar.budgetear.ui.utils.formatCurrency
 import com.prajwalpawar.budgetear.ui.utils.getCategoryIcon
+import com.prajwalpawar.budgetear.ui.utils.rememberBudgetearHaptic
+import com.prajwalpawar.budgetear.ui.utils.staggeredVerticalFadeIn
+import com.prajwalpawar.budgetear.ui.utils.budgetearClickable
+import com.prajwalpawar.budgetear.ui.utils.BudgetearAnimation
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -78,9 +90,11 @@ fun DashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val addTransactionViewModel: AddTransactionViewModel = hiltViewModel()
+    val haptic = rememberBudgetearHaptic()
 
     val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
+        skipPartiallyExpanded = true,
+        confirmValueChange = { true }
     )
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -175,8 +189,21 @@ fun DashboardScreen(
             )
         },
         floatingActionButton = {
+            val interactionSource = remember { MutableInteractionSource() }
+            val pressed by interactionSource.collectIsPressedAsState()
+
+            val scale by animateFloatAsState(
+                targetValue = if (pressed) 0.9f else 1f
+            )
+
             ExtendedFloatingActionButton(
+                modifier = Modifier.graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                },
+                interactionSource = interactionSource,
                 onClick = {
+                    haptic.click()
                     addTransactionViewModel.resetState()
                     showBottomSheet = true
                 },
@@ -215,21 +242,26 @@ fun DashboardScreen(
                         text = "Recent Transactions",
                         style = MaterialTheme.typography.titleMedium
                     )
-                    TextButton(onClick = onSeeAllTransactions) {
+                    TextButton(onClick = {
+                        haptic.click()
+                        onSeeAllTransactions()
+                    }) {
                         Text("See All")
                     }
                 }
             }
 
-            items(
+            itemsIndexed(
                 items = uiState.recentTransactions,
-                key = { it.id ?: it.hashCode() }
-            ) { transaction ->
+                key = { _, it -> it.id ?: it.hashCode() }
+            ) { index, transaction ->
                 TransactionItem(
+                    modifier = Modifier.staggeredVerticalFadeIn(index),
                     transaction = transaction,
                     category = uiState.categories[transaction.categoryId],
                     currencyCode = uiState.currency,
                     onClick = {
+                        haptic.click()
                         addTransactionViewModel.setTransactionForEdit(transaction)
                         showBottomSheet = true
                     }
@@ -255,10 +287,37 @@ fun BalanceCard(
     expense: Double,
     currencyCode: String
 ) {
+    var visible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        visible = true
+    }
+
+    val scale by animateFloatAsState(
+        targetValue = if (visible) 1f else 0.9f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+    )
+
+    val alpha by animateFloatAsState(
+        targetValue = if (visible) 1f else 0f,
+        animationSpec = tween(500)
+    )
+
+    // 🔥 Animated number
+    val animatedBalance by animateFloatAsState(
+        targetValue = balance.toFloat(),
+        animationSpec = tween(800)
+    )
+
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                this.alpha = alpha
+            },
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -277,7 +336,7 @@ fun BalanceCard(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = formatCurrency(balance, currencyCode),
+                text = formatCurrency(animatedBalance.toDouble(), currencyCode),
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
@@ -319,8 +378,18 @@ fun SummaryCard(
     color: Color,
     modifier: Modifier = Modifier
 ) {
+    val scale by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = tween(500)
+    )
+
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            },
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
     ) {
@@ -370,6 +439,7 @@ fun TransactionItem(
     transaction: Transaction,
     category: Category?,
     currencyCode: String,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
     val amountColor =
@@ -377,10 +447,12 @@ fun TransactionItem(
     val prefix = if (transaction.type == TransactionType.INCOME) "+" else "-"
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.medium)
-            .clickable(onClick = onClick)
+            .budgetearClickable(haptic = rememberBudgetearHaptic()) {
+                onClick()
+            }
             .padding(vertical = 12.dp, horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -459,5 +531,6 @@ fun TransactionItem(
             )
         }
     }
+
 }
 

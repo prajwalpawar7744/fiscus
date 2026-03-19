@@ -59,6 +59,7 @@ dependencies {
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.compose.animation)
     ksp(libs.androidx.room.compiler)
 
     // Hilt
