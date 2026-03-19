@@ -3,14 +3,9 @@ package com.prajwalpawar.budgetear
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,11 +14,24 @@ import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
-import androidx.compose.material3.adaptive.navigationsuite.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -41,10 +49,7 @@ import com.prajwalpawar.budgetear.ui.screens.transactions.TransactionsScreen
 import com.prajwalpawar.budgetear.ui.screens.transactions.TransactionsViewModel
 import com.prajwalpawar.budgetear.ui.theme.BudgetearTheme
 import dagger.hilt.android.AndroidEntryPoint
-import androidx.biometric.BiometricPrompt
-import androidx.core.content.ContextCompat
 import java.util.concurrent.Executor
-import androidx.fragment.app.FragmentActivity
 
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
@@ -59,7 +64,7 @@ class MainActivity : FragmentActivity() {
         setContent {
             val settingsState by settingsViewModel.uiState.collectAsStateWithLifecycle()
             var isAuthenticated by remember { mutableStateOf(!settingsState.isBiometricEnabled) }
-            
+
             // Re-check authentication if biometric setting changes to true
             LaunchedEffect(settingsState.isBiometricEnabled) {
                 if (settingsState.isBiometricEnabled) {
@@ -77,14 +82,17 @@ class MainActivity : FragmentActivity() {
                 "dark" -> true
                 else -> isSystemInDarkTheme()
             }
-            
+
             BudgetearTheme(darkTheme = darkTheme) {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
                     if (isAuthenticated) {
                         BudgetearAppContent(dashboardViewModel, settingsViewModel)
                     } else {
                         Box(contentAlignment = Alignment.Center) {
-                            Button(onClick = { 
+                            Button(onClick = {
                                 showBiometricPrompt { authenticated ->
                                     isAuthenticated = authenticated
                                 }
@@ -100,7 +108,8 @@ class MainActivity : FragmentActivity() {
 
     private fun showBiometricPrompt(onResult: (Boolean) -> Unit) {
         val executor: Executor = ContextCompat.getMainExecutor(this)
-        val biometricPrompt = BiometricPrompt(this, executor,
+        val biometricPrompt = BiometricPrompt(
+            this, executor,
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
@@ -119,9 +128,12 @@ class MainActivity : FragmentActivity() {
             })
 
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Biometric login")
+            .setTitle("Authenticate")
             .setSubtitle("Access your budgetear")
-            .setNegativeButtonText("Cancel")
+            .setAllowedAuthenticators(
+                BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                        BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            )
             .build()
 
         biometricPrompt.authenticate(promptInfo)
@@ -154,11 +166,11 @@ fun BudgetearAppContent(
                         restoreState = true
                     }
                 },
-                icon = { 
+                icon = {
                     Icon(
-                        imageVector = if (currentDestination == "dashboard") Icons.Default.Dashboard else Icons.Default.Dashboard, 
+                        imageVector = if (currentDestination == "dashboard") Icons.Default.Dashboard else Icons.Default.Dashboard,
                         contentDescription = "Dashboard"
-                    ) 
+                    )
                 },
                 label = { Text("Overview") }
             )
@@ -171,11 +183,11 @@ fun BudgetearAppContent(
                         restoreState = true
                     }
                 },
-                icon = { 
+                icon = {
                     Icon(
-                        imageVector = if (currentDestination == "transactions") Icons.Default.History else Icons.Default.History, 
+                        imageVector = if (currentDestination == "transactions") Icons.Default.History else Icons.Default.History,
                         contentDescription = "Transactions"
-                    ) 
+                    )
                 },
                 label = { Text("History") }
             )
@@ -188,11 +200,11 @@ fun BudgetearAppContent(
                         restoreState = true
                     }
                 },
-                icon = { 
+                icon = {
                     Icon(
-                        imageVector = if (currentDestination == "analysis") Icons.Default.Analytics else Icons.Default.Analytics, 
+                        imageVector = if (currentDestination == "analysis") Icons.Default.Analytics else Icons.Default.Analytics,
                         contentDescription = "Analysis"
-                    ) 
+                    )
                 },
                 label = { Text("Analysis") }
             )
@@ -205,11 +217,11 @@ fun BudgetearAppContent(
                         restoreState = true
                     }
                 },
-                icon = { 
+                icon = {
                     Icon(
-                        imageVector = if (currentDestination == "settings") Icons.Default.Settings else Icons.Default.Settings, 
+                        imageVector = if (currentDestination == "settings") Icons.Default.Settings else Icons.Default.Settings,
                         contentDescription = "Settings"
-                    ) 
+                    )
                 },
                 label = { Text("Settings") }
             )
@@ -225,7 +237,9 @@ fun BudgetearAppContent(
                     viewModel = dashboardViewModel,
                     onSeeAllTransactions = {
                         navController.navigate("transactions") {
-                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
                             launchSingleTop = true
                             restoreState = true
                         }

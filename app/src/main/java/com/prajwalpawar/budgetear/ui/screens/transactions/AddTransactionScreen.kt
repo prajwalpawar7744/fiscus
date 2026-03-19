@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.*
@@ -17,7 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -27,7 +25,6 @@ import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import com.prajwalpawar.budgetear.domain.model.TransactionType
 import com.prajwalpawar.budgetear.ui.components.ConfirmationDialog
@@ -58,6 +55,8 @@ fun AddTransactionScreen(
         }
     }
 
+    val amountFocusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -84,7 +83,6 @@ fun AddTransactionScreen(
         }
 
         // Amount Display Card
-        val amountFocusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
@@ -286,12 +284,20 @@ fun AddTransactionScreen(
         // Actions
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Button(
-                onClick = viewModel::saveTransaction,
+                onClick = {
+                    when {
+                        uiState.amount.isBlank() -> {
+                            amountFocusRequester.requestFocus()
+                        }
+                        else -> {
+                            viewModel.saveTransaction()
+                        }
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp),
                 shape = MaterialTheme.shapes.extraLarge,
-                enabled = uiState.title.isNotBlank() && uiState.amount.isNotBlank()
             ) {
                 val isEdit = uiState.transactionId != null
                 val icon = if (isEdit) Icons.Default.CheckCircle else Icons.Default.AddCircle

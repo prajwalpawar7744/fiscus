@@ -1,6 +1,5 @@
 package com.prajwalpawar.budgetear.ui.screens.dashboard
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,21 +17,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -43,10 +38,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,12 +50,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.prajwalpawar.budgetear.domain.model.Category
 import com.prajwalpawar.budgetear.domain.model.Transaction
@@ -74,8 +69,6 @@ import com.prajwalpawar.budgetear.ui.utils.formatCurrency
 import com.prajwalpawar.budgetear.ui.utils.getCategoryIcon
 import kotlinx.coroutines.launch
 import java.util.Calendar
-
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -342,7 +335,12 @@ fun SummaryCard(
                     modifier = Modifier.size(32.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(18.dp))
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = color,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.width(8.dp))
@@ -452,7 +450,8 @@ fun TransactionItem(
                 color = amountColor
             )
             Spacer(modifier = Modifier.height(2.dp))
-            val dateFormatter = remember { java.text.SimpleDateFormat("MMM dd", java.util.Locale.getDefault()) }
+            val dateFormatter =
+                remember { java.text.SimpleDateFormat("MMM dd", java.util.Locale.getDefault()) }
             Text(
                 text = dateFormatter.format(transaction.date),
                 style = MaterialTheme.typography.bodySmall,
