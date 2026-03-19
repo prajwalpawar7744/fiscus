@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import com.prajwalpawar.budgetear.ui.components.ConfirmationDialog
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import android.os.Build
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -198,6 +199,20 @@ fun SettingsScreen(
                             viewModel.updateThemeMode(nextMode)
                         }
                     )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        SettingsItem(
+                            icon = Icons.Default.ColorLens,
+                            title = "Dynamic Color",
+                            subtitle = "Use colors based on wallpaper",
+                            trailingContent = {
+                                Switch(
+                                    checked = uiState.isDynamicColorEnabled,
+                                    onCheckedChange = { viewModel.updateDynamicColorEnabled(it) }
+                                )
+                            },
+                            onClick = { viewModel.updateDynamicColorEnabled(!uiState.isDynamicColorEnabled) }
+                        )
+                    }
                 }
             }
 

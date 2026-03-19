@@ -23,6 +23,7 @@ class PreferenceManager @Inject constructor(
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val BIOMETRIC_ENABLED = booleanPreferencesKey("biometric_enabled")
         val CURRENCY = stringPreferencesKey("currency")
+        val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
     }
 
     val userName: Flow<String> = dataStore.data.map { preferences ->
@@ -43,6 +44,10 @@ class PreferenceManager @Inject constructor(
 
     val currency: Flow<String> = dataStore.data.map { preferences ->
         preferences[PreferencesKeys.CURRENCY] ?: "INR"
+    }
+
+    val isDynamicColorEnabled: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.DYNAMIC_COLOR] ?: true
     }
 
     suspend fun updateUserName(name: String) {
@@ -72,6 +77,12 @@ class PreferenceManager @Inject constructor(
     suspend fun updateCurrency(currency: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.CURRENCY] = currency
+        }
+    }
+
+    suspend fun updateDynamicColorEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.DYNAMIC_COLOR] = enabled
         }
     }
 }

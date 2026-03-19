@@ -83,7 +83,10 @@ class MainActivity : FragmentActivity() {
                 else -> isSystemInDarkTheme()
             }
 
-            BudgetearTheme(darkTheme = darkTheme) {
+            BudgetearTheme(
+                darkTheme = darkTheme,
+                dynamicColor = settingsState.isDynamicColorEnabled
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

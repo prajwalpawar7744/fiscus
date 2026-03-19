@@ -21,7 +21,8 @@ data class SettingsUiState(
     val userPhotoUri: String? = null,
     val themeMode: String = "system",
     val isBiometricEnabled: Boolean = false,
-    val currency: String = "USD"
+    val currency: String = "USD",
+    val isDynamicColorEnabled: Boolean = true
 )
 
 @HiltViewModel
@@ -39,7 +40,15 @@ class SettingsViewModel @Inject constructor(
         preferenceManager.isBiometricEnabled,
         preferenceManager.currency
     ) { name, photo, theme, biometric, currency ->
-        SettingsUiState(name, photo, theme, biometric, currency)
+        SettingsUiState(
+            userName = name,
+            userPhotoUri = photo,
+            themeMode = theme,
+            isBiometricEnabled = biometric,
+            currency = currency
+        )
+    }.combine(preferenceManager.isDynamicColorEnabled) { state, dynamicColor ->
+        state.copy(isDynamicColorEnabled = dynamicColor)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsUiState())
 
     fun updateUserName(name: String) {
@@ -90,6 +99,12 @@ class SettingsViewModel @Inject constructor(
     fun updateCurrency(currency: String) {
         viewModelScope.launch {
             preferenceManager.updateCurrency(currency)
+        }
+    }
+
+    fun updateDynamicColorEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            preferenceManager.updateDynamicColorEnabled(enabled)
         }
     }
 
