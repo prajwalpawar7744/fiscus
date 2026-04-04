@@ -29,6 +29,10 @@ import com.prajwalpawar.budgetear.ui.utils.budgetearClickable
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import android.os.Build
+import android.content.Intent
+import android.net.Uri
+import androidx.core.net.toUri
+import com.prajwalpawar.budgetear.BuildConfig
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -351,6 +355,38 @@ fun SettingsScreen(
                     )
                 }
             }
+
+            // About Section
+            item {
+                SettingsGroup(
+                    modifier = Modifier.staggeredVerticalFadeIn(6, enabled = uiState.areAnimationsEnabled),
+                    title = "About"
+                ) {
+                    SettingsItem(
+                        icon = Icons.Default.Info,
+                        title = "Version",
+                        subtitle = BuildConfig.VERSION_NAME,
+                        animationsEnabled = uiState.areAnimationsEnabled,
+                        onClick = {
+                            haptic.click()
+                        }
+                    )
+                    SettingsItem(
+                        icon = Icons.Default.Link,
+                        title = "Credits",
+                        subtitle = "Prajwal Pawar",
+                        animationsEnabled = uiState.areAnimationsEnabled,
+                        onClick = {
+                             haptic.click()
+                             val intent = Intent(Intent.ACTION_VIEW,
+                                 "https://github.com/prajwalpawar7744/budgetear".toUri())
+                             context.startActivity(intent)
+                        }
+                    )
+                }
+            }
+            
+            item { Spacer(modifier = Modifier.height(32.dp)) }
         }
     }
 
