@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -72,15 +73,27 @@ fun AnalysisScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text("Analysis", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                scrollBehavior = scrollBehavior
-            )
+            if (uiState.topBarStyle == "longtopbar") {
+                LargeTopAppBar(
+                    title = { Text("Analysis", fontWeight = FontWeight.Bold) },
+                    colors = TopAppBarDefaults.largeTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    scrollBehavior = scrollBehavior
+                )
+            } else {
+                TopAppBar(
+                    title = { Text("Analysis", fontWeight = FontWeight.Bold) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    scrollBehavior = scrollBehavior
+                )
+            }
         }
     ) { padding ->
         LazyColumn(
@@ -97,7 +110,7 @@ fun AnalysisScreen(
 
                 AnimatedVisibility(
                     visible = visible,
-                    enter = fadeIn(tween(300)) + slideInVertically { -it / 4 }
+                    enter = if (uiState.areAnimationsEnabled) fadeIn(tween(300)) + slideInVertically { -it / 4 } else fadeIn(snap())
                 ) {
 
                     Column(
@@ -143,15 +156,17 @@ fun AnalysisScreen(
 
                         val scale by animateFloatAsState(
                             targetValue = 1f,
-                            animationSpec = tween(300)
+                            animationSpec = if (uiState.areAnimationsEnabled) tween(300) else snap()
                         )
 
                         // Advanced Filters Surface
                         Surface(
                             modifier = Modifier.fillMaxWidth()
                                 .graphicsLayer {
-                                    scaleX = scale
-                                    scaleY = scale
+                                    if (uiState.areAnimationsEnabled) {
+                                        scaleX = scale
+                                        scaleY = scale
+                                    }
                                 },
                             color = MaterialTheme.colorScheme.surfaceContainerLow,
                             shape = MaterialTheme.shapes.extraLarge,
@@ -499,7 +514,11 @@ fun AnalysisScreen(
                     AnimatedContent(
                         targetState = uiState.selectedChartType,
                         transitionSpec = {
-                            fadeIn(tween(300)) togetherWith fadeOut(tween(300))
+                            if (uiState.areAnimationsEnabled) {
+                                fadeIn(tween(300)) togetherWith fadeOut(tween(300))
+                            } else {
+                                fadeIn(snap()) togetherWith fadeOut(snap())
+                            }
                         },
                         label = "chartTransition"
                     ) { type ->
@@ -514,7 +533,8 @@ fun AnalysisScreen(
                                     dataPoints = if (uiState.selectedTransactionType == TransactionType.INCOME) uiState.incomeDataPoints else uiState.expenseDataPoints,
                                     modifier = chartModifier,
                                     color = if (uiState.selectedTransactionType == TransactionType.INCOME) Color.Green else MaterialTheme.colorScheme.primary,
-                                    currencyCode = uiState.currency
+                                    currencyCode = uiState.currency,
+                                    animationsEnabled = uiState.areAnimationsEnabled
                                 )
                             }
 
@@ -525,14 +545,16 @@ fun AnalysisScreen(
                                     showExpense = uiState.selectedTransactionType == TransactionType.EXPENSE || uiState.selectedTransactionType == null,
                                     showIncome = uiState.selectedTransactionType == TransactionType.INCOME || uiState.selectedTransactionType == null,
                                     modifier = chartModifier,
-                                    currencyCode = uiState.currency
+                                    currencyCode = uiState.currency,
+                                    animationsEnabled = uiState.areAnimationsEnabled
                                 )
                             }
 
                             AnalysisChartType.PIE -> {
                                 PieChart(
                                     breakdown = uiState.categoryBreakdown,
-                                    modifier = Modifier.fillMaxSize()
+                                    modifier = Modifier.fillMaxSize(),
+                                    animationsEnabled = uiState.areAnimationsEnabled
                                 )
                             }
                         }
@@ -544,7 +566,8 @@ fun AnalysisScreen(
                 AnalysisSummaryCard(
                     income = uiState.totalIncome,
                     expense = uiState.totalExpense,
-                    currencyCode = uiState.currency
+                    currencyCode = uiState.currency,
+                    animationsEnabled = uiState.areAnimationsEnabled
                 )
             }
 
@@ -566,7 +589,7 @@ fun AnalysisScreen(
 
                     androidx.compose.animation.AnimatedVisibility(
                         visible = emptyVisible,
-                        enter = fadeIn(tween(400)) + scaleIn(initialScale = 0.85f)
+                        enter = if (uiState.areAnimationsEnabled) fadeIn(tween(400)) + scaleIn(initialScale = 0.85f) else fadeIn(snap())
                     ) {
                         EmptyState(
                             message = "No expenses to analyze yet",
@@ -577,9 +600,10 @@ fun AnalysisScreen(
             } else {
                 itemsIndexed(uiState.categoryBreakdown) { index, analysis ->
                     CategoryAnalysisItem(
-                        modifier = Modifier.staggeredVerticalFadeIn(index),
+                        modifier = Modifier.staggeredVerticalFadeIn(index, enabled = uiState.areAnimationsEnabled),
                         analysis = analysis,
                         currencyCode = uiState.currency,
+                        animationsEnabled = uiState.areAnimationsEnabled
                     )
                 }
             }
@@ -591,11 +615,12 @@ fun AnalysisScreen(
 fun AnalysisSummaryCard(
     income: Double,
     expense: Double,
-    currencyCode: String
+    currencyCode: String,
+    animationsEnabled: Boolean = true
 ) {
     val scale by animateFloatAsState(
         targetValue = 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+        animationSpec = if (animationsEnabled) spring(dampingRatio = Spring.DampingRatioMediumBouncy) else snap()
     )
 
     ElevatedCard(
@@ -603,8 +628,10 @@ fun AnalysisSummaryCard(
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
+                if (animationsEnabled) {
+                    scaleX = scale
+                    scaleY = scale
+                }
             },
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -654,9 +681,13 @@ fun AnalysisSummaryCard(
 fun CategoryAnalysisItem(
     analysis: CategoryAnalysis,
     currencyCode: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    animationsEnabled: Boolean = true
 ) {
-    val alpha by animateFloatAsState(1f)
+    val alpha by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = if (animationsEnabled) tween(300) else snap()
+    )
     val haptic = rememberBudgetearHaptic()
 
     Surface(
@@ -664,12 +695,14 @@ fun CategoryAnalysisItem(
             .fillMaxWidth()
             .padding(vertical = 4.dp, horizontal = 2.dp)
             .clip(MaterialTheme.shapes.medium)
-            .budgetearClickable(haptic = haptic) {
+            .budgetearClickable(haptic = haptic, enabledAnimations = animationsEnabled) {
                 // Potential detail view navigation
             }
             .clip(MaterialTheme.shapes.medium)
             .graphicsLayer {
-                this.alpha = alpha
+                if (animationsEnabled) {
+                    this.alpha = alpha
+                }
             },
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surface,
@@ -757,7 +790,8 @@ fun BarChart(
     dataPoints: List<TimeDataPoint>,
     modifier: Modifier = Modifier,
     color: Color,
-    currencyCode: String
+    currencyCode: String,
+    animationsEnabled: Boolean = true
 ) {
     val animatedProgress = remember { Animatable(0f) }
     var selectedIndex by remember { mutableIntStateOf(-1) }
@@ -767,7 +801,7 @@ fun BarChart(
         animatedProgress.snapTo(0f)
         animatedProgress.animateTo(
             1f,
-            animationSpec = tween(800)
+            animationSpec = if (animationsEnabled) tween(800) else snap()
         )
     }
 
@@ -868,13 +902,14 @@ fun BarChart(
 @Composable
 fun PieChart(
     breakdown: List<CategoryAnalysis>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    animationsEnabled: Boolean = true
 ) {
     val animatedSweep = remember { Animatable(0f) }
 
     LaunchedEffect(breakdown) {
         animatedSweep.snapTo(0f)
-        animatedSweep.animateTo(1f, tween(800))
+        animatedSweep.animateTo(1f, if (animationsEnabled) tween(800) else snap())
     }
 
     if (breakdown.isEmpty()) {
@@ -916,7 +951,8 @@ fun LineChart(
     showExpense: Boolean,
     showIncome: Boolean,
     modifier: Modifier = Modifier,
-    currencyCode: String
+    currencyCode: String,
+    animationsEnabled: Boolean = true
 ) {
     val allPoints = (if (showExpense) expensePoints else emptyList()) + (if (showIncome) incomePoints else emptyList())
     if (allPoints.isEmpty() || (showExpense && expensePoints.size < 2 && !showIncome) || (showIncome && incomePoints.size < 2 && !showExpense)) {
@@ -933,7 +969,7 @@ fun LineChart(
 
     LaunchedEffect(allPoints) {
         progress.snapTo(0f)
-        progress.animateTo(1f, tween(800))
+        progress.animateTo(1f, if (animationsEnabled) tween(800) else snap())
     }
 
     val maxAmount = remember(allPoints) { 

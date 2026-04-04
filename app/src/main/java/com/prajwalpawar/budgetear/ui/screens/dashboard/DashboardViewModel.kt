@@ -20,7 +20,9 @@ data class DashboardUiState(
     val categories: Map<Long, Category> = emptyMap(),
     val currency: String = "USD",
     val userName: String = "",
-    val userPhotoUri: String? = null
+    val userPhotoUri: String? = null,
+    val topBarStyle: String = "standard",
+    val areAnimationsEnabled: Boolean = true
 )
 
 @HiltViewModel
@@ -35,10 +37,20 @@ class DashboardViewModel @Inject constructor(
     private val _userPrefs = combine(
         preferenceManager.currency,
         preferenceManager.userName,
-        preferenceManager.userPhotoUri
-    ) { currency, name, photo ->
-        Triple(currency, name, photo)
+        preferenceManager.userPhotoUri,
+        preferenceManager.topBarStyle,
+        preferenceManager.areAnimationsEnabled
+    ) { currency, name, photo, style, animations ->
+        DashboardUserPrefs(currency, name, photo, style, animations)
     }
+
+    data class DashboardUserPrefs(
+        val currency: String,
+        val userName: String,
+        val userPhotoUri: String?,
+        val topBarStyle: String,
+        val areAnimationsEnabled: Boolean
+    )
 
     val uiState: StateFlow<DashboardUiState> = combine(
         repository.getTotalAmountByType(TransactionType.INCOME.name),
@@ -47,16 +59,17 @@ class DashboardViewModel @Inject constructor(
         _categories,
         _userPrefs
     ) { income, expense, recent, categories, prefs ->
-        val (currency, name, photo) = prefs
         DashboardUiState(
             balance = income - expense,
             totalIncome = income,
             totalExpense = expense,
             recentTransactions = recent,
             categories = categories.associateBy { it.id ?: 0L },
-            currency = currency,
-            userName = name,
-            userPhotoUri = photo
+            currency = prefs.currency,
+            userName = prefs.userName,
+            userPhotoUri = prefs.userPhotoUri,
+            topBarStyle = prefs.topBarStyle,
+            areAnimationsEnabled = prefs.areAnimationsEnabled
         )
     }.flowOn(Dispatchers.Default)
     .stateIn(

@@ -2,6 +2,7 @@ package com.prajwalpawar.budgetear.ui.screens.dashboard
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -40,6 +41,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -126,80 +128,101 @@ fun DashboardScreen(
         }
     }
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = if (uiState.topBarStyle == "longtopbar") {
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    } else {
+        TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        val welcomeMessage = remember {
-                            val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-                            when (hour) {
-                                in 0..11 -> "Good Morning"
-                                in 12..16 -> "Good Afternoon"
-                                else -> "Good Evening"
-                            }
-                        }
-                        Text(
-                            text = welcomeMessage,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = uiState.userName.ifBlank { "User" },
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                },
-                actions = {
-                    Box(
-                        modifier = Modifier
-                            .padding(end = 16.dp)
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (uiState.userPhotoUri != null) {
-                            AsyncImage(
-                                model = uiState.userPhotoUri,
-                                contentDescription = "Profile Photo",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+            val titleContent = @Composable {
+                Column {
+                    val welcomeMessage = remember {
+                        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+                        when (hour) {
+                            in 0..11 -> "Good Morning"
+                            in 12..16 -> "Good Afternoon"
+                            else -> "Good Evening"
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                scrollBehavior = scrollBehavior
+                    Text(
+                        text = welcomeMessage,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = uiState.userName.ifBlank { "User" },
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            val actionsContent = @Composable {
+                Box(
+                    modifier = Modifier
+                        .padding(end = 16.dp)
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (uiState.userPhotoUri != null) {
+                        AsyncImage(
+                            model = uiState.userPhotoUri,
+                            contentDescription = "Profile Photo",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            val colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                titleContentColor = MaterialTheme.colorScheme.onSurface,
+                scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
             )
+
+            if (uiState.topBarStyle == "longtopbar") {
+                LargeTopAppBar(
+                    title = titleContent,
+                    actions = { actionsContent() },
+                    colors = colors,
+                    scrollBehavior = scrollBehavior
+                )
+            } else {
+                TopAppBar(
+                    title = titleContent,
+                    actions = { actionsContent() },
+                    colors = colors,
+                    scrollBehavior = scrollBehavior
+                )
+            }
         },
         floatingActionButton = {
             val interactionSource = remember { MutableInteractionSource() }
             val pressed by interactionSource.collectIsPressedAsState()
 
             val scale by animateFloatAsState(
-                targetValue = if (pressed) 0.9f else 1f
+                targetValue = if (pressed && uiState.areAnimationsEnabled) 0.9f else 1f
             )
 
             ExtendedFloatingActionButton(
                 modifier = Modifier.graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
+                    if (uiState.areAnimationsEnabled) {
+                        scaleX = scale
+                        scaleY = scale
+                    }
                 },
                 interactionSource = interactionSource,
                 onClick = {
@@ -226,7 +249,8 @@ fun DashboardScreen(
                     balance = uiState.balance,
                     income = uiState.totalIncome,
                     expense = uiState.totalExpense,
-                    currencyCode = uiState.currency
+                    currencyCode = uiState.currency,
+                    animationsEnabled = uiState.areAnimationsEnabled
                 )
             }
 
@@ -256,8 +280,9 @@ fun DashboardScreen(
                 key = { _, it -> it.id ?: it.hashCode() }
             ) { index, transaction ->
                 TransactionItem(
-                    modifier = Modifier.staggeredVerticalFadeIn(index),
+                    modifier = Modifier.staggeredVerticalFadeIn(index, enabled = uiState.areAnimationsEnabled),
                     transaction = transaction,
+                    animationsEnabled = uiState.areAnimationsEnabled,
                     category = uiState.categories[transaction.categoryId],
                     currencyCode = uiState.currency,
                     onClick = {
@@ -285,7 +310,8 @@ fun BalanceCard(
     balance: Double,
     income: Double,
     expense: Double,
-    currencyCode: String
+    currencyCode: String,
+    animationsEnabled: Boolean = true
 ) {
     var visible by remember { mutableStateOf(false) }
 
@@ -294,19 +320,19 @@ fun BalanceCard(
     }
 
     val scale by animateFloatAsState(
-        targetValue = if (visible) 1f else 0.9f,
+        targetValue = if (visible && animationsEnabled) 1f else if (animationsEnabled) 0.9f else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
     )
 
     val alpha by animateFloatAsState(
-        targetValue = if (visible) 1f else 0f,
+        targetValue = if (visible && animationsEnabled) 1f else if (animationsEnabled) 0f else 1f,
         animationSpec = tween(500)
     )
 
     // 🔥 Animated number
     val animatedBalance by animateFloatAsState(
         targetValue = balance.toFloat(),
-        animationSpec = tween(800)
+        animationSpec = if (animationsEnabled) tween(800) else snap()
     )
 
     ElevatedCard(
@@ -314,9 +340,11 @@ fun BalanceCard(
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-                this.alpha = alpha
+                if (animationsEnabled) {
+                    scaleX = scale
+                    scaleY = scale
+                    this.alpha = alpha
+                }
             },
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -355,7 +383,8 @@ fun BalanceCard(
                     amount = formatCurrency(income, currencyCode),
                     icon = Icons.Default.ArrowUpward,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    animationsEnabled = animationsEnabled
                 )
 
                 SummaryCard(
@@ -363,7 +392,8 @@ fun BalanceCard(
                     amount = formatCurrency(expense, currencyCode),
                     icon = Icons.Default.ArrowDownward,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    animationsEnabled = animationsEnabled
                 )
             }
         }
@@ -376,19 +406,22 @@ fun SummaryCard(
     amount: String,
     icon: ImageVector,
     color: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    animationsEnabled: Boolean = true
 ) {
     val scale by animateFloatAsState(
         targetValue = 1f,
-        animationSpec = tween(500)
+        animationSpec = if (animationsEnabled) tween(500) else snap()
     )
 
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
+                if (animationsEnabled) {
+                    scaleX = scale
+                    scaleY = scale
+                }
             },
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
@@ -440,6 +473,7 @@ fun TransactionItem(
     category: Category?,
     currencyCode: String,
     modifier: Modifier = Modifier,
+    animationsEnabled: Boolean = true,
     onClick: () -> Unit = {}
 ) {
     val amountColor =
@@ -450,7 +484,10 @@ fun TransactionItem(
         modifier = modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.medium)
-            .budgetearClickable(haptic = rememberBudgetearHaptic()) {
+            .budgetearClickable(
+                haptic = rememberBudgetearHaptic(),
+                enabledAnimations = animationsEnabled
+            ) {
                 onClick()
             }
             .padding(vertical = 12.dp, horizontal = 12.dp),

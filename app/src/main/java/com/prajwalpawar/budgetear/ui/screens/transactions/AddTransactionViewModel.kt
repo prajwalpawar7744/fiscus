@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.prajwalpawar.budgetear.domain.model.Category
 import kotlinx.coroutines.flow.*
+import com.prajwalpawar.budgetear.data.local.pref.PreferenceManager
 import java.util.Date
 import javax.inject.Inject
 
@@ -25,12 +26,14 @@ data class AddTransactionUiState(
     val accountId: Long = 1, // Default account
     val isSaved: Boolean = false,
     val transactionId: Long? = null,
-    val date: Date = Date()
+    val date: Date = Date(),
+    val areAnimationsEnabled: Boolean = true
 )
 
 @HiltViewModel
 class AddTransactionViewModel @Inject constructor(
-    private val repository: BudgetRepository
+    private val repository: BudgetRepository,
+    private val preferenceManager: PreferenceManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddTransactionUiState())
@@ -38,10 +41,12 @@ class AddTransactionViewModel @Inject constructor(
 
     val uiState: StateFlow<AddTransactionUiState> = combine(
         _uiState,
-        _allCategories
-    ) { state, allCategories ->
+        _allCategories,
+        preferenceManager.areAnimationsEnabled
+    ) { state, allCategories, animationsEnabled ->
         state.copy(
-            categories = allCategories.filter { it.type == null || it.type == state.type }
+            categories = allCategories.filter { it.type == null || it.type == state.type },
+            areAnimationsEnabled = animationsEnabled
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AddTransactionUiState())
 

@@ -47,7 +47,9 @@ data class AnalysisUiState(
     val selectedTransactionType: TransactionType? = TransactionType.EXPENSE,
     val allCategories: List<Category> = emptyList(),
     val selectedCategoryId: Long? = null,
-    val selectedChartType: AnalysisChartType = AnalysisChartType.BAR
+    val selectedChartType: AnalysisChartType = AnalysisChartType.BAR,
+    val areAnimationsEnabled: Boolean = true,
+    val topBarStyle: String = "standard"
 )
 
 data class CategoryAnalysis(
@@ -105,12 +107,21 @@ class AnalysisViewModel @Inject constructor(
         val chartType: AnalysisChartType
     )
 
-    val uiState: StateFlow<AnalysisUiState> = combine(
+    val uiState: StateFlow<AnalysisUiState> = combine<Any, AnalysisUiState>(
         repository.getTransactions(),
         _categories,
         preferenceManager.currency,
-        _filters
-    ) { transactions, categories, currency, filters ->
+        _filters,
+        preferenceManager.areAnimationsEnabled,
+        preferenceManager.topBarStyle
+    ) { args ->
+        val transactions = args[0] as List<Transaction>
+        val categories = args[1] as List<Category>
+        val currency = args[2] as String
+        val filters = args[3] as FilterParams
+        val animationsEnabled = args[4] as Boolean
+        val topBarStyle = args[5] as String
+        
         val filteredTransactions = transactions.filter { transaction ->
             val matchesType = filters.type == null || transaction.type == filters.type
             val matchesCategory = filters.categoryId == null || transaction.categoryId == filters.categoryId
@@ -177,7 +188,9 @@ class AnalysisViewModel @Inject constructor(
             selectedTransactionType = filters.type,
             allCategories = categories.distinctBy { "${it.name}-${it.type}" },
             selectedCategoryId = filters.categoryId,
-            selectedChartType = filters.chartType
+            selectedChartType = filters.chartType,
+            areAnimationsEnabled = animationsEnabled,
+            topBarStyle = topBarStyle
         )
     }.flowOn(Dispatchers.Default)
     .stateIn(

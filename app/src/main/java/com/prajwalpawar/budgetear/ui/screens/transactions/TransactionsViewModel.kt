@@ -27,7 +27,9 @@ data class TransactionsUiState(
     val selectedTimeRange: TimeRange = TimeRange.ALL,
     val startDate: LocalDate? = null,
     val endDate: LocalDate? = null,
-    val allCategories: List<Category> = emptyList()
+    val allCategories: List<Category> = emptyList(),
+    val areAnimationsEnabled: Boolean = true,
+    val topBarStyle: String = "standard"
 )
 
 @HiltViewModel
@@ -64,12 +66,21 @@ class TransactionsViewModel @Inject constructor(
         val endDate: LocalDate?
     )
 
-    val uiState: StateFlow<TransactionsUiState> = combine(
+    val uiState: StateFlow<TransactionsUiState> = combine<Any, TransactionsUiState>(
         repository.getTransactions(),
         _categories,
         preferenceManager.currency,
-        _filters
-    ) { transactions, categories, currency, filters ->
+        _filters,
+        preferenceManager.areAnimationsEnabled,
+        preferenceManager.topBarStyle
+    ) { args ->
+        val transactions = args[0] as List<Transaction>
+        val categories = args[1] as List<Category>
+        val currency = args[2] as String
+        val filters = args[3] as FilterParams
+        val animationsEnabled = args[4] as Boolean
+        val topBarStyle = args[5] as String
+        
         val (search, categoryId, timeRange, start, end) = filters
         
         val filteredTransactions = transactions.filter { transaction ->
@@ -117,7 +128,9 @@ class TransactionsViewModel @Inject constructor(
             selectedTimeRange = timeRange,
             startDate = start,
             endDate = end,
-            allCategories = categories.distinctBy { "${it.name}-${it.type}" }
+            allCategories = categories.distinctBy { "${it.name}-${it.type}" },
+            areAnimationsEnabled = animationsEnabled,
+            topBarStyle = topBarStyle
         )
     }
 .flowOn(Dispatchers.Default)

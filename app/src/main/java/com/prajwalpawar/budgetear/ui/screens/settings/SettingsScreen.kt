@@ -105,14 +105,29 @@ fun SettingsScreen(
     )
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text("Settings", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
+            if (uiState.topBarStyle == "longtopbar") {
+                LargeTopAppBar(
+                    title = { Text("Settings", fontWeight = FontWeight.Bold) },
+                    colors = TopAppBarDefaults.largeTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    scrollBehavior = scrollBehavior
                 )
-            )
+            } else {
+                TopAppBar(
+                    title = { Text("Settings", fontWeight = FontWeight.Bold) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    scrollBehavior = scrollBehavior
+                )
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
@@ -127,7 +142,7 @@ fun SettingsScreen(
             // Profile Section
             item {
                 ElevatedCard(
-                    modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(0),
+                    modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(0, enabled = uiState.areAnimationsEnabled),
                     shape = MaterialTheme.shapes.extraLarge,
                     colors = CardDefaults.elevatedCardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
@@ -144,7 +159,7 @@ fun SettingsScreen(
                                 .size(112.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.surfaceContainerLowest)
-                                .budgetearClickable(haptic = haptic) {
+                                .budgetearClickable(haptic = haptic, enabledAnimations = uiState.areAnimationsEnabled) {
                                     photoLauncher.launch("image/*")
                                 },
                             contentAlignment = Alignment.Center
@@ -173,7 +188,7 @@ fun SettingsScreen(
                             text = uiState.userName.ifBlank { "Add Name" },
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.budgetearClickable(haptic = haptic) { 
+                            modifier = Modifier.budgetearClickable(haptic = haptic, enabledAnimations = uiState.areAnimationsEnabled) { 
                                 tempName = uiState.userName
                                 showNameDialog = true 
                             }
@@ -193,13 +208,14 @@ fun SettingsScreen(
             // Preferences
             item {
                 SettingsGroup(
-                    modifier = Modifier.staggeredVerticalFadeIn(1),
+                    modifier = Modifier.staggeredVerticalFadeIn(1, enabled = uiState.areAnimationsEnabled),
                     title = "Appearance"
                 ) {
                     SettingsItem(
                         icon = Icons.Default.Palette,
                         title = "Theme",
                         subtitle = uiState.themeMode.replaceFirstChar { it.uppercase() },
+                        animationsEnabled = uiState.areAnimationsEnabled,
                         onClick = {
                             val nextMode = when (uiState.themeMode) {
                                 "system" -> "light"
@@ -223,21 +239,51 @@ fun SettingsScreen(
                                     }
                                 )
                             },
+                            animationsEnabled = uiState.areAnimationsEnabled,
                             onClick = { viewModel.updateDynamicColorEnabled(!uiState.isDynamicColorEnabled) }
                         )
                     }
+
+                    SettingsItem(
+                        icon = Icons.Default.ViewHeadline,
+                        title = "Top Bar Style",
+                        subtitle = if (uiState.topBarStyle == "standard") "Small (Default)" else "Large",
+                        animationsEnabled = uiState.areAnimationsEnabled,
+                        onClick = {
+                            val nextStyle = if (uiState.topBarStyle == "standard") "longtopbar" else "standard"
+                            viewModel.updateTopBarStyle(nextStyle)
+                        }
+                    )
+
+                    SettingsItem(
+                        icon = Icons.Default.Animation,
+                        title = "Animations",
+                        subtitle = if (uiState.areAnimationsEnabled) "Enabled" else "Disabled",
+                        animationsEnabled = uiState.areAnimationsEnabled,
+                        trailingContent = {
+                            Switch(
+                                checked = uiState.areAnimationsEnabled,
+                                onCheckedChange = { 
+                                    haptic.click()
+                                    viewModel.updateAnimationsEnabled(it) 
+                                }
+                            )
+                        },
+                        onClick = { viewModel.updateAnimationsEnabled(!uiState.areAnimationsEnabled) }
+                    )
                 }
             }
 
             item {
                 SettingsGroup(
-                    modifier = Modifier.staggeredVerticalFadeIn(2),
+                    modifier = Modifier.staggeredVerticalFadeIn(2, enabled = uiState.areAnimationsEnabled),
                     title = "Security"
                 ) {
                     SettingsItem(
                         icon = Icons.Default.Fingerprint,
                         title = "Biometric Lock",
                         subtitle = "Require fingerprint to open app",
+                        animationsEnabled = uiState.areAnimationsEnabled,
                         trailingContent = {
                             Switch(
                                 checked = uiState.isBiometricEnabled,
@@ -254,13 +300,14 @@ fun SettingsScreen(
 
             item {
                 SettingsGroup(
-                    modifier = Modifier.staggeredVerticalFadeIn(3),
+                    modifier = Modifier.staggeredVerticalFadeIn(3, enabled = uiState.areAnimationsEnabled),
                     title = "Localization"
                 ) {
                     SettingsItem(
                         icon = Icons.Default.AttachMoney,
                         title = "Currency",
                         subtitle = uiState.currency,
+                        animationsEnabled = uiState.areAnimationsEnabled,
                         onClick = { showCurrencyDialog = true }
                     )
                 }
@@ -269,19 +316,21 @@ fun SettingsScreen(
             // Backup & Restore Section
             item {
                 SettingsGroup(
-                    modifier = Modifier.staggeredVerticalFadeIn(4),
+                    modifier = Modifier.staggeredVerticalFadeIn(4, enabled = uiState.areAnimationsEnabled),
                     title = "Backup & Restore"
                 ) {
                     SettingsItem(
                         title = "Export Data",
                         subtitle = "Save your data to a JSON file",
                         icon = Icons.Default.CloudDownload,
+                        animationsEnabled = uiState.areAnimationsEnabled,
                         onClick = { exportLauncher.launch("budgetear_backup_${System.currentTimeMillis()}.json") }
                     )
                     SettingsItem(
                         title = "Import Data",
                         subtitle = "Restore data from a JSON file",
                         icon = Icons.Default.CloudUpload,
+                        animationsEnabled = uiState.areAnimationsEnabled,
                         onClick = { showImportWarning = true }
                     )
                 }
@@ -289,7 +338,7 @@ fun SettingsScreen(
 
             item {
                 SettingsGroup(
-                    modifier = Modifier.staggeredVerticalFadeIn(5),
+                    modifier = Modifier.staggeredVerticalFadeIn(5, enabled = uiState.areAnimationsEnabled),
                     title = "Data Management"
                 ) {
                     SettingsItem(
@@ -297,6 +346,7 @@ fun SettingsScreen(
                         title = "Reset Data",
                         subtitle = "Clear all transactions and accounts",
                         textColor = MaterialTheme.colorScheme.error,
+                        animationsEnabled = uiState.areAnimationsEnabled,
                         onClick = { showResetDialog = true }
                     )
                 }
@@ -373,7 +423,7 @@ fun SettingsScreen(
                         Row(
                             Modifier
                                 .fillMaxWidth()
-                                .budgetearClickable(haptic = haptic) {
+                                .budgetearClickable(haptic = haptic, enabledAnimations = uiState.areAnimationsEnabled) {
                                     viewModel.updateCurrency(currency)
                                     showCurrencyDialog = false
                                 }
@@ -422,11 +472,15 @@ fun SettingsItem(
     subtitle: String? = null,
     textColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface,
     trailingContent: @Composable (() -> Unit)? = null,
+    animationsEnabled: Boolean = true,
     onClick: () -> Unit
 ) {
     val haptic = rememberBudgetearHaptic()
     ListItem(
-        modifier = Modifier.budgetearClickable(haptic = haptic) {
+        modifier = Modifier.budgetearClickable(
+            haptic = haptic,
+            enabledAnimations = animationsEnabled
+        ) {
             onClick()
         },
         headlineContent = {

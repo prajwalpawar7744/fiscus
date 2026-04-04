@@ -76,7 +76,7 @@ fun AddTransactionScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                modifier = Modifier.staggeredVerticalFadeIn(0),
+                modifier = Modifier.staggeredVerticalFadeIn(0, enabled = uiState.areAnimationsEnabled),
                 text = if (uiState.transactionId == null) "New Transaction" else "Edit Transaction",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
@@ -90,7 +90,7 @@ fun AddTransactionScreen(
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .staggeredVerticalFadeIn(1)
+                .staggeredVerticalFadeIn(1, enabled = uiState.areAnimationsEnabled)
                 .clickable {
                     haptic.click()
                     amountFocusRequester.requestFocus()
@@ -180,7 +180,7 @@ fun AddTransactionScreen(
 
         // Details Card
         ElevatedCard(
-            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(2),
+            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(2, enabled = uiState.areAnimationsEnabled),
             shape = MaterialTheme.shapes.extraLarge,
             colors = CardDefaults.elevatedCardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer

@@ -100,9 +100,12 @@ object BudgetearAnimation {
  */
 fun Modifier.staggeredVerticalFadeIn(
     index: Int,
+    enabled: Boolean = true,
     baseDelay: Int = 100,
     staggerDelay: Int = 50
 ): Modifier = composed {
+    if (!enabled) return@composed this
+
     val visibleState = remember {
         MutableTransitionState(false)
     }
@@ -151,7 +154,9 @@ fun Modifier.staggeredVerticalFadeIn(
 /**
  * A modifier that adds a subtle spring-based scale animation on click or state change.
  */
-fun Modifier.scaleOnPress(): Modifier = composed {
+fun Modifier.scaleOnPress(enabled: Boolean = true): Modifier = composed {
+    if (!enabled) return@composed this
+    
     val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     
@@ -175,13 +180,14 @@ fun Modifier.scaleOnPress(): Modifier = composed {
  */
 fun Modifier.budgetearClickable(
     haptic: BudgetearHaptic? = null,
+    enabledAnimations: Boolean = true,
     onClick: () -> Unit
 ): Modifier = composed {
     val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     
     val scale by androidx.compose.animation.core.animateFloatAsState(
-        targetValue = if (isPressed) 0.96f else 1f,
+        targetValue = if (isPressed && enabledAnimations) 0.96f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMediumLow

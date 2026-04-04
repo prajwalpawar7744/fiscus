@@ -2,6 +2,7 @@ package com.prajwalpawar.budgetear.ui.screens.transactions
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
@@ -47,6 +48,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -55,12 +57,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -144,15 +146,27 @@ fun TransactionsScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text("Transactions", fontWeight = FontWeight.ExtraBold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                scrollBehavior = scrollBehavior
-            )
+            if (uiState.topBarStyle == "longtopbar") {
+                LargeTopAppBar(
+                    title = { Text("Transactions", fontWeight = FontWeight.ExtraBold) },
+                    colors = TopAppBarDefaults.largeTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    scrollBehavior = scrollBehavior
+                )
+            } else {
+                TopAppBar(
+                    title = { Text("Transactions", fontWeight = FontWeight.ExtraBold) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    scrollBehavior = scrollBehavior
+                )
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
@@ -188,8 +202,8 @@ fun TransactionsScreen(
                         val focused by interactionSource.collectIsFocusedAsState()
 
                         val scale by animateFloatAsState(
-                            targetValue = if (focused) 1.02f else 1f,
-                            animationSpec = tween(200)
+                            targetValue = if (focused && uiState.areAnimationsEnabled) 1.02f else 1f,
+                            animationSpec = if (uiState.areAnimationsEnabled) tween(200) else snap()
                         )
 
                         // Search Bar Styled Field
@@ -199,8 +213,10 @@ fun TransactionsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .graphicsLayer {
-                                    scaleX = scale
-                                    scaleY = scale
+                                    if (uiState.areAnimationsEnabled) {
+                                        scaleX = scale
+                                        scaleY = scale
+                                    }
                                 },
                             interactionSource = interactionSource,
                             placeholder = { Text("Search by title or note...") },
@@ -499,7 +515,7 @@ fun TransactionsScreen(
                             }
                         }
                     ) { index, item ->
-                        val itemModifier = Modifier.staggeredVerticalFadeIn(index)
+                        val itemModifier = Modifier.staggeredVerticalFadeIn(index, enabled = uiState.areAnimationsEnabled)
 
                         Box(modifier = itemModifier) {
                             when (item) {
@@ -545,7 +561,8 @@ fun TransactionsScreen(
                                             haptic.longClick()
                                             transactionToDelete = item.transaction
                                             showDeleteDialog = true
-                                        }
+                                        },
+                                        animationsEnabled = uiState.areAnimationsEnabled
                                     )
                                 }
                             }
@@ -615,7 +632,8 @@ fun SwipeableTransactionItem(
     category: com.prajwalpawar.budgetear.domain.model.Category?,
     currencyCode: String,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    animationsEnabled: Boolean = true
 ) {
     val dismissState = rememberSwipeToDismissBoxState()
 
@@ -627,11 +645,11 @@ fun SwipeableTransactionItem(
     }
 
     val scale by animateFloatAsState(
-        targetValue = if (dismissState.targetValue != SwipeToDismissBoxValue.Settled) 0.95f else 1f
+        targetValue = if (dismissState.targetValue != SwipeToDismissBoxValue.Settled && animationsEnabled) 0.95f else 1f
     )
 
     val alpha by animateFloatAsState(
-        targetValue = if (dismissState.targetValue != SwipeToDismissBoxValue.Settled) 0.7f else 1f
+        targetValue = if (dismissState.targetValue != SwipeToDismissBoxValue.Settled && animationsEnabled) 0.7f else 1f
     )
 
     SwipeToDismissBox(
@@ -649,9 +667,11 @@ fun SwipeableTransactionItem(
                     .background(color)
                     .padding(horizontal = 24.dp)
                     .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                        this.alpha = alpha
+                        if (animationsEnabled) {
+                            scaleX = scale
+                            scaleY = scale
+                            this.alpha = alpha
+                        }
                     },
                 contentAlignment = Alignment.CenterEnd
             ) {
@@ -672,6 +692,7 @@ fun SwipeableTransactionItem(
             transaction = transaction,
             category = category,
             currencyCode = currencyCode,
+            animationsEnabled = animationsEnabled,
             onClick = {
                 onEdit()
             }

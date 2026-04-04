@@ -22,7 +22,9 @@ data class SettingsUiState(
     val themeMode: String = "system",
     val isBiometricEnabled: Boolean = false,
     val currency: String = "USD",
-    val isDynamicColorEnabled: Boolean = true
+    val isDynamicColorEnabled: Boolean = true,
+    val topBarStyle: String = "standard",
+    val areAnimationsEnabled: Boolean = true
 )
 
 @HiltViewModel
@@ -33,22 +35,26 @@ class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
-    val uiState: StateFlow<SettingsUiState> = combine(
+    val uiState: StateFlow<SettingsUiState> = combine<Any?, SettingsUiState>(
         preferenceManager.userName,
         preferenceManager.userPhotoUri,
         preferenceManager.themeMode,
         preferenceManager.isBiometricEnabled,
-        preferenceManager.currency
-    ) { name, photo, theme, biometric, currency ->
+        preferenceManager.currency,
+        preferenceManager.isDynamicColorEnabled,
+        preferenceManager.topBarStyle,
+        preferenceManager.areAnimationsEnabled
+    ) { args ->
         SettingsUiState(
-            userName = name,
-            userPhotoUri = photo,
-            themeMode = theme,
-            isBiometricEnabled = biometric,
-            currency = currency
+            userName = args[0] as String,
+            userPhotoUri = args[1] as? String,
+            themeMode = args[2] as String,
+            isBiometricEnabled = args[3] as Boolean,
+            currency = args[4] as String,
+            isDynamicColorEnabled = args[5] as Boolean,
+            topBarStyle = args[6] as String,
+            areAnimationsEnabled = args[7] as Boolean
         )
-    }.combine(preferenceManager.isDynamicColorEnabled) { state, dynamicColor ->
-        state.copy(isDynamicColorEnabled = dynamicColor)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsUiState())
 
     fun updateUserName(name: String) {
@@ -105,6 +111,18 @@ class SettingsViewModel @Inject constructor(
     fun updateDynamicColorEnabled(enabled: Boolean) {
         viewModelScope.launch {
             preferenceManager.updateDynamicColorEnabled(enabled)
+        }
+    }
+
+    fun updateTopBarStyle(style: String) {
+        viewModelScope.launch {
+            preferenceManager.updateTopBarStyle(style)
+        }
+    }
+
+    fun updateAnimationsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            preferenceManager.updateAnimationsEnabled(enabled)
         }
     }
 
