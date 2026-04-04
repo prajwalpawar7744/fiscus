@@ -55,7 +55,7 @@ class SettingsViewModel @Inject constructor(
             topBarStyle = args[6] as String,
             areAnimationsEnabled = args[7] as Boolean
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsUiState())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
     fun updateUserName(name: String) {
         viewModelScope.launch {
@@ -76,8 +76,14 @@ class SettingsViewModel @Inject constructor(
     private fun saveImageToInternalStorage(uri: Uri): String? {
         return try {
             val inputStream = context.contentResolver.openInputStream(uri)
-            val file = File(context.filesDir, "profile_photo.jpg")
+            
+            // Delete old profile photos to prevent storage bloat
+            context.filesDir.listFiles { _, name -> name.startsWith("profile_photo_") }?.forEach { it.delete() }
+            
+            val filename = "profile_photo_${System.currentTimeMillis()}.jpg"
+            val file = File(context.filesDir, filename)
             val outputStream = FileOutputStream(file)
+            
             inputStream?.use { input ->
                 outputStream.use { output ->
                     input.copyTo(output)
