@@ -149,7 +149,8 @@ class AddTransactionViewModel @Inject constructor(
                 type = transaction.type,
                 categoryId = transaction.categoryId,
                 accountId = transaction.accountId,
-                date = transaction.date
+                date = transaction.date,
+                isSaved = false
             )
         }
     }

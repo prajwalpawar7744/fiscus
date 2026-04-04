@@ -608,9 +608,8 @@ fun TransactionsScreen(
                     scope.launch {
                         sheetState.hide()
                     }.invokeOnCompletion {
-                        if (!sheetState.isVisible) {
-                            showBottomSheet = false
-                        }
+                        showBottomSheet = false
+                        addTransactionViewModel.resetState()
                     }
                 }
             )
