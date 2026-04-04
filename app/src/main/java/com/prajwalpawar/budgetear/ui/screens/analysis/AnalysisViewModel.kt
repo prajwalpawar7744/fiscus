@@ -195,7 +195,7 @@ class AnalysisViewModel @Inject constructor(
     }.flowOn(Dispatchers.Default)
     .stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.Eagerly,
         initialValue = AnalysisUiState()
     )
     

@@ -110,7 +110,7 @@ fun AnalysisScreen(
 
                 AnimatedVisibility(
                     visible = visible,
-                    enter = if (uiState.areAnimationsEnabled) fadeIn(tween(300)) + slideInVertically { -it / 4 } else fadeIn(snap())
+                    enter = if (uiState.areAnimationsEnabled) fadeIn(tween(300)) else fadeIn(snap())
                 ) {
 
                     Column(
@@ -600,7 +600,7 @@ fun AnalysisScreen(
             } else {
                 itemsIndexed(uiState.categoryBreakdown) { index, analysis ->
                     CategoryAnalysisItem(
-                        modifier = Modifier.staggeredVerticalFadeIn(index, enabled = uiState.areAnimationsEnabled),
+                        modifier = Modifier.staggeredVerticalFadeIn(index, enabled = uiState.areAnimationsEnabled, initialDelay = 150),
                         analysis = analysis,
                         currencyCode = uiState.currency,
                         animationsEnabled = uiState.areAnimationsEnabled
@@ -618,21 +618,10 @@ fun AnalysisSummaryCard(
     currencyCode: String,
     animationsEnabled: Boolean = true
 ) {
-    val scale by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = if (animationsEnabled) spring(dampingRatio = Spring.DampingRatioMediumBouncy) else snap()
-    )
-
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .graphicsLayer {
-                if (animationsEnabled) {
-                    scaleX = scale
-                    scaleY = scale
-                }
-            },
+            .padding(vertical = 8.dp),
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -684,12 +673,7 @@ fun CategoryAnalysisItem(
     modifier: Modifier = Modifier,
     animationsEnabled: Boolean = true
 ) {
-    val alpha by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = if (animationsEnabled) tween(300) else snap()
-    )
     val haptic = rememberBudgetearHaptic()
-
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -698,12 +682,7 @@ fun CategoryAnalysisItem(
             .budgetearClickable(haptic = haptic, enabledAnimations = animationsEnabled) {
                 // Potential detail view navigation
             }
-            .clip(MaterialTheme.shapes.medium)
-            .graphicsLayer {
-                if (animationsEnabled) {
-                    this.alpha = alpha
-                }
-            },
+            .clip(MaterialTheme.shapes.medium),
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surface,
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
@@ -801,7 +780,7 @@ fun BarChart(
         animatedProgress.snapTo(0f)
         animatedProgress.animateTo(
             1f,
-            animationSpec = if (animationsEnabled) tween(800) else snap()
+            animationSpec = if (animationsEnabled) tween(350) else snap()
         )
     }
 
@@ -909,7 +888,7 @@ fun PieChart(
 
     LaunchedEffect(breakdown) {
         animatedSweep.snapTo(0f)
-        animatedSweep.animateTo(1f, if (animationsEnabled) tween(800) else snap())
+        animatedSweep.animateTo(1f, if (animationsEnabled) tween(350) else snap())
     }
 
     if (breakdown.isEmpty()) {
@@ -969,7 +948,7 @@ fun LineChart(
 
     LaunchedEffect(allPoints) {
         progress.snapTo(0f)
-        progress.animateTo(1f, if (animationsEnabled) tween(800) else snap())
+        progress.animateTo(1f, if (animationsEnabled) tween(350) else snap())
     }
 
     val maxAmount = remember(allPoints) { 

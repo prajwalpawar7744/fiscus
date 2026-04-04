@@ -1,30 +1,23 @@
 package com.prajwalpawar.budgetear.ui.utils
 
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.rememberTransition
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.graphicsLayer
@@ -60,37 +53,10 @@ object BudgetearAnimation {
      * Standard navigation transitions for a smooth, high-quality feel.
      */
     object Navigation {
-        val Enter: EnterTransition = slideInHorizontally(
-            initialOffsetX = { it / 3 },
-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-        ) + fadeIn(animationSpec = tween(400)) + scaleIn(
-            initialScale = 0.95f,
-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-        )
-
-        val Exit: ExitTransition = slideOutHorizontally(
-            targetOffsetX = { -it / 3 },
-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-        ) + fadeOut(animationSpec = tween(400)) + scaleOut(
-            targetScale = 0.95f,
-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-        )
-
-        val PopEnter: EnterTransition = slideInHorizontally(
-            initialOffsetX = { -it / 3 },
-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-        ) + fadeIn(animationSpec = tween(400)) + scaleIn(
-            initialScale = 0.95f,
-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-        )
-
-        val PopExit: ExitTransition = slideOutHorizontally(
-            targetOffsetX = { it / 3 },
-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-        ) + fadeOut(animationSpec = tween(400)) + scaleOut(
-            targetScale = 0.95f,
-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-        )
+        val Enter: EnterTransition = fadeIn(animationSpec = tween(250))
+        val Exit: ExitTransition = fadeOut(animationSpec = tween(250))
+        val PopEnter: EnterTransition = fadeIn(animationSpec = tween(250))
+        val PopExit: ExitTransition = fadeOut(animationSpec = tween(250))
     }
 }
 
@@ -101,53 +67,31 @@ object BudgetearAnimation {
 fun Modifier.staggeredVerticalFadeIn(
     index: Int,
     enabled: Boolean = true,
-    baseDelay: Int = 100,
-    staggerDelay: Int = 50
+    initialDelay: Long = 100
 ): Modifier = composed {
     if (!enabled) return@composed this
 
-    val visibleState = remember {
-        MutableTransitionState(false)
-    }
-    
-    LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(baseDelay + (index * staggerDelay).toLong())
-        visibleState.targetState = true
-    }
-    
-    val transition = updateTransition(visibleState, label = "staggeredFadeIn")
-    
-    val alpha by transition.animateFloat(
-        transitionSpec = { tween(durationMillis = 400) },
-        label = "alpha"
-    ) { if (it) 1f else 0f }
-    
-    val offsetY by transition.animateFloat(
-        transitionSpec = { 
-            spring(
-                dampingRatio = Spring.DampingRatioLowBouncy,
-                stiffness = Spring.StiffnessMediumLow,
-                visibilityThreshold = 0.1f
-            )
-        },
-        label = "offsetY"
-    ) { if (it) 0f else 40f }
+    // A single 0→1 progress drives both alpha and translationY via one graphicsLayer call.
+    // No recomposition, no layout pass — purely GPU-side alpha blending + translation.
+    var progress by remember { mutableFloatStateOf(0f) }
+    val animatedProgress by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(
+            durationMillis = 300,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
+        label = "staggerProgress"
+    )
+    val delay = remember(index, initialDelay) { (initialDelay + (index.coerceAtMost(8) * 45)).toLong() }
 
-    val scale by transition.animateFloat(
-        transitionSpec = {
-            spring(
-                dampingRatio = Spring.DampingRatioLowBouncy,
-                stiffness = Spring.StiffnessMediumLow
-            )
-        },
-        label = "scale"
-    ) { if (it) 1f else 0.92f }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(delay)
+        progress = 1f
+    }
 
     this.graphicsLayer {
-        this.alpha = alpha
-        this.translationY = offsetY
-        this.scaleX = scale
-        this.scaleY = scale
+        alpha = animatedProgress
+        translationY = (1f - animatedProgress) * 24f  // subtle 24px upward slide
     }
 }
 
@@ -188,16 +132,13 @@ fun Modifier.budgetearClickable(
     
     val scale by androidx.compose.animation.core.animateFloatAsState(
         targetValue = if (isPressed && enabledAnimations) 0.96f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMediumLow
-        ),
-        label = "budgetearClickableScale"
+        animationSpec = BudgetearAnimation.SpringLowBouncy,
+        label = "clickScale"
     )
 
     this.graphicsLayer {
-            this.scaleX = scale
-            this.scaleY = scale
+            scaleX = scale
+            scaleY = scale
         }
         .clickable(
             interactionSource = interactionSource,

@@ -9,6 +9,7 @@ import com.prajwalpawar.budgetear.domain.repository.BudgetRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.debounce
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
@@ -44,12 +45,14 @@ class TransactionsViewModel @Inject constructor(
     private val _startDate = MutableStateFlow<LocalDate?>(null)
     private val _endDate = MutableStateFlow<LocalDate?>(null)
 
+    val currentSearchText = _searchText.asStateFlow()
+
     private val _categories = repository.getCategories()
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _filters = combine(
-        _searchText,
+        _searchText.debounce(300L),
         _selectedCategoryId,
         _selectedTimeRange,
         _startDate,
@@ -72,7 +75,8 @@ class TransactionsViewModel @Inject constructor(
         preferenceManager.currency,
         _filters,
         preferenceManager.areAnimationsEnabled,
-        preferenceManager.topBarStyle
+        preferenceManager.topBarStyle,
+        _searchText
     ) { args ->
         val transactions = args[0] as List<Transaction>
         val categories = args[1] as List<Category>
@@ -80,6 +84,7 @@ class TransactionsViewModel @Inject constructor(
         val filters = args[3] as FilterParams
         val animationsEnabled = args[4] as Boolean
         val topBarStyle = args[5] as String
+        val rawSearchText = args[6] as String
         
         val (search, categoryId, timeRange, start, end) = filters
         
@@ -123,7 +128,7 @@ class TransactionsViewModel @Inject constructor(
             groupedTransactions = grouped,
             categories = categories.associateBy { it.id ?: 0L },
             currency = currency,
-            searchText = search,
+            searchText = rawSearchText,
             selectedCategoryId = categoryId,
             selectedTimeRange = timeRange,
             startDate = start,
@@ -136,7 +141,7 @@ class TransactionsViewModel @Inject constructor(
 .flowOn(Dispatchers.Default)
     .stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.Eagerly,
         initialValue = TransactionsUiState()
     )
 

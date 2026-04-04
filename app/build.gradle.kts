@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.baselineprofile)
 }
 
 android {
@@ -35,6 +36,15 @@ android {
 
     buildFeatures {
         compose = true
+    }
+    
+    baselineProfile {
+        filter {
+            include("com.prajwalpawar.budgetear.**")
+        }
+        warnings {
+            maxAgpVersion = false
+        }
     }
 }
 
@@ -80,6 +90,9 @@ dependencies {
 
     // SplashScreen
     implementation(libs.androidx.core.splashscreen)
+    
+    // Profile Installer for Baseline Profiles
+    implementation(libs.androidx.profileinstaller)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

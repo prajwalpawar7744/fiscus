@@ -49,6 +49,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -280,7 +281,7 @@ fun DashboardScreen(
                 key = { _, it -> it.id ?: it.hashCode() }
             ) { index, transaction ->
                 TransactionItem(
-                    modifier = Modifier.staggeredVerticalFadeIn(index, enabled = uiState.areAnimationsEnabled),
+                    modifier = Modifier.staggeredVerticalFadeIn(index, enabled = uiState.areAnimationsEnabled, initialDelay = 250),
                     transaction = transaction,
                     animationsEnabled = uiState.areAnimationsEnabled,
                     category = uiState.categories[transaction.categoryId],
@@ -313,26 +314,16 @@ fun BalanceCard(
     currencyCode: String,
     animationsEnabled: Boolean = true
 ) {
-    var visible by remember { mutableStateOf(false) }
+    var progress by remember { mutableFloatStateOf(0f) }
 
     LaunchedEffect(Unit) {
-        visible = true
+        progress = 1f
     }
 
-    val scale by animateFloatAsState(
-        targetValue = if (visible && animationsEnabled) 1f else if (animationsEnabled) 0.9f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
-    )
-
-    val alpha by animateFloatAsState(
-        targetValue = if (visible && animationsEnabled) 1f else if (animationsEnabled) 0f else 1f,
-        animationSpec = tween(500)
-    )
-
-    // 🔥 Animated number
-    val animatedBalance by animateFloatAsState(
-        targetValue = balance.toFloat(),
-        animationSpec = if (animationsEnabled) tween(800) else snap()
+    val animatedProgress by animateFloatAsState(
+        targetValue = if (animationsEnabled) progress else 1f,
+        animationSpec = tween(350, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+        label = "balanceCardProgress"
     )
 
     ElevatedCard(
@@ -340,11 +331,8 @@ fun BalanceCard(
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .graphicsLayer {
-                if (animationsEnabled) {
-                    scaleX = scale
-                    scaleY = scale
-                    this.alpha = alpha
-                }
+                alpha = animatedProgress
+                translationY = (1f - animatedProgress) * 20f
             },
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -364,7 +352,7 @@ fun BalanceCard(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = formatCurrency(animatedBalance.toDouble(), currencyCode),
+                text = formatCurrency(balance, currencyCode),
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
@@ -380,18 +368,20 @@ fun BalanceCard(
 
                 SummaryCard(
                     label = "Income",
-                    amount = formatCurrency(income, currencyCode),
+                    amount = income,
                     icon = Icons.Default.ArrowUpward,
                     color = MaterialTheme.colorScheme.primary,
+                    currencyCode = currencyCode,
                     modifier = Modifier.weight(1f),
                     animationsEnabled = animationsEnabled
                 )
 
                 SummaryCard(
                     label = "Expense",
-                    amount = formatCurrency(expense, currencyCode),
+                    amount = expense,
                     icon = Icons.Default.ArrowDownward,
                     color = MaterialTheme.colorScheme.error,
+                    currencyCode = currencyCode,
                     modifier = Modifier.weight(1f),
                     animationsEnabled = animationsEnabled
                 )
@@ -403,26 +393,16 @@ fun BalanceCard(
 @Composable
 fun SummaryCard(
     label: String,
-    amount: String,
+    amount: Double,
     icon: ImageVector,
     color: Color,
+    currencyCode: String,
     modifier: Modifier = Modifier,
     animationsEnabled: Boolean = true
 ) {
-    val scale by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = if (animationsEnabled) tween(500) else snap()
-    )
-
     Surface(
         modifier = modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                if (animationsEnabled) {
-                    scaleX = scale
-                    scaleY = scale
-                }
-            },
+            .fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
     ) {
@@ -454,7 +434,7 @@ fun SummaryCard(
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = amount,
+                text = formatCurrency(amount, currencyCode),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,

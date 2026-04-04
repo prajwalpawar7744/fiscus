@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "budgetear"
 include(":app")
+include(":macrobenchmark")

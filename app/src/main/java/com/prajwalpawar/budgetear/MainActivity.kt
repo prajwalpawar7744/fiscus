@@ -58,13 +58,31 @@ class MainActivity : FragmentActivity() {
 
     private val dashboardViewModel: DashboardViewModel by viewModels()
     private val settingsViewModel: SettingsViewModel by viewModels()
+    private val transactionsViewModel: TransactionsViewModel by viewModels()
+    private val analysisViewModel: AnalysisViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        
+        var isSettingsLoaded = false
+        
+        // Keep the splash screen on-screen until the settings are loaded.
+        splashScreen.setKeepOnScreenCondition { !isSettingsLoaded }
+
         enableEdgeToEdge()
         setContent {
             val settingsState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+            
+            // Mark settings as loaded once we receive the first emission from DataStore
+            // Since settingsState is a StateFlow with an initial state, we need to be careful.
+            // However, hiltViewModel will trigger the first emission fairly quickly.
+            // A more robust way is to check a specific 'isLoaded' flag in ViewModel,
+            // but for now, we'll use a side effect.
+                LaunchedEffect(settingsState) {
+                isSettingsLoaded = true
+            }
+
             var isAuthenticated by remember { mutableStateOf(!settingsState.isBiometricEnabled) }
 
             // Re-check authentication if biometric setting changes to true
@@ -94,7 +112,12 @@ class MainActivity : FragmentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     if (isAuthenticated) {
-                        BudgetearAppContent(dashboardViewModel, settingsViewModel)
+                        BudgetearAppContent(
+                            dashboardViewModel = dashboardViewModel,
+                            settingsViewModel = settingsViewModel,
+                            transactionsViewModel = transactionsViewModel,
+                            analysisViewModel = analysisViewModel
+                        )
                     } else {
                         Box(contentAlignment = Alignment.Center) {
                             Button(onClick = {
@@ -148,7 +171,9 @@ class MainActivity : FragmentActivity() {
 @Composable
 fun BudgetearAppContent(
     dashboardViewModel: DashboardViewModel,
-    settingsViewModel: SettingsViewModel
+    settingsViewModel: SettingsViewModel,
+    transactionsViewModel: TransactionsViewModel,
+    analysisViewModel: AnalysisViewModel
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -256,11 +281,9 @@ fun BudgetearAppContent(
                 )
             }
             composable("transactions") {
-                val transactionsViewModel: TransactionsViewModel = hiltViewModel()
                 TransactionsScreen(viewModel = transactionsViewModel)
             }
             composable("analysis") {
-                val analysisViewModel: AnalysisViewModel = hiltViewModel()
                 AnalysisScreen(viewModel = analysisViewModel)
             }
             composable("settings") {

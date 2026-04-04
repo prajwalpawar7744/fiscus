@@ -183,7 +183,7 @@ fun TransactionsScreen(
 
             AnimatedVisibility(
                 visible = filterVisible,
-                enter = slideInVertically { -it / 2 } + fadeIn(),
+                enter = fadeIn(tween(300)),
             ) {
                 // Refined Filter Section
                 Surface(
@@ -515,7 +515,7 @@ fun TransactionsScreen(
                             }
                         }
                     ) { index, item ->
-                        val itemModifier = Modifier.staggeredVerticalFadeIn(index, enabled = uiState.areAnimationsEnabled)
+                        val itemModifier = Modifier.staggeredVerticalFadeIn(index, enabled = uiState.areAnimationsEnabled, initialDelay = 150)
 
                         Box(modifier = itemModifier) {
                             when (item) {
