@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "budgetear"
+rootProject.name = "fiscus"
 include(":app")
 include(":macrobenchmark")

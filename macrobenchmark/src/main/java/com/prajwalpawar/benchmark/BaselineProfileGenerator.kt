@@ -15,7 +15,7 @@ class BaselineProfileGenerator {
 
     @Test
     fun generate() = baselineProfileRule.collect(
-        packageName = "com.prajwalpawar.budgetear",
+        packageName = "com.prajwalpawar.fiscus",
         // Check if the app is ready for benchmarking
         includeInStartupProfile = true
     ) {

@@ -8,14 +8,14 @@ plugins {
 }
 
 android {
-    namespace = "com.prajwalpawar.budgetear"
+    namespace = "com.prajwalpawar.fiscus"
     compileSdk = 36 // Standardizing to a stable version if 36 is too new/experimental for tools
 
     defaultConfig {
-        applicationId = "com.prajwalpawar.budgetear"
+        applicationId = "com.prajwalpawar.fiscus"
         minSdk = 26
         versionCode = 1
-        versionName = "1.1.5"
+        versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -41,7 +41,7 @@ android {
     
     baselineProfile {
         filter {
-            include("com.prajwalpawar.budgetear.**")
+            include("com.prajwalpawar.fiscus.**")
         }
         warnings {
             maxAgpVersion = false
