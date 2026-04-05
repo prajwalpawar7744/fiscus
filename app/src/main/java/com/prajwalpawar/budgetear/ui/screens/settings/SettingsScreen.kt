@@ -31,6 +31,7 @@ import java.io.InputStreamReader
 import android.os.Build
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.ui.graphics.Color
 import androidx.core.net.toUri
 import com.prajwalpawar.budgetear.BuildConfig
 
@@ -55,6 +56,7 @@ fun SettingsScreen(
     var showCurrencyDialog by remember { mutableStateOf(false) }
     var showResetDialog by remember { mutableStateOf(false) }
     var showImportWarning by remember { mutableStateOf(false) }
+    var showAccentDialog by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -245,6 +247,24 @@ fun SettingsScreen(
                             },
                             animationsEnabled = uiState.areAnimationsEnabled,
                             onClick = { viewModel.updateDynamicColorEnabled(!uiState.isDynamicColorEnabled) }
+                        )
+                    }
+
+                    if (!uiState.isDynamicColorEnabled || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                        SettingsItem(
+                            icon = Icons.Default.Palette,
+                            title = "Accent Color",
+                            subtitle = uiState.accentColor,
+                            trailingContent = {
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary)
+                                )
+                            },
+                            animationsEnabled = uiState.areAnimationsEnabled,
+                            onClick = { showAccentDialog = true }
                         )
                     }
 
@@ -466,6 +486,46 @@ fun SettingsScreen(
                                 .padding(16.dp)
                         ) {
                             Text(currency)
+                        }
+                    }
+                }
+            },
+            confirmButton = {}
+        )
+    }
+
+    if (showAccentDialog) {
+        val accents = listOf("Emerald", "Indigo", "Sapphire", "Crimson")
+        AlertDialog(
+            onDismissRequest = { showAccentDialog = false },
+            title = { Text("Select Accent Color") },
+            text = {
+                Column {
+                    accents.forEach { accent ->
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .budgetearClickable(haptic = haptic, enabledAnimations = uiState.areAnimationsEnabled) {
+                                    viewModel.updateAccentColor(accent)
+                                    showAccentDialog = false
+                                }
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val color = when (accent) {
+                                "Indigo" -> Color(0xFF415AA9)
+                                "Sapphire" -> Color(0xFF006493)
+                                "Crimson" -> Color(0xFFB91C1C)
+                                else -> Color(0xFF006D39)
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(CircleShape)
+                                    .background(color)
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(accent)
                         }
                     }
                 }

@@ -26,6 +26,7 @@ class PreferenceManager @Inject constructor(
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         val TOP_BAR_STYLE = stringPreferencesKey("top_bar_style")
         val ANIMATIONS_ENABLED = booleanPreferencesKey("animations_enabled")
+        val ACCENT_COLOR = stringPreferencesKey("accent_color")
     }
 
     val userName: Flow<String> = dataStore.data.map { preferences ->
@@ -58,6 +59,10 @@ class PreferenceManager @Inject constructor(
 
     val areAnimationsEnabled: Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[PreferencesKeys.ANIMATIONS_ENABLED] ?: true
+    }
+
+    val accentColor: Flow<String> = dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.ACCENT_COLOR] ?: "Emerald"
     }
 
     suspend fun updateUserName(name: String) {
@@ -105,6 +110,12 @@ class PreferenceManager @Inject constructor(
     suspend fun updateAnimationsEnabled(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.ANIMATIONS_ENABLED] = enabled
+        }
+    }
+
+    suspend fun updateAccentColor(accent: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ACCENT_COLOR] = accent
         }
     }
 }

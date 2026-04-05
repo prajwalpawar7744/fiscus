@@ -24,7 +24,8 @@ data class SettingsUiState(
     val currency: String = "USD",
     val isDynamicColorEnabled: Boolean = true,
     val topBarStyle: String = "standard",
-    val areAnimationsEnabled: Boolean = true
+    val areAnimationsEnabled: Boolean = true,
+    val accentColor: String = "Emerald"
 )
 
 @HiltViewModel
@@ -43,7 +44,8 @@ class SettingsViewModel @Inject constructor(
         preferenceManager.currency,
         preferenceManager.isDynamicColorEnabled,
         preferenceManager.topBarStyle,
-        preferenceManager.areAnimationsEnabled
+        preferenceManager.areAnimationsEnabled,
+        preferenceManager.accentColor
     ) { args ->
         SettingsUiState(
             userName = args[0] as String,
@@ -53,7 +55,8 @@ class SettingsViewModel @Inject constructor(
             currency = args[4] as String,
             isDynamicColorEnabled = args[5] as Boolean,
             topBarStyle = args[6] as String,
-            areAnimationsEnabled = args[7] as Boolean
+            areAnimationsEnabled = args[7] as Boolean,
+            accentColor = args[8] as String
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
@@ -129,6 +132,12 @@ class SettingsViewModel @Inject constructor(
     fun updateAnimationsEnabled(enabled: Boolean) {
         viewModelScope.launch {
             preferenceManager.updateAnimationsEnabled(enabled)
+        }
+    }
+
+    fun updateAccentColor(accent: String) {
+        viewModelScope.launch {
+            preferenceManager.updateAccentColor(accent)
         }
     }
 

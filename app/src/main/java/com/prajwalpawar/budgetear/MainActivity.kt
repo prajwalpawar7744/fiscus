@@ -105,7 +105,8 @@ class MainActivity : FragmentActivity() {
 
             BudgetearTheme(
                 darkTheme = darkTheme,
-                dynamicColor = settingsState.isDynamicColorEnabled
+                dynamicColor = settingsState.isDynamicColorEnabled,
+                accentColor = settingsState.accentColor
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
