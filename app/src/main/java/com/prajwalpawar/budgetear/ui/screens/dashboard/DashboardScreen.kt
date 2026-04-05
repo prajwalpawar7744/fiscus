@@ -81,6 +81,7 @@ import com.prajwalpawar.budgetear.ui.utils.rememberBudgetearHaptic
 import com.prajwalpawar.budgetear.ui.utils.staggeredVerticalFadeIn
 import com.prajwalpawar.budgetear.ui.utils.budgetearClickable
 import com.prajwalpawar.budgetear.ui.utils.BudgetearAnimation
+import com.prajwalpawar.budgetear.ui.utils.AnimatedAmount
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -351,12 +352,14 @@ fun BalanceCard(
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = formatCurrency(balance, currencyCode),
+            AnimatedAmount(
+                targetAmount = balance,
+                currencyCode = currencyCode,
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                enabled = animationsEnabled
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -433,15 +436,17 @@ fun SummaryCard(
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = formatCurrency(amount, currencyCode),
+            AnimatedAmount(
+                targetAmount = amount,
+                currencyCode = currencyCode,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                enabled = animationsEnabled
             )
         }
     }

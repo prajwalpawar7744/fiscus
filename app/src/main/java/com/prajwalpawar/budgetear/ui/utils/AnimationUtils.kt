@@ -24,6 +24,14 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.graphics.Color
 
 /**
  * Reusable animation specs for consistency
@@ -172,4 +180,58 @@ class BudgetearHaptic(private val haptic: HapticFeedback) {
         // Double tap for success
         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
     }
+}
+
+/**
+ * A Text component that animates its numerical value from 0 when it first appears.
+ */
+@Composable
+fun AnimatedAmount(
+    targetAmount: Double,
+    currencyCode: String,
+    modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.titleMedium,
+    fontWeight: FontWeight = FontWeight.Bold,
+    color: Color = MaterialTheme.colorScheme.onSurface,
+    textAlign: TextAlign = TextAlign.Start,
+    maxLines: Int = 1,
+    overflow: TextOverflow = TextOverflow.Clip,
+    enabled: Boolean = true
+) {
+    if (!enabled) {
+        Text(
+            text = formatCurrency(targetAmount, currencyCode),
+            style = style,
+            fontWeight = fontWeight,
+            color = color,
+            textAlign = textAlign,
+            maxLines = maxLines,
+            overflow = overflow,
+            modifier = modifier
+        )
+        return
+    }
+
+    var animateTrigger by remember { mutableFloatStateOf(0f) }
+    
+    LaunchedEffect(Unit) {
+        animateTrigger = 1f
+    }
+
+    val animatedAmount by animateFloatAsState(
+        targetValue = if (animateTrigger == 1f) targetAmount.toFloat() else 0f,
+        animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
+        label = "amountAnimation"
+    )
+
+    Text(
+        text = formatCurrency(animatedAmount.toDouble(), currencyCode),
+        style = style,
+        fontWeight = fontWeight,
+        color = color,
+        textAlign = textAlign,
+        maxLines = maxLines,
+        overflow = overflow,
+        modifier = modifier
+    )
 }
