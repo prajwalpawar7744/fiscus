@@ -1,6 +1,6 @@
-# Budgetear
+# Fiscus
 
-A personal finance application built with Jetpack Compose and Material Design 3. Budgetear provides a modern, intuitive, and secure environment for managing individual financial records.
+A personal finance application built with Jetpack Compose and Material Design 3. Fiscus provides a modern, intuitive, and secure environment for managing individual financial records.
 
 ## Features
 
@@ -39,7 +39,7 @@ A personal finance application built with Jetpack Compose and Material Design 3.
 
 1.  **Clone the repository**:
     ```bash
-    git clone https://github.com/prajwalpawar7744/budgetear.git
+    git clone https://github.com/prajwalpawar7744/fiscus.git
     ```
 2.  **Environment Setup**: Open the project in the latest stable version of Android Studio.
 3.  **Deployment**: Build and deploy to a device running Android 8.0 (API 26) or higher.
