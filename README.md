@@ -9,8 +9,11 @@ A personal finance application built with Jetpack Compose and Material Design 3.
 *   **Transaction Tracking**: Detailed history management with smart categorization and date-based grouping.
 *   **Analytical Reporting**: Visual data representation through custom Bar, Line, and Pie charts using hardware-accelerated drawing.
 
-### System Integration
-*   **Adaptive Theme Engine**: Support for system-wide light and dark modes, with optional Dynamic Color integration for Android 12+ devices.
+### System Integration & Customization
+*   **Advanced Theme Engine**: 
+    *   Full support for system-wide **Light and Dark modes**.
+    *   **Dynamic Color** integration for Android 12+ (Material You).
+    *   **Premium Accent Palettes**: Curated presets like **Emerald**, **Indigo**, **Sapphire**, and **Crimson** for when dynamic color is disabled.
 *   **Biometric Security**: Secure local authentication using the Android Biometric Framework.
 *   **Data Persistence**: Full offline capability using Room database for relational data and DataStore for preferences.
 *   **Backup & Migration**: Standardized JSON-based data export and import for seamless platform migration.
