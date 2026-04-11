@@ -397,7 +397,7 @@ fun SettingsScreen(
                         onClick = {
                              haptic.click()
                              val intent = Intent(Intent.ACTION_VIEW,
-                                 "https://github.com/prajwalpawar7744/budgetear".toUri())
+                                 "https://github.com/prajwalpawar7744/fiscus".toUri())
                              context.startActivity(intent)
                         }
                     )
