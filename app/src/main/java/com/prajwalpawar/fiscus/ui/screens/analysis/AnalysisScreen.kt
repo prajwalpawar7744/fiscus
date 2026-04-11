@@ -185,6 +185,7 @@ fun AnalysisScreen(
                                             value = when (uiState.selectedTransactionType) {
                                                 TransactionType.EXPENSE -> "Expenses"
                                                 TransactionType.INCOME -> "Income"
+                                                TransactionType.TRANSFER -> "Transfers"
                                                 null -> "All Types"
                                             },
                                             onValueChange = {},

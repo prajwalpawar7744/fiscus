@@ -93,6 +93,7 @@ fun TransactionEntity.toDomain() = Transaction(
     type = TransactionType.valueOf(type),
     categoryId = categoryId,
     accountId = accountId,
+    toAccountId = toAccountId,
     date = Date(date),
     note = note
 )
@@ -104,6 +105,7 @@ fun Transaction.toEntity() = TransactionEntity(
     type = type.name,
     categoryId = categoryId,
     accountId = accountId,
+    toAccountId = toAccountId,
     date = date.time,
     note = note
 )

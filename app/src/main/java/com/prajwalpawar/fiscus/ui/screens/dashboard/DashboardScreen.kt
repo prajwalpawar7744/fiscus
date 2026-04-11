@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircleOutline
@@ -364,6 +365,7 @@ fun DashboardScreen(
                     animationsEnabled = uiState.areAnimationsEnabled,
                     category = uiState.categories[transaction.categoryId],
                     account = uiState.accountsMap[transaction.accountId],
+                    toAccount = transaction.toAccountId?.let { uiState.accountsMap[it] },
                     currencyCode = uiState.currency,
                     onClick = {
                         haptic.click()
@@ -538,11 +540,19 @@ fun TransactionItem(
     modifier: Modifier = Modifier,
     animationsEnabled: Boolean = true,
     account: Account? = null,
+    toAccount: Account? = null,
     onClick: () -> Unit = {}
 ) {
-    val amountColor =
-        if (transaction.type == TransactionType.INCOME) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-    val prefix = if (transaction.type == TransactionType.INCOME) "+" else "-"
+    val amountColor = when (transaction.type) {
+        TransactionType.INCOME -> MaterialTheme.colorScheme.primary
+        TransactionType.EXPENSE -> MaterialTheme.colorScheme.onSurface
+        TransactionType.TRANSFER -> MaterialTheme.colorScheme.secondary
+    }
+    val prefix = when (transaction.type) {
+        TransactionType.INCOME -> "+"
+        TransactionType.EXPENSE -> "-"
+        TransactionType.TRANSFER -> ""
+    }
 
     Row(
         modifier = modifier
@@ -585,19 +595,18 @@ fun TransactionItem(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(2.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Surface(
                     shape = MaterialTheme.shapes.extraSmall,
-                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    color = category?.color?.let { Color(it).copy(alpha = 0.1f) } ?: MaterialTheme.colorScheme.surfaceVariant,
                 ) {
                     Text(
                         text = category?.name ?: "No Category",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        color = category?.color?.let { Color(it) } ?: MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -606,12 +615,33 @@ fun TransactionItem(
                 if (account != null) {
                     Surface(
                         shape = MaterialTheme.shapes.extraSmall,
-                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
                     ) {
                         Text(
                             text = account.name,
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+                if (toAccount != null) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier.size(12.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Surface(
+                        shape = MaterialTheme.shapes.extraSmall,
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                    ) {
+                        Text(
+                            text = toAccount.name,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)

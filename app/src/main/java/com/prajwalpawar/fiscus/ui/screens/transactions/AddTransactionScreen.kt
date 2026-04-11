@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.focusRequester
 import java.util.Locale
@@ -159,7 +160,7 @@ fun AddTransactionScreen(
                     haptic.click()
                     viewModel.onTypeChange(TransactionType.EXPENSE)
                 },
-                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
                 icon = { SegmentedButtonDefaults.Icon(active = uiState.type == TransactionType.EXPENSE) {
                     Icon(Icons.Default.ArrowDownward, null)
                 } },
@@ -171,11 +172,23 @@ fun AddTransactionScreen(
                     haptic.click()
                     viewModel.onTypeChange(TransactionType.INCOME)
                 },
-                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
                 icon = { SegmentedButtonDefaults.Icon(active = uiState.type == TransactionType.INCOME) {
                     Icon(Icons.Default.ArrowUpward, null)
                 } },
                 label = { Text("Income") }
+            )
+            SegmentedButton(
+                selected = uiState.type == TransactionType.TRANSFER,
+                onClick = {
+                    haptic.click()
+                    viewModel.onTypeChange(TransactionType.TRANSFER)
+                },
+                shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
+                icon = { SegmentedButtonDefaults.Icon(active = uiState.type == TransactionType.TRANSFER) {
+                    Icon(Icons.Default.SyncAlt, null)
+                } },
+                label = { Text("Transfer") }
             )
         }
 
@@ -212,7 +225,7 @@ fun AddTransactionScreen(
                 // Account Picker
                 Column {
                     Text(
-                        text = "Account",
+                        text = if (uiState.type == TransactionType.TRANSFER) "From Account" else "Account",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold,
@@ -232,14 +245,20 @@ fun AddTransactionScreen(
                         ) {
                             items(uiState.accounts) { account ->
                                 val isSelected = uiState.accountId == account.id
+                                val isOtherSelected = uiState.toAccountId == account.id && uiState.type == TransactionType.TRANSFER
                                 Surface(
                                     modifier = Modifier
-                                        .clickable {
+                                        .clickable(enabled = !isOtherSelected) {
                                             haptic.click()
                                             account.id?.let { viewModel.onAccountChange(it) }
-                                        },
+                                        }
+                                        .then(if (isOtherSelected) Modifier.alpha(0.5f) else Modifier),
                                     shape = MaterialTheme.shapes.medium,
-                                    color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    color = when {
+                                        isSelected -> MaterialTheme.colorScheme.primaryContainer
+                                        isOtherSelected -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                                        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                    },
                                     border = if (isSelected) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
                                 ) {
                                     Row(
@@ -257,6 +276,60 @@ fun AddTransactionScreen(
                                             text = account.name,
                                             style = MaterialTheme.typography.labelLarge,
                                             color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (uiState.type == TransactionType.TRANSFER) {
+                    Column {
+                        Text(
+                            text = "To Account",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp)
+                        ) {
+                            items(uiState.accounts) { account ->
+                                val isSelected = uiState.toAccountId == account.id
+                                val isOtherSelected = uiState.accountId == account.id
+                                Surface(
+                                    modifier = Modifier
+                                        .clickable(enabled = !isOtherSelected) {
+                                            haptic.click()
+                                            account.id?.let { viewModel.onToAccountChange(it) }
+                                        }
+                                        .then(if (isOtherSelected) Modifier.alpha(0.5f) else Modifier),
+                                    shape = MaterialTheme.shapes.medium,
+                                    color = when {
+                                        isSelected -> MaterialTheme.colorScheme.secondaryContainer
+                                        isOtherSelected -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                                        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                    },
+                                    border = if (isSelected) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.secondary) else null
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = getCategoryIcon(account.icon),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp),
+                                            tint = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = account.name,
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }
@@ -373,7 +446,7 @@ fun AddTransactionScreen(
                     .fillMaxWidth()
                     .height(64.dp),
                 shape = MaterialTheme.shapes.extraLarge,
-                enabled = uiState.amount.isNotBlank() && uiState.accountId != null && uiState.categoryId != null
+                enabled = uiState.amount.isNotBlank() && uiState.accountId != null && uiState.categoryId != null && (uiState.type != TransactionType.TRANSFER || uiState.toAccountId != null)
             ) {
                 val isEdit = uiState.transactionId != null
                 val icon = if (isEdit) Icons.Default.CheckCircle else Icons.Default.AddCircle

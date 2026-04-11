@@ -27,7 +27,7 @@ object DateSerializer : KSerializer<Date> {
 
 @Serializable
 enum class TransactionType {
-    INCOME, EXPENSE
+    INCOME, EXPENSE, TRANSFER
 }
 
 @Serializable
@@ -38,6 +38,7 @@ data class Transaction(
     val type: TransactionType,
     val categoryId: Long,
     val accountId: Long,
+    val toAccountId: Long? = null,
     @Serializable(with = DateSerializer::class)
     val date: Date,
     val note: String = ""

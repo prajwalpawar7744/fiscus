@@ -23,7 +23,7 @@ object DatabaseModule {
                 app,
                 FiscusDatabase::class.java,
                 FiscusDatabase.DATABASE_NAME
-            ).fallbackToDestructiveMigration(false)
+            ).fallbackToDestructiveMigration()
             .build()
     }
 

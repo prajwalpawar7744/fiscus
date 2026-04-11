@@ -24,6 +24,7 @@ data class AddTransactionUiState(
     val categoryId: Long? = null,
     val categories: List<Category> = emptyList(),
     val accountId: Long? = null,
+    val toAccountId: Long? = null,
     val accounts: List<Account> = emptyList(),
     val isSaved: Boolean = false,
     val transactionId: Long? = null,
@@ -71,7 +72,7 @@ class AddTransactionViewModel @Inject constructor(
                     _uiState.update { currentState ->
                         val filtered = _allCategories.value.filter { it.type == null || it.type == currentState.type }
                         currentState.copy(
-                            categoryId = currentState.categoryId ?: filtered.firstOrNull()?.id
+                            categoryId = currentState.categoryId ?: filtered.firstOrNull { it.name == "Transfer" || it.type == currentState.type }?.id ?: filtered.firstOrNull()?.id
                         )
                     }
                 }
@@ -95,7 +96,10 @@ class AddTransactionViewModel @Inject constructor(
             Category(name = "Freelance", icon = "work", color = 0xFF4CAF50.toInt(), type = TransactionType.INCOME),
             Category(name = "Gift", icon = "redeem", color = 0xFFFF9800.toInt(), type = TransactionType.INCOME),
             Category(name = "Investment", icon = "trending_up", color = 0xFF8BC34A.toInt(), type = TransactionType.INCOME),
-            Category(name = "Other", icon = "category", color = 0xFF9E9E9E.toInt(), type = TransactionType.INCOME)
+            Category(name = "Other", icon = "category", color = 0xFF9E9E9E.toInt(), type = TransactionType.INCOME),
+            
+            // Transfer
+            Category(name = "Transfer", icon = "swap_horiz", color = 0xFF607D8B.toInt(), type = TransactionType.TRANSFER)
         )
         defaults.forEach { repository.insertCategory(it) }
     }
@@ -140,6 +144,10 @@ class AddTransactionViewModel @Inject constructor(
         _uiState.update { it.copy(date = date) }
     }
 
+    fun onToAccountChange(toAccountId: Long) {
+        _uiState.update { it.copy(toAccountId = toAccountId) }
+    }
+
     fun onCategoryChange(categoryId: Long) {
         _uiState.update { it.copy(categoryId = categoryId) }
     }
@@ -149,7 +157,10 @@ class AddTransactionViewModel @Inject constructor(
             val filtered = _allCategories.value.filter { it.type == null || it.type == type }
             currentState.copy(
                 type = type,
-                categoryId = filtered.firstOrNull()?.id
+                categoryId = filtered.find { it.name == "Transfer" }?.id ?: filtered.firstOrNull()?.id,
+                toAccountId = if (type == TransactionType.TRANSFER) {
+                    _allAccounts.value.firstOrNull { it.id != currentState.accountId }?.id
+                } else null
             )
         }
     }
@@ -173,6 +184,7 @@ class AddTransactionViewModel @Inject constructor(
                 type = transaction.type,
                 categoryId = transaction.categoryId,
                 accountId = transaction.accountId,
+                toAccountId = transaction.toAccountId,
                 date = transaction.date,
                 isSaved = false
             )
@@ -191,6 +203,7 @@ class AddTransactionViewModel @Inject constructor(
                     type = currentState.type,
                     categoryId = currentState.categoryId!!,
                     accountId = currentState.accountId!!,
+                    toAccountId = currentState.toAccountId,
                     date = currentState.date,
                     note = currentState.note
                 )
@@ -216,6 +229,7 @@ class AddTransactionViewModel @Inject constructor(
                         type = currentState.type,
                         categoryId = currentState.categoryId!!,
                         accountId = currentState.accountId!!,
+                        toAccountId = currentState.toAccountId,
                         date = currentState.date,
                         note = currentState.note
                     )

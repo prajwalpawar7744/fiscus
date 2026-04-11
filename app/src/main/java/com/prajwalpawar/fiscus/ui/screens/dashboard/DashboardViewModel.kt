@@ -76,12 +76,15 @@ class DashboardViewModel @Inject constructor(
         _userPrefs
     ) { data: DashboardData, allTransactions: List<Transaction>, prefs: DashboardUserPrefs ->
         val accountsWithBalance = data.accounts.map { account ->
-            val accountTransactions = allTransactions.filter { it.accountId == account.id }
+            val accountTransactions = allTransactions.filter { it.accountId == account.id || it.toAccountId == account.id }
             val accountIncome = accountTransactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
             val accountExpense = accountTransactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
+            val transferIn = accountTransactions.filter { it.type == TransactionType.TRANSFER && it.toAccountId == account.id }.sumOf { it.amount }
+            val transferOut = accountTransactions.filter { it.type == TransactionType.TRANSFER && it.accountId == account.id }.sumOf { it.amount }
+            
             AccountWithBalance(
                 account = account,
-                balance = account.balance + accountIncome - accountExpense
+                balance = account.balance + accountIncome - accountExpense + transferIn - transferOut
             )
         }
         
