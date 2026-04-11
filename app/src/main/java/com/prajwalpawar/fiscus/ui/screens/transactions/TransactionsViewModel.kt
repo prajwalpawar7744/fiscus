@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.debounce
+import com.prajwalpawar.fiscus.data.report.ReportManager
 import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
@@ -37,7 +38,8 @@ data class TransactionsUiState(
 @HiltViewModel
 class TransactionsViewModel @Inject constructor(
     private val repository: FiscusRepository,
-    private val preferenceManager: PreferenceManager
+    private val preferenceManager: PreferenceManager,
+    private val reportManager: ReportManager
 ) : ViewModel() {
 
     private val _searchText = MutableStateFlow("")
@@ -169,5 +171,26 @@ class TransactionsViewModel @Inject constructor(
     fun onDateRangeSelected(start: LocalDate?, end: LocalDate?) {
         _startDate.value = start
         _endDate.value = end
+    }
+
+    suspend fun exportTransactionsToCsv(): String {
+        val state = uiState.value
+        val allFilteredTransactions = mutableListOf<Transaction>()
+        
+        // Flatten grouped transactions
+        state.groupedTransactions.values.forEach { dateGroups ->
+            dateGroups.values.forEach { transactions ->
+                allFilteredTransactions.addAll(transactions)
+            }
+        }
+        
+        // Sort by date descending (already mostly done by grouping, but let's be sure)
+        val sortedTransactions = allFilteredTransactions.sortedByDescending { it.date }
+        
+        return reportManager.generateCsvReport(
+            transactions = sortedTransactions,
+            categories = state.categories,
+            accounts = state.accounts
+        )
     }
 }

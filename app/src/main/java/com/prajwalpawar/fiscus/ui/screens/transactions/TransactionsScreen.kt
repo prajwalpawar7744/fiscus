@@ -1,5 +1,7 @@
 package com.prajwalpawar.fiscus.ui.screens.transactions
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
@@ -35,6 +37,8 @@ import androidx.compose.material.icons.filled.EditCalendar
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Today
+import androidx.compose.material.icons.filled.Upload
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
@@ -140,6 +144,26 @@ fun TransactionsScreen(
     }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    val reportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv"),
+        onResult = { uri ->
+            uri?.let {
+                scope.launch {
+                    try {
+                        val csvData = viewModel.exportTransactionsToCsv()
+                        context.contentResolver.openOutputStream(it)?.use { output ->
+                            output.write(csvData.toByteArray())
+                        }
+                        snackbarHostState.showSnackbar("Report exported successfully")
+                    } catch (e: Exception) {
+                        snackbarHostState.showSnackbar("Export failed: ${e.message}")
+                    }
+                }
+            }
+        }
+    )
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -152,6 +176,14 @@ fun TransactionsScreen(
                         titleContentColor = MaterialTheme.colorScheme.onSurface,
                         scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
                     ),
+                    actions = {
+                        IconButton(onClick = {
+                            haptic.click()
+                            reportLauncher.launch("fiscus_report_${System.currentTimeMillis()}.csv")
+                        }) {
+                            Icon(Icons.Default.FileDownload, contentDescription = "Export Report")
+                        }
+                    },
                     scrollBehavior = scrollBehavior
                 )
             } else {
@@ -162,6 +194,14 @@ fun TransactionsScreen(
                         titleContentColor = MaterialTheme.colorScheme.onSurface,
                         scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
                     ),
+                    actions = {
+                        IconButton(onClick = {
+                            haptic.click()
+                            reportLauncher.launch("fiscus_report_${System.currentTimeMillis()}.csv")
+                        }) {
+                            Icon(Icons.Default.FileDownload, contentDescription = "Export Report")
+                        }
+                    },
                     scrollBehavior = scrollBehavior
                 )
             }
