@@ -21,6 +21,8 @@ interface FiscusRepository {
     // Accounts
     fun getAccounts(): Flow<List<Account>>
     suspend fun insertAccount(account: Account)
+    suspend fun updateAccount(account: Account)
+    suspend fun deleteAccount(account: Account)
 
     suspend fun clearAllData()
 }

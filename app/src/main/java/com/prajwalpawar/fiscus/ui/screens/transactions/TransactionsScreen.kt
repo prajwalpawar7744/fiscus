@@ -550,6 +550,7 @@ fun TransactionsScreen(
                                     SwipeableTransactionItem(
                                         transaction = item.transaction,
                                         category = uiState.categories[item.transaction.categoryId],
+                                        account = uiState.accounts[item.transaction.accountId],
                                         currencyCode = uiState.currency,
                                         onEdit = {
                                             addTransactionViewModel.setTransactionForEdit(item.transaction)
@@ -630,6 +631,7 @@ fun SwipeableTransactionItem(
     currencyCode: String,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    account: com.prajwalpawar.fiscus.domain.model.Account? = null,
     animationsEnabled: Boolean = true
 ) {
     val dismissState = rememberSwipeToDismissBoxState()
@@ -688,6 +690,7 @@ fun SwipeableTransactionItem(
             modifier = Modifier,
             transaction = transaction,
             category = category,
+            account = account,
             currencyCode = currencyCode,
             animationsEnabled = animationsEnabled,
             onClick = {

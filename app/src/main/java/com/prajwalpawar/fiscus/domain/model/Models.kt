@@ -56,6 +56,11 @@ data class Category(
 data class Account(
     val id: Long? = null,
     val name: String,
-    val balance: Double,
+    val balance: Double, // This can be initial balance
     val icon: String
+)
+
+data class AccountWithBalance(
+    val account: Account,
+    val balance: Double
 )

@@ -19,6 +19,9 @@ fun getCategoryIcon(iconName: String): ImageVector {
         "work" -> Icons.Default.Work
         "redeem" -> Icons.Default.Redeem
         "trending_up" -> Icons.AutoMirrored.Filled.TrendingUp
+        "account_balance" -> Icons.Default.AccountBalance
+        "credit_card" -> Icons.Default.CreditCard
+        "wallet" -> Icons.Default.Wallet
         else -> Icons.Default.Category
     }
 }

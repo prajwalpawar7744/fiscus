@@ -70,6 +70,14 @@ class FiscusRepositoryImpl @Inject constructor(
         accountDao.insertAccount(account.toEntity())
     }
 
+    override suspend fun updateAccount(account: Account) {
+        accountDao.updateAccount(account.toEntity())
+    }
+
+    override suspend fun deleteAccount(account: Account) {
+        accountDao.deleteAccount(account.toEntity())
+    }
+
     override suspend fun clearAllData() {
         transactionDao.deleteAllTransactions()
         categoryDao.deleteAllCategories()

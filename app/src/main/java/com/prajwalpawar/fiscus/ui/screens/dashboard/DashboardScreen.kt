@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,11 +18,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Person
@@ -31,13 +34,14 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -65,20 +69,19 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.prajwalpawar.fiscus.domain.model.Account
 import com.prajwalpawar.fiscus.domain.model.Category
 import com.prajwalpawar.fiscus.domain.model.Transaction
 import com.prajwalpawar.fiscus.domain.model.TransactionType
 import com.prajwalpawar.fiscus.ui.screens.transactions.AddTransactionScreen
 import com.prajwalpawar.fiscus.ui.screens.transactions.AddTransactionViewModel
+import com.prajwalpawar.fiscus.ui.utils.AnimatedAmount
 import com.prajwalpawar.fiscus.ui.utils.EmptyState
+import com.prajwalpawar.fiscus.ui.utils.fiscusClickable
 import com.prajwalpawar.fiscus.ui.utils.formatCurrency
 import com.prajwalpawar.fiscus.ui.utils.getCategoryIcon
 import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
 import com.prajwalpawar.fiscus.ui.utils.staggeredVerticalFadeIn
-import com.prajwalpawar.fiscus.ui.utils.fiscusClickable
-import com.prajwalpawar.fiscus.ui.utils.AnimatedAmount
-import com.prajwalpawar.fiscus.ui.utils.fiscusClickable
-import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -86,7 +89,8 @@ import java.util.Calendar
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
-    onSeeAllTransactions: () -> Unit
+    onSeeAllTransactions: () -> Unit,
+    onManageAccounts: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val addTransactionViewModel: AddTransactionViewModel = hiltViewModel()
@@ -261,6 +265,79 @@ fun DashboardScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
+                        text = "Your Accounts",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    TextButton(onClick = {
+                        haptic.click()
+                        onManageAccounts()
+                    }) {
+                        Text("Manage")
+                    }
+                }
+
+                if (uiState.accounts.isEmpty()) {
+                    OutlinedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        shape = MaterialTheme.shapes.large,
+                        onClick = {
+                            haptic.click()
+                            onManageAccounts()
+                        }
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .padding(24.dp)
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AddCircleOutline,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(32.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Add your first account",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                } else {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
+                    ) {
+                        itemsIndexed(uiState.accounts) { index, accountWithBalance ->
+                            AccountCard(
+                                modifier = Modifier.staggeredVerticalFadeIn(
+                                    index,
+                                    enabled = uiState.areAnimationsEnabled,
+                                    initialDelay = 150
+                                ),
+                                accountWithBalance = accountWithBalance,
+                                currencyCode = uiState.currency,
+                                animationsEnabled = uiState.areAnimationsEnabled
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
                         text = "Recent Transactions",
                         style = MaterialTheme.typography.titleMedium
                     )
@@ -278,10 +355,15 @@ fun DashboardScreen(
                 key = { _, it -> it.id ?: it.hashCode() }
             ) { index, transaction ->
                 TransactionItem(
-                    modifier = Modifier.staggeredVerticalFadeIn(index, enabled = uiState.areAnimationsEnabled, initialDelay = 250),
+                    modifier = Modifier.staggeredVerticalFadeIn(
+                        index,
+                        enabled = uiState.areAnimationsEnabled,
+                        initialDelay = 250
+                    ),
                     transaction = transaction,
                     animationsEnabled = uiState.areAnimationsEnabled,
                     category = uiState.categories[transaction.categoryId],
+                    account = uiState.accountsMap[transaction.accountId],
                     currencyCode = uiState.currency,
                     onClick = {
                         haptic.click()
@@ -455,6 +537,7 @@ fun TransactionItem(
     currencyCode: String,
     modifier: Modifier = Modifier,
     animationsEnabled: Boolean = true,
+    account: Account? = null,
     onClick: () -> Unit = {}
 ) {
     val amountColor =
@@ -503,29 +586,37 @@ fun TransactionItem(
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(2.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = category?.name ?: "No Category",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false)
-                )
-                if (transaction.note.isNotBlank()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Surface(
+                    shape = MaterialTheme.shapes.extraSmall,
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                ) {
                     Text(
-                        text = " • ",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = transaction.note,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = category?.name ?: "No Category",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                     )
+                }
+                if (account != null) {
+                    Surface(
+                        shape = MaterialTheme.shapes.extraSmall,
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                    ) {
+                        Text(
+                            text = account.name,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
                 }
             }
         }
@@ -550,5 +641,59 @@ fun TransactionItem(
         }
     }
 
+}
+
+@Composable
+fun AccountCard(
+    accountWithBalance: com.prajwalpawar.fiscus.domain.model.AccountWithBalance,
+    currencyCode: String,
+    animationsEnabled: Boolean,
+    modifier: Modifier = Modifier
+) {
+    ElevatedCard(
+        modifier = modifier
+            .width(160.dp),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                modifier = Modifier.size(32.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = getCategoryIcon(accountWithBalance.account.icon),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            Text(
+                text = accountWithBalance.account.name,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            AnimatedAmount(
+                targetAmount = accountWithBalance.balance,
+                currencyCode = currencyCode,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                enabled = animationsEnabled
+            )
+        }
+    }
 }
 

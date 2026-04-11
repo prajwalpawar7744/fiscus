@@ -3,9 +3,7 @@ package com.prajwalpawar.fiscus.ui.screens.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prajwalpawar.fiscus.data.local.pref.PreferenceManager
-import com.prajwalpawar.fiscus.domain.model.Category
-import com.prajwalpawar.fiscus.domain.model.Transaction
-import com.prajwalpawar.fiscus.domain.model.TransactionType
+import com.prajwalpawar.fiscus.domain.model.*
 import com.prajwalpawar.fiscus.domain.repository.FiscusRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,11 +16,13 @@ data class DashboardUiState(
     val totalExpense: Double = 0.0,
     val recentTransactions: List<Transaction> = emptyList(),
     val categories: Map<Long, Category> = emptyMap(),
+    val accountsMap: Map<Long, Account> = emptyMap(),
     val currency: String = "USD",
     val userName: String = "",
     val userPhotoUri: String? = null,
     val topBarStyle: String = "standard",
-    val areAnimationsEnabled: Boolean = true
+    val areAnimationsEnabled: Boolean = true,
+    val accounts: List<AccountWithBalance> = emptyList()
 )
 
 @HiltViewModel
@@ -52,24 +52,52 @@ class DashboardViewModel @Inject constructor(
         val areAnimationsEnabled: Boolean
     )
 
-    val uiState: StateFlow<DashboardUiState> = combine(
+    data class DashboardData(
+        val income: Double,
+        val expense: Double,
+        val recent: List<Transaction>,
+        val categories: List<Category>,
+        val accounts: List<Account>
+    )
+
+    private val _dashboardData = combine(
         repository.getTotalAmountByType(TransactionType.INCOME.name),
         repository.getTotalAmountByType(TransactionType.EXPENSE.name),
         repository.getRecentTransactions(5),
         _categories,
+        repository.getAccounts()
+    ) { income: Double, expense: Double, recent: List<Transaction>, categories: List<Category>, accounts: List<Account> ->
+        DashboardData(income, expense, recent, categories, accounts)
+    }
+
+    val uiState: StateFlow<DashboardUiState> = combine(
+        _dashboardData,
+        repository.getTransactions(),
         _userPrefs
-    ) { income, expense, recent, categories, prefs ->
+    ) { data: DashboardData, allTransactions: List<Transaction>, prefs: DashboardUserPrefs ->
+        val accountsWithBalance = data.accounts.map { account ->
+            val accountTransactions = allTransactions.filter { it.accountId == account.id }
+            val accountIncome = accountTransactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
+            val accountExpense = accountTransactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
+            AccountWithBalance(
+                account = account,
+                balance = account.balance + accountIncome - accountExpense
+            )
+        }
+        
         DashboardUiState(
-            balance = income - expense,
-            totalIncome = income,
-            totalExpense = expense,
-            recentTransactions = recent,
-            categories = categories.associateBy { it.id ?: 0L },
+            balance = data.income - data.expense + data.accounts.sumOf { it.balance },
+            totalIncome = data.income,
+            totalExpense = data.expense,
+            recentTransactions = data.recent,
+            categories = data.categories.associateBy { it.id ?: 0L },
+            accountsMap = data.accounts.associateBy { it.id ?: 0L },
             currency = prefs.currency,
             userName = prefs.userName,
             userPhotoUri = prefs.userPhotoUri,
             topBarStyle = prefs.topBarStyle,
-            areAnimationsEnabled = prefs.areAnimationsEnabled
+            areAnimationsEnabled = prefs.areAnimationsEnabled,
+            accounts = accountsWithBalance
         )
     }.flowOn(Dispatchers.Default)
     .stateIn(

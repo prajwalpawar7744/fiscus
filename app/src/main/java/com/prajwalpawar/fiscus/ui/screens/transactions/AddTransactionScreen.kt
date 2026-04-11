@@ -26,6 +26,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.focusRequester
+import java.util.Locale
+import com.prajwalpawar.fiscus.domain.model.Account
 import com.prajwalpawar.fiscus.domain.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.ConfirmationDialog
 import com.prajwalpawar.fiscus.ui.utils.getCategoryIcon
@@ -33,7 +35,6 @@ import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
 import com.prajwalpawar.fiscus.ui.utils.staggeredVerticalFadeIn
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -208,6 +209,62 @@ fun AddTransactionScreen(
                     )
                 )
 
+                // Account Picker
+                Column {
+                    Text(
+                        text = "Account",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    if (uiState.accounts.isEmpty()) {
+                        Text(
+                            text = "Please add an account first",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    } else {
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp)
+                        ) {
+                            items(uiState.accounts) { account ->
+                                val isSelected = uiState.accountId == account.id
+                                Surface(
+                                    modifier = Modifier
+                                        .clickable {
+                                            haptic.click()
+                                            account.id?.let { viewModel.onAccountChange(it) }
+                                        },
+                                    shape = MaterialTheme.shapes.medium,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    border = if (isSelected) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = getCategoryIcon(account.icon),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp),
+                                            tint = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = account.name,
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Category Picker
                 Column {
                     Text(
@@ -316,6 +373,7 @@ fun AddTransactionScreen(
                     .fillMaxWidth()
                     .height(64.dp),
                 shape = MaterialTheme.shapes.extraLarge,
+                enabled = uiState.amount.isNotBlank() && uiState.accountId != null && uiState.categoryId != null
             ) {
                 val isEdit = uiState.transactionId != null
                 val icon = if (isEdit) Icons.Default.CheckCircle else Icons.Default.AddCircle

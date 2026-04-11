@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.*
 import com.prajwalpawar.fiscus.data.local.pref.PreferenceManager
 import java.util.Date
 import javax.inject.Inject
+import com.prajwalpawar.fiscus.domain.model.Account
 
 data class AddTransactionUiState(
     val title: String = "",
@@ -22,7 +23,8 @@ data class AddTransactionUiState(
     val type: TransactionType = TransactionType.EXPENSE,
     val categoryId: Long? = null,
     val categories: List<Category> = emptyList(),
-    val accountId: Long = 1, // Default account
+    val accountId: Long? = null,
+    val accounts: List<Account> = emptyList(),
     val isSaved: Boolean = false,
     val transactionId: Long? = null,
     val date: Date = Date(),
@@ -38,19 +40,24 @@ class AddTransactionViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AddTransactionUiState())
     private val _allCategories = MutableStateFlow<List<Category>>(emptyList())
 
+    private val _allAccounts = MutableStateFlow<List<Account>>(emptyList())
+
     val uiState: StateFlow<AddTransactionUiState> = combine(
         _uiState,
         _allCategories,
+        _allAccounts,
         preferenceManager.areAnimationsEnabled
-    ) { state, allCategories, animationsEnabled ->
+    ) { state, allCategories, allAccounts, animationsEnabled ->
         state.copy(
             categories = allCategories.filter { it.type == null || it.type == state.type },
+            accounts = allAccounts,
             areAnimationsEnabled = animationsEnabled
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AddTransactionUiState())
 
     init {
         fetchCategories()
+        fetchAccounts()
     }
 
     private fun fetchCategories() {
@@ -93,6 +100,20 @@ class AddTransactionViewModel @Inject constructor(
         defaults.forEach { repository.insertCategory(it) }
     }
 
+    private fun fetchAccounts() {
+        viewModelScope.launch {
+            repository.getAccounts().collect { accounts ->
+                _allAccounts.value = accounts
+                
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        accountId = currentState.accountId ?: accounts.firstOrNull()?.id
+                    )
+                }
+            }
+        }
+    }
+
     fun onTitleChange(title: String) {
         _uiState.update { it.copy(title = title) }
     }
@@ -109,6 +130,10 @@ class AddTransactionViewModel @Inject constructor(
 
     fun onNoteChange(note: String) {
         _uiState.update { it.copy(note = note) }
+    }
+
+    fun onAccountChange(accountId: Long) {
+        _uiState.update { it.copy(accountId = accountId) }
     }
 
     fun onDateChange(date: Date) {
@@ -164,8 +189,8 @@ class AddTransactionViewModel @Inject constructor(
                     title = currentState.title,
                     amount = amountValue,
                     type = currentState.type,
-                    categoryId = currentState.categoryId ?: 1L,
-                    accountId = currentState.accountId,
+                    categoryId = currentState.categoryId!!,
+                    accountId = currentState.accountId!!,
                     date = currentState.date,
                     note = currentState.note
                 )
@@ -189,8 +214,8 @@ class AddTransactionViewModel @Inject constructor(
                         title = currentState.title,
                         amount = currentState.amount.toDoubleOrNull() ?: 0.0,
                         type = currentState.type,
-                        categoryId = currentState.categoryId ?: 1L,
-                        accountId = currentState.accountId,
+                        categoryId = currentState.categoryId!!,
+                        accountId = currentState.accountId!!,
                         date = currentState.date,
                         note = currentState.note
                     )

@@ -47,6 +47,8 @@ import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
 import com.prajwalpawar.fiscus.ui.screens.settings.SettingsViewModel
 import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionsScreen
 import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionsViewModel
+import com.prajwalpawar.fiscus.ui.screens.accounts.AccountsScreen
+import com.prajwalpawar.fiscus.ui.screens.accounts.AccountsViewModel
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.concurrent.Executor
@@ -58,6 +60,7 @@ class MainActivity : FragmentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
     private val transactionsViewModel: TransactionsViewModel by viewModels()
     private val analysisViewModel: AnalysisViewModel by viewModels()
+    private val accountsViewModel: AccountsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -115,7 +118,8 @@ class MainActivity : FragmentActivity() {
                             dashboardViewModel = dashboardViewModel,
                             settingsViewModel = settingsViewModel,
                             transactionsViewModel = transactionsViewModel,
-                            analysisViewModel = analysisViewModel
+                            analysisViewModel = analysisViewModel,
+                            accountsViewModel = accountsViewModel
                         )
                     } else {
                         Box(contentAlignment = Alignment.Center) {
@@ -172,7 +176,8 @@ fun FiscusAppContent(
     dashboardViewModel: DashboardViewModel,
     settingsViewModel: SettingsViewModel,
     transactionsViewModel: TransactionsViewModel,
-    analysisViewModel: AnalysisViewModel
+    analysisViewModel: AnalysisViewModel,
+    accountsViewModel: AccountsViewModel
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -276,7 +281,16 @@ fun FiscusAppContent(
                             launchSingleTop = true
                             restoreState = true
                         }
+                    },
+                    onManageAccounts = {
+                        navController.navigate("accounts")
                     }
+                )
+            }
+            composable("accounts") {
+                AccountsScreen(
+                    viewModel = accountsViewModel,
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable("transactions") {

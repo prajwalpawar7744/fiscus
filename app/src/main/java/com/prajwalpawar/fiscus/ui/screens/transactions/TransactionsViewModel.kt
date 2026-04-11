@@ -3,6 +3,7 @@ package com.prajwalpawar.fiscus.ui.screens.transactions
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prajwalpawar.fiscus.data.local.pref.PreferenceManager
+import com.prajwalpawar.fiscus.domain.model.Account
 import com.prajwalpawar.fiscus.domain.model.Category
 import com.prajwalpawar.fiscus.domain.model.Transaction
 import com.prajwalpawar.fiscus.domain.repository.FiscusRepository
@@ -21,6 +22,7 @@ enum class TimeRange {
 data class TransactionsUiState(
     val groupedTransactions: Map<String, Map<LocalDate, List<Transaction>>> = emptyMap(),
     val categories: Map<Long, Category> = emptyMap(),
+    val accounts: Map<Long, Account> = emptyMap(),
     val currency: String = "USD",
     val searchText: String = "",
     val selectedCategoryId: Long? = null,
@@ -68,9 +70,14 @@ class TransactionsViewModel @Inject constructor(
         val endDate: LocalDate?
     )
 
+    private val _accounts = repository.getAccounts()
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val uiState: StateFlow<TransactionsUiState> = combine<Any, TransactionsUiState>(
         repository.getTransactions(),
         _categories,
+        _accounts,
         preferenceManager.currency,
         _filters,
         preferenceManager.areAnimationsEnabled,
@@ -79,11 +86,13 @@ class TransactionsViewModel @Inject constructor(
     ) { args ->
         val transactions = args[0] as List<Transaction>
         val categories = args[1] as List<Category>
-        val currency = args[2] as String
-        val filters = args[3] as FilterParams
-        val animationsEnabled = args[4] as Boolean
-        val topBarStyle = args[5] as String
-        val rawSearchText = args[6] as String
+        @Suppress("UNCHECKED_CAST")
+        val accounts = args[2] as List<Account>
+        val currency = args[3] as String
+        val filters = args[4] as FilterParams
+        val animationsEnabled = args[5] as Boolean
+        val topBarStyle = args[6] as String
+        val rawSearchText = args[7] as String
         
         val (search, categoryId, timeRange, start, end) = filters
         
@@ -126,6 +135,7 @@ class TransactionsViewModel @Inject constructor(
         TransactionsUiState(
             groupedTransactions = grouped,
             categories = categories.associateBy { it.id ?: 0L },
+            accounts = accounts.associateBy { it.id ?: 0L },
             currency = currency,
             searchText = rawSearchText,
             selectedCategoryId = categoryId,
