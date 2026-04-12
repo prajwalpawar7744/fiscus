@@ -22,6 +22,7 @@ fun getCategoryIcon(iconName: String): ImageVector {
         "account_balance" -> Icons.Default.AccountBalance
         "credit_card" -> Icons.Default.CreditCard
         "wallet" -> Icons.Default.Wallet
+        "receipt_long" -> Icons.Default.ReceiptLong
         else -> Icons.Default.Category
     }
 }

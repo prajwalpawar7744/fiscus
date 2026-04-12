@@ -49,8 +49,13 @@ class AddTransactionViewModel @Inject constructor(
         _allAccounts,
         preferenceManager.areAnimationsEnabled
     ) { state, allCategories, allAccounts, animationsEnabled ->
+        val filtered = allCategories.filter { it.type == null || it.type == state.type }
+        val sorted = filtered.sortedWith(
+            compareBy<Category> { it.name == "Other" }
+                .thenBy { it.id ?: Long.MAX_VALUE }
+        )
         state.copy(
-            categories = allCategories.filter { it.type == null || it.type == state.type },
+            categories = sorted,
             accounts = allAccounts,
             areAnimationsEnabled = animationsEnabled
         )
@@ -88,6 +93,7 @@ class AddTransactionViewModel @Inject constructor(
             Category(name = "Education", icon = "school", color = 0xFFFFC107.toInt(), type = TransactionType.EXPENSE),
             Category(name = "Shopping", icon = "shopping_cart", color = 0xFF9C27B0.toInt(), type = TransactionType.EXPENSE),
             Category(name = "Health", icon = "medical_services", color = 0xFFF44336.toInt(), type = TransactionType.EXPENSE),
+            Category(name = "Bills", icon = "receipt_long", color = 0xFFFF5722.toInt(), type = TransactionType.EXPENSE),
             Category(name = "Entertainment", icon = "movie", color = 0xFFE91E63.toInt(), type = TransactionType.EXPENSE),
             Category(name = "Other", icon = "category", color = 0xFF9E9E9E.toInt(), type = TransactionType.EXPENSE),
             
