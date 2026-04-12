@@ -317,6 +317,22 @@ fun SettingsScreen(
                         },
                         onClick = { viewModel.updateBiometricEnabled(!uiState.isBiometricEnabled) }
                     )
+                    SettingsItem(
+                        icon = Icons.Default.VisibilityOff,
+                        title = "Privacy Mode",
+                        subtitle = "Mask balances in public places",
+                        animationsEnabled = uiState.areAnimationsEnabled,
+                        trailingContent = {
+                            Switch(
+                                checked = uiState.isPrivacyModeEnabled,
+                                onCheckedChange = { 
+                                    haptic.click()
+                                    viewModel.updatePrivacyModeEnabled(it) 
+                                }
+                            )
+                        },
+                        onClick = { viewModel.updatePrivacyModeEnabled(!uiState.isPrivacyModeEnabled) }
+                    )
                 }
             }
 

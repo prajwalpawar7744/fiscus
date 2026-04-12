@@ -196,11 +196,12 @@ fun AnimatedAmount(
     textAlign: TextAlign = TextAlign.Start,
     maxLines: Int = 1,
     overflow: TextOverflow = TextOverflow.Clip,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    isMasked: Boolean = false
 ) {
-    if (!enabled) {
+    if (!enabled || isMasked) {
         Text(
-            text = formatCurrency(targetAmount, currencyCode),
+            text = formatCurrency(targetAmount, currencyCode, isMasked),
             style = style,
             fontWeight = fontWeight,
             color = color,

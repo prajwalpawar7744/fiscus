@@ -605,7 +605,8 @@ fun TransactionsScreen(
                                             transactionToDelete = item.transaction
                                             showDeleteDialog = true
                                         },
-                                        animationsEnabled = uiState.areAnimationsEnabled
+                                        animationsEnabled = uiState.areAnimationsEnabled,
+                                        isMasked = uiState.isPrivacyModeEnabled
                                     )
                                 }
                             }
@@ -718,7 +719,8 @@ fun SwipeableTransactionItem(
     onDelete: () -> Unit,
     account: com.prajwalpawar.fiscus.domain.model.Account? = null,
     toAccount: com.prajwalpawar.fiscus.domain.model.Account? = null,
-    animationsEnabled: Boolean = true
+    animationsEnabled: Boolean = true,
+    isMasked: Boolean = false
 ) {
     val dismissState = rememberSwipeToDismissBoxState()
 
@@ -780,6 +782,7 @@ fun SwipeableTransactionItem(
             toAccount = toAccount,
             currencyCode = currencyCode,
             animationsEnabled = animationsEnabled,
+            isMasked = isMasked,
             onClick = {
                 onEdit()
             }

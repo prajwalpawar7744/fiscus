@@ -52,7 +52,8 @@ data class AnalysisUiState(
     val topBarStyle: String = "standard",
     val activityPoints: List<ActivityPoint> = emptyList(),
     val effectiveStartDate: LocalDate? = null,
-    val effectiveEndDate: LocalDate? = null
+    val effectiveEndDate: LocalDate? = null,
+    val isPrivacyModeEnabled: Boolean = false
 )
 
 data class ActivityPoint(
@@ -115,13 +116,14 @@ class AnalysisViewModel @Inject constructor(
         val chartType: AnalysisChartType
     )
 
-    val uiState: StateFlow<AnalysisUiState> = combine<Any, AnalysisUiState>(
+    val uiState: StateFlow<AnalysisUiState> = combine<Any?, AnalysisUiState>(
         repository.getTransactions(),
         _categories,
         preferenceManager.currency,
         _filters,
         preferenceManager.areAnimationsEnabled,
-        preferenceManager.topBarStyle
+        preferenceManager.topBarStyle,
+        preferenceManager.isPrivacyModeEnabled
     ) { args ->
         val transactions = args[0] as List<Transaction>
         val categories = args[1] as List<Category>
@@ -129,6 +131,7 @@ class AnalysisViewModel @Inject constructor(
         val filters = args[3] as FilterParams
         val animationsEnabled = args[4] as Boolean
         val topBarStyle = args[5] as String
+        val privacyEnabled = args[6] as Boolean
         
         val filteredTransactions = transactions.filter { transaction ->
             val matchesType = filters.type == null || transaction.type == filters.type
@@ -224,7 +227,8 @@ class AnalysisViewModel @Inject constructor(
             topBarStyle = topBarStyle,
             activityPoints = activityPoints,
             effectiveStartDate = effectiveStart,
-            effectiveEndDate = effectiveEnd
+            effectiveEndDate = effectiveEnd,
+            isPrivacyModeEnabled = privacyEnabled
         )
     }.flowOn(Dispatchers.Default)
     .stateIn(

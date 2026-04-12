@@ -332,11 +332,12 @@ fun DashboardScreen(
                 ) {
                     item {
                         BalanceCard(
-                            balance = uiState.totalIncome - uiState.totalExpense,
+                            balance = uiState.balance,
                             income = uiState.totalIncome,
                             expense = uiState.totalExpense,
                             currencyCode = uiState.currency,
-                            animationsEnabled = uiState.areAnimationsEnabled
+                            animationsEnabled = uiState.areAnimationsEnabled,
+                            isMasked = uiState.isPrivacyModeEnabled
                         )
                     }
 
@@ -406,7 +407,8 @@ fun DashboardScreen(
                                         ),
                                         accountWithBalance = accountWithBalance,
                                         currencyCode = uiState.currency,
-                                        animationsEnabled = uiState.areAnimationsEnabled
+                                        animationsEnabled = uiState.areAnimationsEnabled,
+                                        isMasked = uiState.isPrivacyModeEnabled
                                     )
                                 }
                             }
@@ -450,6 +452,7 @@ fun DashboardScreen(
                             account = uiState.accountsMap[transaction.accountId],
                             toAccount = transaction.toAccountId?.let { uiState.accountsMap[it] },
                             currencyCode = uiState.currency,
+                            isMasked = uiState.isPrivacyModeEnabled,
                             onClick = {
                                 haptic.click()
                                 viewModel.onTransactionClick(transaction)
@@ -478,7 +481,8 @@ fun BalanceCard(
     income: Double,
     expense: Double,
     currencyCode: String,
-    animationsEnabled: Boolean = true
+    animationsEnabled: Boolean = true,
+    isMasked: Boolean = false
 ) {
     var progress by remember { mutableFloatStateOf(0f) }
 
@@ -524,7 +528,8 @@ fun BalanceCard(
                 fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                enabled = animationsEnabled
+                enabled = animationsEnabled,
+                isMasked = isMasked
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -541,7 +546,8 @@ fun BalanceCard(
                     color = MaterialTheme.colorScheme.primary,
                     currencyCode = currencyCode,
                     modifier = Modifier.weight(1f),
-                    animationsEnabled = animationsEnabled
+                    animationsEnabled = animationsEnabled,
+                    isMasked = isMasked
                 )
 
                 SummaryCard(
@@ -551,7 +557,8 @@ fun BalanceCard(
                     color = MaterialTheme.colorScheme.error,
                     currencyCode = currencyCode,
                     modifier = Modifier.weight(1f),
-                    animationsEnabled = animationsEnabled
+                    animationsEnabled = animationsEnabled,
+                    isMasked = isMasked
                 )
             }
         }
@@ -566,7 +573,8 @@ fun SummaryCard(
     color: Color,
     currencyCode: String,
     modifier: Modifier = Modifier,
-    animationsEnabled: Boolean = true
+    animationsEnabled: Boolean = true,
+    isMasked: Boolean = false
 ) {
     Surface(
         modifier = modifier
@@ -611,7 +619,8 @@ fun SummaryCard(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
-                enabled = animationsEnabled
+                enabled = animationsEnabled,
+                isMasked = isMasked
             )
         }
     }
@@ -624,6 +633,7 @@ fun TransactionItem(
     currencyCode: String,
     modifier: Modifier = Modifier,
     animationsEnabled: Boolean = true,
+    isMasked: Boolean = false,
     account: Account? = null,
     toAccount: Account? = null,
     onClick: () -> Unit = {}
@@ -740,7 +750,7 @@ fun TransactionItem(
 
         Column(horizontalAlignment = Alignment.End) {
             Text(
-                text = "$prefix${formatCurrency(transaction.amount, currencyCode)}",
+                text = "$prefix${formatCurrency(transaction.amount, currencyCode, isMasked)}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = amountColor
@@ -763,6 +773,7 @@ fun AccountCard(
     accountWithBalance: com.prajwalpawar.fiscus.domain.model.AccountWithBalance,
     currencyCode: String,
     animationsEnabled: Boolean,
+    isMasked: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     ElevatedCard(
@@ -806,7 +817,8 @@ fun AccountCard(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-                enabled = animationsEnabled
+                enabled = animationsEnabled,
+                isMasked = isMasked
             )
         }
     }

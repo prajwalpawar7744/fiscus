@@ -27,6 +27,7 @@ class PreferenceManager @Inject constructor(
         val TOP_BAR_STYLE = stringPreferencesKey("top_bar_style")
         val ANIMATIONS_ENABLED = booleanPreferencesKey("animations_enabled")
         val ACCENT_COLOR = stringPreferencesKey("accent_color")
+        val PRIVACY_MODE_ENABLED = booleanPreferencesKey("privacy_mode_enabled")
     }
 
     val userName: Flow<String> = dataStore.data.map { preferences ->
@@ -63,6 +64,10 @@ class PreferenceManager @Inject constructor(
 
     val accentColor: Flow<String> = dataStore.data.map { preferences ->
         preferences[PreferencesKeys.ACCENT_COLOR] ?: "Emerald"
+    }
+
+    val isPrivacyModeEnabled: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.PRIVACY_MODE_ENABLED] ?: false
     }
 
     suspend fun updateUserName(name: String) {
@@ -116,6 +121,12 @@ class PreferenceManager @Inject constructor(
     suspend fun updateAccentColor(accent: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.ACCENT_COLOR] = accent
+        }
+    }
+
+    suspend fun updatePrivacyModeEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.PRIVACY_MODE_ENABLED] = enabled
         }
     }
 }

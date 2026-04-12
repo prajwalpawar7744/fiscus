@@ -33,7 +33,8 @@ data class TransactionsUiState(
     val allCategories: List<Category> = emptyList(),
     val areAnimationsEnabled: Boolean = true,
     val topBarStyle: String = "standard",
-    val selectedTransactionDetail: Transaction? = null
+    val selectedTransactionDetail: Transaction? = null,
+    val isPrivacyModeEnabled: Boolean = false
 )
 
 @HiltViewModel
@@ -77,7 +78,7 @@ class TransactionsViewModel @Inject constructor(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _transactionsUiState: StateFlow<TransactionsUiState> = combine<Any, TransactionsUiState>(
+    private val _transactionsUiState: StateFlow<TransactionsUiState> = combine<Any?, TransactionsUiState>(
         repository.getTransactions(),
         _categories,
         _accounts,
@@ -85,7 +86,8 @@ class TransactionsViewModel @Inject constructor(
         _filters,
         preferenceManager.areAnimationsEnabled,
         preferenceManager.topBarStyle,
-        _searchText
+        _searchText,
+        preferenceManager.isPrivacyModeEnabled
     ) { args ->
         val transactions = args[0] as List<Transaction>
         val categories = args[1] as List<Category>
@@ -96,6 +98,7 @@ class TransactionsViewModel @Inject constructor(
         val animationsEnabled = args[5] as Boolean
         val topBarStyle = args[6] as String
         val rawSearchText = args[7] as String
+        val privacyEnabled = args[8] as Boolean
         
         val (search, categoryId, timeRange, start, end) = filters
         
@@ -147,7 +150,8 @@ class TransactionsViewModel @Inject constructor(
             endDate = end,
             allCategories = categories.distinctBy { "${it.name}-${it.type}" },
             areAnimationsEnabled = animationsEnabled,
-            topBarStyle = topBarStyle
+            topBarStyle = topBarStyle,
+            isPrivacyModeEnabled = privacyEnabled
         )
     }
 .flowOn(Dispatchers.Default)

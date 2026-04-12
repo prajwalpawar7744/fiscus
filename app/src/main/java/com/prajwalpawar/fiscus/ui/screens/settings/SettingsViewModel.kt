@@ -25,7 +25,8 @@ data class SettingsUiState(
     val isDynamicColorEnabled: Boolean = true,
     val topBarStyle: String = "standard",
     val areAnimationsEnabled: Boolean = true,
-    val accentColor: String = "Emerald"
+    val accentColor: String = "Emerald",
+    val isPrivacyModeEnabled: Boolean = false
 )
 
 @HiltViewModel
@@ -45,7 +46,8 @@ class SettingsViewModel @Inject constructor(
         preferenceManager.isDynamicColorEnabled,
         preferenceManager.topBarStyle,
         preferenceManager.areAnimationsEnabled,
-        preferenceManager.accentColor
+        preferenceManager.accentColor,
+        preferenceManager.isPrivacyModeEnabled
     ) { args ->
         SettingsUiState(
             userName = args[0] as String,
@@ -56,7 +58,8 @@ class SettingsViewModel @Inject constructor(
             isDynamicColorEnabled = args[5] as Boolean,
             topBarStyle = args[6] as String,
             areAnimationsEnabled = args[7] as Boolean,
-            accentColor = args[8] as String
+            accentColor = args[8] as String,
+            isPrivacyModeEnabled = args[9] as Boolean
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
@@ -138,6 +141,12 @@ class SettingsViewModel @Inject constructor(
     fun updateAccentColor(accent: String) {
         viewModelScope.launch {
             preferenceManager.updateAccentColor(accent)
+        }
+    }
+
+    fun updatePrivacyModeEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            preferenceManager.updatePrivacyModeEnabled(enabled)
         }
     }
 

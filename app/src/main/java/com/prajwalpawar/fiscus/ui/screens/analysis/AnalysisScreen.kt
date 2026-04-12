@@ -533,7 +533,8 @@ fun AnalysisScreen(
                                     modifier = chartModifier,
                                     color = if (uiState.selectedTransactionType == TransactionType.INCOME) Color.Green else MaterialTheme.colorScheme.primary,
                                     currencyCode = uiState.currency,
-                                    animationsEnabled = uiState.areAnimationsEnabled
+                                    animationsEnabled = uiState.areAnimationsEnabled,
+                                    isMasked = uiState.isPrivacyModeEnabled
                                 )
                             }
 
@@ -545,7 +546,8 @@ fun AnalysisScreen(
                                     showIncome = uiState.selectedTransactionType == TransactionType.INCOME || uiState.selectedTransactionType == null,
                                     modifier = chartModifier,
                                     currencyCode = uiState.currency,
-                                    animationsEnabled = uiState.areAnimationsEnabled
+                                    animationsEnabled = uiState.areAnimationsEnabled,
+                                    isMasked = uiState.isPrivacyModeEnabled
                                 )
                             }
 
@@ -553,7 +555,8 @@ fun AnalysisScreen(
                                 PieChart(
                                     breakdown = uiState.categoryBreakdown,
                                     modifier = Modifier.fillMaxSize(),
-                                    animationsEnabled = uiState.areAnimationsEnabled
+                                    animationsEnabled = uiState.areAnimationsEnabled,
+                                    isMasked = uiState.isPrivacyModeEnabled
                                 )
                             }
 
@@ -576,7 +579,8 @@ fun AnalysisScreen(
                     income = uiState.totalIncome,
                     expense = uiState.totalExpense,
                     currencyCode = uiState.currency,
-                    animationsEnabled = uiState.areAnimationsEnabled
+                    animationsEnabled = uiState.areAnimationsEnabled,
+                    isMasked = uiState.isPrivacyModeEnabled
                 )
             }
 
@@ -625,7 +629,8 @@ fun AnalysisSummaryCard(
     income: Double,
     expense: Double,
     currencyCode: String,
-    animationsEnabled: Boolean = true
+    animationsEnabled: Boolean = true,
+    isMasked: Boolean = false
 ) {
     ElevatedCard(
         modifier = Modifier
@@ -651,7 +656,7 @@ fun AnalysisSummaryCard(
                         color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
                     )
                     Text(
-                        text = formatCurrency(expense, currencyCode),
+                        text = formatCurrency(expense, currencyCode, isMasked),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -680,7 +685,8 @@ fun CategoryAnalysisItem(
     analysis: CategoryAnalysis,
     currencyCode: String,
     modifier: Modifier = Modifier,
-    animationsEnabled: Boolean = true
+    animationsEnabled: Boolean = true,
+    isMasked: Boolean = false
 ) {
     val haptic = rememberFiscusHaptic()
     Surface(
@@ -734,7 +740,7 @@ fun CategoryAnalysisItem(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = formatCurrency(analysis.amount, currencyCode),
+                        text = formatCurrency(analysis.amount, currencyCode, isMasked),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.error // Since it's an expense breakdown usually
@@ -777,9 +783,10 @@ fun CategoryAnalysisItem(
 fun BarChart(
     dataPoints: List<TimeDataPoint>,
     modifier: Modifier = Modifier,
-    color: Color,
+    color: Color = MaterialTheme.colorScheme.primary,
     currencyCode: String,
-    animationsEnabled: Boolean = true
+    animationsEnabled: Boolean = true,
+    isMasked: Boolean = false
 ) {
     val animatedProgress = remember { Animatable(0f) }
     var selectedIndex by remember { mutableIntStateOf(-1) }
@@ -880,7 +887,7 @@ fun BarChart(
             ) {
                 Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(point.label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f))
-                    Text(formatCurrency(point.amount, currencyCode), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    Text(formatCurrency(point.amount, currencyCode, isMasked), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -891,7 +898,8 @@ fun BarChart(
 fun PieChart(
     breakdown: List<CategoryAnalysis>,
     modifier: Modifier = Modifier,
-    animationsEnabled: Boolean = true
+    animationsEnabled: Boolean = true,
+    isMasked: Boolean = false
 ) {
     val animatedSweep = remember { Animatable(0f) }
     var selectedCategory by remember { mutableStateOf<CategoryAnalysis?>(null) }
@@ -994,7 +1002,8 @@ fun LineChart(
     showIncome: Boolean,
     modifier: Modifier = Modifier,
     currencyCode: String,
-    animationsEnabled: Boolean = true
+    animationsEnabled: Boolean = true,
+    isMasked: Boolean = false
 ) {
     val allPoints = (if (showExpense) expensePoints else emptyList()) + (if (showIncome) incomePoints else emptyList())
     if (allPoints.isEmpty() || (showExpense && expensePoints.size < 2 && !showIncome) || (showIncome && incomePoints.size < 2 && !showExpense)) {
@@ -1114,7 +1123,7 @@ fun LineChart(
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(point.label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f))
-                        Text(formatCurrency(point.amount, currencyCode), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                        Text(formatCurrency(point.amount, currencyCode, isMasked), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                     }
                 }
             }

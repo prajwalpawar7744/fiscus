@@ -24,7 +24,8 @@ data class DashboardUiState(
     val areAnimationsEnabled: Boolean = true,
     val accounts: List<AccountWithBalance> = emptyList(),
     val selectedTransactionDetail: Transaction? = null,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val isPrivacyModeEnabled: Boolean = false
 )
 
 @HiltViewModel
@@ -36,14 +37,22 @@ class DashboardViewModel @Inject constructor(
     private val _categories = repository.getCategories()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _userPrefs = combine(
+    private val _userPrefs = combine<Any?, DashboardUserPrefs>(
         preferenceManager.currency,
         preferenceManager.userName,
         preferenceManager.userPhotoUri,
         preferenceManager.topBarStyle,
-        preferenceManager.areAnimationsEnabled
-    ) { currency, name, photo, style, animations ->
-        DashboardUserPrefs(currency, name, photo, style, animations)
+        preferenceManager.areAnimationsEnabled,
+        preferenceManager.isPrivacyModeEnabled
+    ) { args ->
+        DashboardUserPrefs(
+            currency = args[0] as String,
+            userName = args[1] as String,
+            userPhotoUri = args[2] as? String,
+            topBarStyle = args[3] as String,
+            areAnimationsEnabled = args[4] as Boolean,
+            isPrivacyModeEnabled = args[5] as Boolean
+        )
     }
 
     data class DashboardUserPrefs(
@@ -51,7 +60,8 @@ class DashboardViewModel @Inject constructor(
         val userName: String,
         val userPhotoUri: String?,
         val topBarStyle: String,
-        val areAnimationsEnabled: Boolean
+        val areAnimationsEnabled: Boolean,
+        val isPrivacyModeEnabled: Boolean
     )
 
     data class DashboardData(
@@ -103,7 +113,8 @@ class DashboardViewModel @Inject constructor(
             topBarStyle = prefs.topBarStyle,
             areAnimationsEnabled = prefs.areAnimationsEnabled,
             accounts = accountsWithBalance,
-            isLoading = false
+            isLoading = false,
+            isPrivacyModeEnabled = prefs.isPrivacyModeEnabled
         )
     }.flowOn(Dispatchers.Default)
     .stateIn(
