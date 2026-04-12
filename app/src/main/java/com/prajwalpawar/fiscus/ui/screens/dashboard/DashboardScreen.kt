@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -76,6 +77,7 @@ import com.prajwalpawar.fiscus.domain.model.Transaction
 import com.prajwalpawar.fiscus.domain.model.TransactionType
 import com.prajwalpawar.fiscus.ui.screens.transactions.AddTransactionScreen
 import com.prajwalpawar.fiscus.ui.screens.transactions.AddTransactionViewModel
+import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionDetailScreen
 import com.prajwalpawar.fiscus.ui.utils.AnimatedAmount
 import com.prajwalpawar.fiscus.ui.utils.EmptyState
 import com.prajwalpawar.fiscus.ui.utils.fiscusClickable
@@ -83,6 +85,7 @@ import com.prajwalpawar.fiscus.ui.utils.formatCurrency
 import com.prajwalpawar.fiscus.ui.utils.getCategoryIcon
 import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
 import com.prajwalpawar.fiscus.ui.utils.staggeredVerticalFadeIn
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -103,6 +106,8 @@ fun DashboardScreen(
     )
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
+    var showDetailSheet by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(showBottomSheet) {
         if (!showBottomSheet) {
@@ -112,23 +117,85 @@ fun DashboardScreen(
 
     if (showBottomSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false },
+            onDismissRequest = {
+                showBottomSheet = false
+                addTransactionViewModel.resetState()
+            },
             sheetState = sheetState,
-            dragHandle = { BottomSheetDefaults.DragHandle() }
+            dragHandle = { BottomSheetDefaults.DragHandle() },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = MaterialTheme.shapes.extraLarge
         ) {
             AddTransactionScreen(
                 viewModel = addTransactionViewModel,
                 onDismiss = {
-                    scope.launch {
-                        sheetState.hide()
-                    }.invokeOnCompletion {
-                        if (!sheetState.isVisible) {
-                            showBottomSheet = false
-                        }
-                    }
+                    showBottomSheet = false
                 }
             )
         }
+    }
+
+    if (showDetailSheet && uiState.selectedTransactionDetail != null) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showDetailSheet = false
+                viewModel.clearSelectedTransaction()
+            },
+            dragHandle = { BottomSheetDefaults.DragHandle() },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = MaterialTheme.shapes.extraLarge
+        ) {
+            val transaction = uiState.selectedTransactionDetail!!
+            TransactionDetailScreen(
+                transaction = transaction,
+                category = uiState.categories[transaction.categoryId],
+                account = uiState.accountsMap[transaction.accountId],
+                toAccount = transaction.toAccountId?.let { uiState.accountsMap[it] },
+                currencyCode = uiState.currency,
+                onEdit = {
+                    showDetailSheet = false
+                    addTransactionViewModel.setTransactionForEdit(transaction)
+                    scope.launch {
+                        delay(200)
+                        showBottomSheet = true
+                    }
+                },
+                onDelete = {
+                    showDeleteDialog = true
+                },
+                onDismiss = {
+                    showDetailSheet = false
+                    viewModel.clearSelectedTransaction()
+                },
+                animationsEnabled = uiState.areAnimationsEnabled
+            )
+        }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Transaction") },
+            text = { Text("Are you sure you want to delete this transaction?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    uiState.selectedTransactionDetail?.let {
+                        addTransactionViewModel.setTransactionForEdit(it)
+                        addTransactionViewModel.deleteTransaction()
+                    }
+                    showDeleteDialog = false
+                    showDetailSheet = false
+                    viewModel.clearSelectedTransaction()
+                }) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     val scrollBehavior = if (uiState.topBarStyle == "longtopbar") {
@@ -369,8 +436,8 @@ fun DashboardScreen(
                     currencyCode = uiState.currency,
                     onClick = {
                         haptic.click()
-                        addTransactionViewModel.setTransactionForEdit(transaction)
-                        showBottomSheet = true
+                        viewModel.onTransactionClick(transaction)
+                        showDetailSheet = true
                     }
                 )
             }

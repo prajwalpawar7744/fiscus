@@ -92,8 +92,8 @@ import com.prajwalpawar.fiscus.ui.components.ConfirmationDialog
 import com.prajwalpawar.fiscus.ui.screens.dashboard.TransactionItem
 import com.prajwalpawar.fiscus.ui.utils.EmptyState
 import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
-import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
 import com.prajwalpawar.fiscus.ui.utils.staggeredVerticalFadeIn
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -110,8 +110,10 @@ fun TransactionsScreen(
     val scope = rememberCoroutineScope()
     val haptic = rememberFiscusHaptic()
     val snackbarHostState = remember { SnackbarHostState() }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val detailSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by remember { mutableStateOf(false) }
+    var showDetailSheet by remember { mutableStateOf(false) }
 
     var transactionToDelete by remember {
         mutableStateOf<com.prajwalpawar.fiscus.domain.model.Transaction?>(
@@ -591,11 +593,12 @@ fun TransactionsScreen(
                                         transaction = item.transaction,
                                         category = uiState.categories[item.transaction.categoryId],
                                         account = uiState.accounts[item.transaction.accountId],
-                                        toAccount = item.transaction.toAccountId?.let { uiState.accounts[it] },
+                                        toAccount = item.transaction.toAccountId?.let { uiState.accounts[item.transaction.toAccountId] },
                                         currencyCode = uiState.currency,
                                         onEdit = {
-                                            addTransactionViewModel.setTransactionForEdit(item.transaction)
-                                            showBottomSheet = true
+                                            haptic.click()
+                                            viewModel.onTransactionClick(item.transaction)
+                                            showDetailSheet = true
                                         },
                                         onDelete = {
                                             haptic.longClick()
@@ -620,15 +623,17 @@ fun TransactionsScreen(
                 transactionToDelete = null
             },
             onConfirm = {
-                transactionToDelete?.let { transaction ->
-                    addTransactionViewModel.setTransactionForEdit(transaction)
+                (transactionToDelete ?: uiState.selectedTransactionDetail)?.let {
+                    addTransactionViewModel.setTransactionForEdit(it)
                     addTransactionViewModel.deleteTransaction()
-                    scope.launch {
-                        snackbarHostState.showSnackbar("Transaction deleted")
-                    }
                 }
                 showDeleteDialog = false
+                showDetailSheet = false
+                viewModel.clearSelectedTransaction()
                 transactionToDelete = null
+                scope.launch {
+                    snackbarHostState.showSnackbar("Transaction deleted")
+                }
             },
             title = "Delete Transaction?",
             text = "Are you sure you want to delete this transaction? This action cannot be undone.",
@@ -638,20 +643,59 @@ fun TransactionsScreen(
     }
     if (showBottomSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false },
-            sheetState = sheetState,
-            dragHandle = { BottomSheetDefaults.DragHandle() }
+            onDismissRequest = {
+                showBottomSheet = false
+                addTransactionViewModel.resetState()
+            },
+            sheetState = bottomSheetState,
+            dragHandle = { BottomSheetDefaults.DragHandle() },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = MaterialTheme.shapes.extraLarge
         ) {
             AddTransactionScreen(
                 viewModel = addTransactionViewModel,
                 onDismiss = {
-                    scope.launch {
-                        sheetState.hide()
-                    }.invokeOnCompletion {
-                        showBottomSheet = false
-                        addTransactionViewModel.resetState()
-                    }
+                    showBottomSheet = false
                 }
+            )
+        }
+    }
+
+    if (showDetailSheet && uiState.selectedTransactionDetail != null) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showDetailSheet = false
+                viewModel.clearSelectedTransaction()
+            },
+            sheetState = detailSheetState,
+            dragHandle = { BottomSheetDefaults.DragHandle() },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = MaterialTheme.shapes.extraLarge
+        ) {
+            val transaction = uiState.selectedTransactionDetail!!
+            TransactionDetailScreen(
+                transaction = transaction,
+                category = uiState.categories[transaction.categoryId],
+                account = uiState.accounts[transaction.accountId],
+                toAccount = transaction.toAccountId?.let { uiState.accounts[it] },
+                currencyCode = uiState.currency,
+                onEdit = {
+                    showDetailSheet = false
+                    addTransactionViewModel.setTransactionForEdit(transaction)
+                    scope.launch {
+                        delay(200)
+                        showBottomSheet = true
+                    }
+                },
+                onDelete = {
+                    transactionToDelete = transaction
+                    showDeleteDialog = true
+                },
+                onDismiss = {
+                    showDetailSheet = false
+                    viewModel.clearSelectedTransaction()
+                },
+                animationsEnabled = uiState.areAnimationsEnabled
             )
         }
     }

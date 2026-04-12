@@ -32,7 +32,8 @@ data class TransactionsUiState(
     val endDate: LocalDate? = null,
     val allCategories: List<Category> = emptyList(),
     val areAnimationsEnabled: Boolean = true,
-    val topBarStyle: String = "standard"
+    val topBarStyle: String = "standard",
+    val selectedTransactionDetail: Transaction? = null
 )
 
 @HiltViewModel
@@ -76,7 +77,7 @@ class TransactionsViewModel @Inject constructor(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val uiState: StateFlow<TransactionsUiState> = combine<Any, TransactionsUiState>(
+    private val _transactionsUiState: StateFlow<TransactionsUiState> = combine<Any, TransactionsUiState>(
         repository.getTransactions(),
         _categories,
         _accounts,
@@ -155,6 +156,23 @@ class TransactionsViewModel @Inject constructor(
         started = SharingStarted.Eagerly,
         initialValue = TransactionsUiState()
     )
+
+    private val _selectedTransaction = MutableStateFlow<Transaction?>(null)
+
+    val uiState: StateFlow<TransactionsUiState> = combine(
+        _transactionsUiState,
+        _selectedTransaction
+    ) { base, selected ->
+        base.copy(selectedTransactionDetail = selected)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TransactionsUiState())
+
+    fun onTransactionClick(transaction: Transaction) {
+        _selectedTransaction.value = transaction
+    }
+
+    fun clearSelectedTransaction() {
+        _selectedTransaction.value = null
+    }
 
     fun onSearchTextChanged(text: String) {
         _searchText.value = text

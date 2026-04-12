@@ -22,7 +22,8 @@ data class DashboardUiState(
     val userPhotoUri: String? = null,
     val topBarStyle: String = "standard",
     val areAnimationsEnabled: Boolean = true,
-    val accounts: List<AccountWithBalance> = emptyList()
+    val accounts: List<AccountWithBalance> = emptyList(),
+    val selectedTransactionDetail: Transaction? = null
 )
 
 @HiltViewModel
@@ -70,7 +71,7 @@ class DashboardViewModel @Inject constructor(
         DashboardData(income, expense, recent, categories, accounts)
     }
 
-    val uiState: StateFlow<DashboardUiState> = combine(
+    private val _dashboardUiState: StateFlow<DashboardUiState> = combine(
         _dashboardData,
         repository.getTransactions(),
         _userPrefs
@@ -108,4 +109,21 @@ class DashboardViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = DashboardUiState()
     )
+
+    private val _selectedTransactionDetail = MutableStateFlow<Transaction?>(null)
+
+    val uiState: StateFlow<DashboardUiState> = combine(
+        _dashboardUiState,
+        _selectedTransactionDetail
+    ) { base, selected ->
+        base.copy(selectedTransactionDetail = selected)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
+
+    fun onTransactionClick(transaction: Transaction) {
+        _selectedTransactionDetail.value = transaction
+    }
+
+    fun clearSelectedTransaction() {
+        _selectedTransactionDetail.value = null
+    }
 }
