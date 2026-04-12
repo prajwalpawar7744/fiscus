@@ -23,7 +23,9 @@ fun getCategoryIcon(name: String): ImageVector {
         "home", "house" -> Icons.Default.Home
         "electricalservices", "electric", "bolt" -> Icons.Default.ElectricalServices
         "savings", "piggy" -> Icons.Default.Savings
+        "accountbalance", "bank" -> Icons.Default.AccountBalance
         "accountbalancewallet", "wallet" -> Icons.Default.AccountBalanceWallet
+        "creditcard", "card" -> Icons.Default.CreditCard
         "payments", "money" -> Icons.Default.Payments
         "monetizationon", "cash" -> Icons.Default.MonetizationOn
         "swaphoriz", "transfer", "sync" -> Icons.Default.SwapHoriz
