@@ -3,6 +3,7 @@ package com.prajwalpawar.fiscus.ui.screens.settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -164,6 +165,7 @@ fun SettingsScreen(
                                 .size(112.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                                .border(2.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                                 .fiscusClickable(haptic = haptic, enabledAnimations = uiState.areAnimationsEnabled) {
                                     photoLauncher.launch("image/*")
                                 },
@@ -491,68 +493,104 @@ fun SettingsScreen(
     }
 
     if (showCurrencyDialog) {
-        val currencies = listOf("INR", "USD", "EUR", "GBP", "JPY")
+        val currencies = listOf(
+            "INR" to "Indian Rupee",
+            "USD" to "US Dollar",
+            "EUR" to "Euro",
+            "GBP" to "British Pound",
+            "JPY" to "Japanese Yen",
+            "AUD" to "Australian Dollar",
+            "CAD" to "Canadian Dollar"
+        )
         AlertDialog(
             onDismissRequest = { showCurrencyDialog = false },
+            icon = { Icon(Icons.Default.AttachMoney, null) },
             title = { Text("Select Currency") },
             text = {
                 Column {
-                    currencies.forEach { currency ->
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
+                    currencies.forEach { (code, name) ->
+                        ListItem(
+                            headlineContent = { Text(code, fontWeight = FontWeight.SemiBold) },
+                            supportingContent = { Text(name, style = MaterialTheme.typography.bodySmall) },
+                            leadingContent = {
+                                RadioButton(
+                                    selected = uiState.currency == code,
+                                    onClick = null
+                                )
+                            },
+                            modifier = Modifier
+                                .clip(MaterialTheme.shapes.large)
                                 .fiscusClickable(haptic = haptic, enabledAnimations = uiState.areAnimationsEnabled) {
-                                    viewModel.updateCurrency(currency)
+                                    viewModel.updateCurrency(code)
                                     showCurrencyDialog = false
-                                }
-                                .padding(16.dp)
-                        ) {
-                            Text(currency)
-                        }
+                                },
+                            colors = ListItemDefaults.colors(
+                                containerColor = if (uiState.currency == code)
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                else Color.Transparent
+                            )
+                        )
                     }
                 }
             },
-            confirmButton = {}
+            confirmButton = {
+                TextButton(onClick = { showCurrencyDialog = false }) { Text("Close") }
+            }
         )
     }
 
     if (showAccentDialog) {
-        val accents = listOf("Emerald", "Indigo", "Sapphire", "Crimson")
+        val accents = listOf(
+            Triple("Emerald", Color(0xFF006D39), "Lush green tone"),
+            Triple("Indigo", Color(0xFF415AA9), "Deep blue violet"),
+            Triple("Sapphire", Color(0xFF006493), "Ocean blue"),
+            Triple("Crimson", Color(0xFFB91C1C), "Bold red accent")
+        )
         AlertDialog(
             onDismissRequest = { showAccentDialog = false },
-            title = { Text("Select Accent Color") },
+            icon = { Icon(Icons.Default.ColorLens, null) },
+            title = { Text("Accent Color") },
             text = {
-                Column {
-                    accents.forEach { accent ->
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .fiscusClickable(haptic = haptic, enabledAnimations = uiState.areAnimationsEnabled) {
-                                    viewModel.updateAccentColor(accent)
-                                    showAccentDialog = false
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    accents.forEach { (name, color, description) ->
+                        val isSelected = uiState.accentColor == name
+                        ListItem(
+                            headlineContent = { Text(name, fontWeight = FontWeight.SemiBold) },
+                            supportingContent = { Text(description, style = MaterialTheme.typography.bodySmall) },
+                            leadingContent = {
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .background(color),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (isSelected) {
+                                        Icon(
+                                            Icons.Default.Check,
+                                            null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
                                 }
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            val color = when (accent) {
-                                "Indigo" -> Color(0xFF415AA9)
-                                "Sapphire" -> Color(0xFF006493)
-                                "Crimson" -> Color(0xFFB91C1C)
-                                else -> Color(0xFF006D39)
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .clip(CircleShape)
-                                    .background(color)
+                            },
+                            modifier = Modifier
+                                .clip(MaterialTheme.shapes.large)
+                                .fiscusClickable(haptic = haptic, enabledAnimations = uiState.areAnimationsEnabled) {
+                                    viewModel.updateAccentColor(name)
+                                    showAccentDialog = false
+                                },
+                            colors = ListItemDefaults.colors(
+                                containerColor = if (isSelected) color.copy(alpha = 0.1f) else Color.Transparent
                             )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Text(accent)
-                        }
+                        )
                     }
                 }
             },
-            confirmButton = {}
+            confirmButton = {
+                TextButton(onClick = { showAccentDialog = false }) { Text("Close") }
+            }
         )
     }
 }

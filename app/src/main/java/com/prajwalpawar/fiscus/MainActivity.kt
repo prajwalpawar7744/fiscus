@@ -14,6 +14,11 @@ import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Analytics
+import androidx.compose.material.icons.outlined.Dashboard
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -196,8 +201,9 @@ fun FiscusAppContent(
             navigationBarContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ),
         navigationSuiteItems = {
+            val isDashboard = currentDestination == "dashboard"
             item(
-                selected = currentDestination == "dashboard",
+                selected = isDashboard,
                 onClick = {
                     navController.navigate("dashboard") {
                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -207,14 +213,18 @@ fun FiscusAppContent(
                 },
                 icon = {
                     Icon(
-                        imageVector = if (currentDestination == "dashboard") Icons.Default.Dashboard else Icons.Default.Dashboard,
-                        contentDescription = "Dashboard"
+                        imageVector = if (isDashboard) Icons.Default.Dashboard else Icons.Outlined.Dashboard,
+                        contentDescription = "Overview"
                     )
                 },
-                label = { Text("Overview") }
+                label = { 
+                    Text("Overview", fontWeight = if (isDashboard) FontWeight.SemiBold else FontWeight.Medium) 
+                }
             )
+            
+            val isTransactions = currentDestination == "transactions"
             item(
-                selected = currentDestination == "transactions",
+                selected = isTransactions,
                 onClick = {
                     navController.navigate("transactions") {
                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -224,14 +234,18 @@ fun FiscusAppContent(
                 },
                 icon = {
                     Icon(
-                        imageVector = if (currentDestination == "transactions") Icons.Default.History else Icons.Default.History,
-                        contentDescription = "Transactions"
+                        imageVector = if (isTransactions) Icons.Default.History else Icons.Outlined.History,
+                        contentDescription = "History"
                     )
                 },
-                label = { Text("History") }
+                label = { 
+                    Text("History", fontWeight = if (isTransactions) FontWeight.SemiBold else FontWeight.Medium) 
+                }
             )
+            
+            val isAnalysis = currentDestination == "analysis"
             item(
-                selected = currentDestination == "analysis",
+                selected = isAnalysis,
                 onClick = {
                     navController.navigate("analysis") {
                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -241,14 +255,18 @@ fun FiscusAppContent(
                 },
                 icon = {
                     Icon(
-                        imageVector = if (currentDestination == "analysis") Icons.Default.Analytics else Icons.Default.Analytics,
+                        imageVector = if (isAnalysis) Icons.Default.Analytics else Icons.Outlined.Analytics,
                         contentDescription = "Analysis"
                     )
                 },
-                label = { Text("Analysis") }
+                label = { 
+                    Text("Analysis", fontWeight = if (isAnalysis) FontWeight.SemiBold else FontWeight.Medium) 
+                }
             )
+            
+            val isSettings = currentDestination == "settings"
             item(
-                selected = currentDestination == "settings",
+                selected = isSettings,
                 onClick = {
                     navController.navigate("settings") {
                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -258,11 +276,13 @@ fun FiscusAppContent(
                 },
                 icon = {
                     Icon(
-                        imageVector = if (currentDestination == "settings") Icons.Default.Settings else Icons.Default.Settings,
+                        imageVector = if (isSettings) Icons.Default.Settings else Icons.Outlined.Settings,
                         contentDescription = "Settings"
                     )
                 },
-                label = { Text("Settings") }
+                label = { 
+                    Text("Settings", fontWeight = if (isSettings) FontWeight.SemiBold else FontWeight.Medium) 
+                }
             )
         }
     ) {

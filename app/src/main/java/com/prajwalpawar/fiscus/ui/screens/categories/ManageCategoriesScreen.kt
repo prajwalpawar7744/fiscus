@@ -201,47 +201,96 @@ fun CategoryItem(
     onDelete: (Category) -> Unit
 ) {
     val haptic = rememberFiscusHaptic()
-    Surface(
+    val categoryColor = Color(category.color)
+    val typeLabel = when (category.type) {
+        TransactionType.INCOME -> "Income"
+        TransactionType.EXPENSE -> "Expense"
+        TransactionType.TRANSFER -> "Transfer"
+        null -> "Expense"
+    }
+    val typeContainerColor = when (category.type) {
+        TransactionType.INCOME  -> MaterialTheme.colorScheme.primaryContainer
+        TransactionType.TRANSFER -> MaterialTheme.colorScheme.secondaryContainer
+        else -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
+    }
+    val typeContentColor = when (category.type) {
+        TransactionType.INCOME  -> MaterialTheme.colorScheme.onPrimaryContainer
+        TransactionType.TRANSFER -> MaterialTheme.colorScheme.onSecondaryContainer
+        else -> MaterialTheme.colorScheme.onErrorContainer
+    }
+
+    ElevatedCard(
         modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+        shape = MaterialTheme.shapes.extraLarge,
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(CircleShape)
-                    .background(Color(category.color).copy(alpha = 0.15f)),
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(categoryColor.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = getCategoryIcon(category.icon),
                     contentDescription = null,
-                    tint = Color(category.color),
+                    tint = categoryColor,
                     modifier = Modifier.size(24.dp)
                 )
             }
-            Spacer(Modifier.width(16.dp))
-            Text(
-                text = category.name,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.weight(1f)
-            )
-            
-            if (!category.isSystem) {
-                IconButton(onClick = { 
-                    haptic.click()
-                    onDelete(category) 
-                }) {
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = category.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(Modifier.height(4.dp))
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = typeContainerColor
+                ) {
+                    Text(
+                        text = typeLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = typeContentColor,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                }
+            }
+
+            if (category.isSystem) {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = "System category",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.size(18.dp)
+                )
+            } else {
+                FilledTonalIconButton(
+                    onClick = {
+                        haptic.click()
+                        onDelete(category)
+                    },
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f),
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                ) {
                     Icon(
                         imageVector = Icons.Default.DeleteOutline,
                         contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
@@ -256,7 +305,7 @@ fun AddCategorySheet(
 ) {
     var name by remember { mutableStateOf("") }
     var selectedColor by remember { mutableStateOf(Color(0xFF006D39)) }
-    var selectedIcon by remember { mutableStateOf("Category") }
+    var selectedIcon by remember { mutableStateOf("ShoppingBag") }
     var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
     val haptic = rememberFiscusHaptic()
 
@@ -277,11 +326,46 @@ fun AddCategorySheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(24.dp)
-            .padding(bottom = 32.dp),
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 36.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Text("Create New Category", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        // Header row with live preview
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Live icon preview
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .background(selectedColor.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = getCategoryIcon(selectedIcon),
+                    contentDescription = null,
+                    tint = selectedColor,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+
+            Column {
+                Text(
+                    "Create Category",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = name.ifBlank { "New Category" },
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (name.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant
+                            else selectedColor
+                )
+            }
+        }
 
         // Type Selector
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
@@ -308,43 +392,61 @@ fun AddCategorySheet(
             placeholder = { Text("e.g. Subscriptions") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            shape = MaterialTheme.shapes.large
+            shape = MaterialTheme.shapes.large,
+            leadingIcon = { Icon(Icons.Default.Label, null) }
         )
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Select Color", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Text(
+                "Color",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold
+            )
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(horizontal = 4.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(horizontal = 2.dp)
             ) {
                 items(colors) { color ->
                     val isSelected = selectedColor == color
                     Box(
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(if (isSelected) 40.dp else 36.dp)
                             .clip(CircleShape)
                             .background(color)
-                            .border(
-                                width = if (isSelected) 3.dp else 0.dp,
-                                color = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
-                                shape = CircleShape
+                            .then(
+                                if (isSelected) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
+                                else Modifier
                             )
-                            .fiscusClickable(haptic = haptic) {
-                                selectedColor = color
-                            }
-                    )
+                            .fiscusClickable(haptic = haptic) { selectedColor = color },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isSelected) {
+                            Icon(
+                                Icons.Default.Check,
+                                null,
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Select Icon", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Text(
+                "Icon",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold
+            )
             LazyVerticalGrid(
                 columns = GridCells.Fixed(6),
                 modifier = Modifier.height(110.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(icons) { iconName ->
                     val isSelected = selectedIcon == iconName
@@ -352,17 +454,22 @@ fun AddCategorySheet(
                         modifier = Modifier
                             .size(44.dp)
                             .clip(MaterialTheme.shapes.medium)
-                            .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                            .fiscusClickable(haptic = haptic) {
-                                selectedIcon = iconName
-                            },
+                            .background(
+                                if (isSelected) selectedColor.copy(alpha = 0.2f)
+                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                            )
+                            .then(
+                                if (isSelected) Modifier.border(2.dp, selectedColor, MaterialTheme.shapes.medium)
+                                else Modifier
+                            )
+                            .fiscusClickable(haptic = haptic) { selectedIcon = iconName },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = getCategoryIcon(iconName),
                             contentDescription = null,
-                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(24.dp)
+                            tint = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(22.dp)
                         )
                     }
                 }
@@ -376,20 +483,22 @@ fun AddCategorySheet(
             OutlinedButton(
                 onClick = onCancel,
                 modifier = Modifier.weight(1f),
-                shape = MaterialTheme.shapes.large
+                shape = MaterialTheme.shapes.extraLarge
             ) {
                 Text("Cancel")
             }
             Button(
-                onClick = { 
+                onClick = {
                     if (name.isNotBlank()) {
                         onAdd(name, selectedIcon, selectedColor.toArgb(), selectedType)
                     }
                 },
                 modifier = Modifier.weight(1f),
                 enabled = name.isNotBlank(),
-                shape = MaterialTheme.shapes.large
+                shape = MaterialTheme.shapes.extraLarge
             ) {
+                Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
                 Text("Create")
             }
         }

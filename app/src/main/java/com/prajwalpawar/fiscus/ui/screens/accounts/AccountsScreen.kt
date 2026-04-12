@@ -1,11 +1,12 @@
 package com.prajwalpawar.fiscus.ui.screens.accounts
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -14,16 +15,18 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.shape.CircleShape
+import com.prajwalpawar.fiscus.domain.model.Account
 import com.prajwalpawar.fiscus.ui.utils.getCategoryIcon
 import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
 import com.prajwalpawar.fiscus.ui.utils.staggeredVerticalFadeIn
 import com.prajwalpawar.fiscus.ui.utils.fiscusClickable
+import com.prajwalpawar.fiscus.ui.utils.EmptyState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,11 +36,19 @@ fun AccountsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val haptic = rememberFiscusHaptic()
+    var showFormSheet by remember { mutableStateOf(false) }
+    var accountToDelete by remember { mutableStateOf<Account?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val scrollBehavior = if (uiState.topBarStyle == "longtopbar") {
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     } else {
         TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    }
+
+    // Reset form when sheet is dismissed without saving
+    LaunchedEffect(showFormSheet) {
+        if (!showFormSheet && !uiState.isEditing) viewModel.resetForm()
     }
 
     Scaffold(
@@ -70,193 +81,290 @@ fun AccountsScreen(
                     scrollBehavior = scrollBehavior
                 )
             }
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = {
+                    haptic.click()
+                    viewModel.resetForm()
+                    showFormSheet = true
+                },
+                icon = { Icon(Icons.Default.Add, null) },
+                text = { Text("Add Account") },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = MaterialTheme.shapes.extraLarge
+            )
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Add/Edit Form
-            item {
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .staggeredVerticalFadeIn(0),
-                    shape = MaterialTheme.shapes.extraLarge,
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        if (uiState.accounts.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                EmptyState(
+                    message = "No accounts yet.\nTap + to add your first account.",
+                    icon = Icons.Default.AccountBalance
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                item {
+                    Text(
+                        text = "Your Accounts",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
                     )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                }
+
+                itemsIndexed(uiState.accounts) { index, account ->
+                    AccountListItem(
+                        modifier = Modifier.staggeredVerticalFadeIn(index),
+                        account = account,
+                        onEdit = {
+                            viewModel.selectAccountForEdit(account)
+                            showFormSheet = true
+                        },
+                        onDelete = { accountToDelete = account }
+                    )
+                }
+
+                item { Spacer(Modifier.height(80.dp)) }
+            }
+        }
+    }
+
+    // Add/Edit Bottom Sheet
+    if (showFormSheet) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showFormSheet = false
+                viewModel.resetForm()
+            },
+            sheetState = sheetState,
+            dragHandle = { BottomSheetDefaults.DragHandle() },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = MaterialTheme.shapes.extraLarge
+        ) {
+            AccountFormSheet(
+                uiState = uiState,
+                viewModel = viewModel,
+                onDismiss = {
+                    showFormSheet = false
+                    viewModel.resetForm()
+                }
+            )
+        }
+    }
+
+    // Delete Confirmation
+    if (accountToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { accountToDelete = null },
+            icon = { Icon(Icons.Default.DeleteForever, null, tint = MaterialTheme.colorScheme.error) },
+            title = { Text("Delete Account?") },
+            text = { Text("Are you sure you want to delete '${accountToDelete?.name}'? This cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        accountToDelete?.let { viewModel.deleteAccount(it) }
+                        accountToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                ) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { accountToDelete = null }) { Text("Cancel") }
+            }
+        )
+    }
+}
+
+@Composable
+private fun AccountFormSheet(
+    uiState: AccountsUiState,
+    viewModel: AccountsViewModel,
+    onDismiss: () -> Unit
+) {
+    val haptic = rememberFiscusHaptic()
+    val icons = listOf("account_balance", "credit_card", "wallet", "payments", "savings", "home")
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        Text(
+            text = if (uiState.isEditing) "Edit Account" else "New Account",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+
+        OutlinedTextField(
+            value = uiState.name,
+            onValueChange = viewModel::onNameChange,
+            label = { Text("Account Name") },
+            placeholder = { Text("e.g. HDFC Savings") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.large,
+            singleLine = true,
+            leadingIcon = { Icon(Icons.Default.Label, null) }
+        )
+
+        OutlinedTextField(
+            value = uiState.balance,
+            onValueChange = viewModel::onBalanceChange,
+            label = { Text("Initial Balance") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.large,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            singleLine = true,
+            leadingIcon = { Icon(Icons.Default.AttachMoney, null) }
+        )
+
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                "Choose Icon",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(icons) { iconName ->
+                    val isSelected = uiState.icon == iconName
+                    Surface(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .fiscusClickable(haptic = haptic) { viewModel.onIconChange(iconName) },
+                        shape = MaterialTheme.shapes.medium,
+                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                               else MaterialTheme.colorScheme.surfaceVariant,
+                        border = if (isSelected) androidx.compose.foundation.BorderStroke(
+                            2.dp, MaterialTheme.colorScheme.primary
+                        ) else null
                     ) {
-                        Text(
-                            text = if (uiState.isEditing) "Edit Account" else "Add New Account",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        OutlinedTextField(
-                            value = uiState.name,
-                            onValueChange = viewModel::onNameChange,
-                            label = { Text("Account Name") },
-                            placeholder = { Text("e.g. HDFC Savings") },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = MaterialTheme.shapes.large,
-                            singleLine = true
-                        )
-
-                        OutlinedTextField(
-                            value = uiState.balance,
-                            onValueChange = viewModel::onBalanceChange,
-                            label = { Text("Initial Balance") },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = MaterialTheme.shapes.large,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            singleLine = true
-                        )
-
-                        Text(
-                            text = "Choose Icon",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-
-                        val icons = listOf("account_balance", "credit_card", "wallet", "payments", "savings")
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(icons) { iconName ->
-                                val isSelected = uiState.icon == iconName
-                                Surface(
-                                    modifier = Modifier.fiscusClickable(
-                                        haptic = haptic,
-                                        enabledAnimations = true
-                                    ) {
-                                        viewModel.onIconChange(iconName)
-                                    },
-                                    shape = MaterialTheme.shapes.medium,
-                                    color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                                    border = if (isSelected) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
-                                ) {
-                                    Icon(
-                                        imageVector = getCategoryIcon(iconName),
-                                        contentDescription = null,
-                                        modifier = Modifier.padding(12.dp).size(24.dp),
-                                        tint = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            if (uiState.isEditing) {
-                                TextButton(
-                                    onClick = { viewModel.resetForm() },
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text("Cancel")
-                                }
-                            }
-                            Button(
-                                onClick = {
-                                    haptic.click()
-                                    viewModel.saveAccount()
-                                },
-                                modifier = Modifier.weight(1f),
-                                shape = MaterialTheme.shapes.large
-                            ) {
-                                Text(if (uiState.isEditing) "Update" else "Add")
-                            }
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = getCategoryIcon(iconName),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = if (isSelected) MaterialTheme.colorScheme.primary
+                                      else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
             }
+        }
 
-            // Accounts List
-            item {
-                Text(
-                    text = "Existing Accounts",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedButton(
+                onClick = onDismiss,
+                modifier = Modifier.weight(1f),
+                shape = MaterialTheme.shapes.large
+            ) { Text("Cancel") }
 
-            itemsIndexed(uiState.accounts) { index, account ->
-                AccountListItem(
-                    modifier = Modifier.staggeredVerticalFadeIn(index + 1),
-                    account = account,
-                    onEdit = { viewModel.selectAccountForEdit(account) },
-                    onDelete = { viewModel.deleteAccount(account) }
-                )
-            }
+            Button(
+                onClick = {
+                    haptic.click()
+                    viewModel.saveAccount()
+                    onDismiss()
+                },
+                modifier = Modifier.weight(1f),
+                shape = MaterialTheme.shapes.large,
+                enabled = uiState.name.isNotBlank()
+            ) { Text(if (uiState.isEditing) "Update" else "Add") }
         }
     }
 }
 
 @Composable
 fun AccountListItem(
-    account: com.prajwalpawar.fiscus.domain.model.Account,
+    account: Account,
     modifier: Modifier = Modifier,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
-    Card(
+    val haptic = rememberFiscusHaptic()
+
+    ElevatedCard(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        shape = MaterialTheme.shapes.extraLarge,
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                modifier = Modifier.size(40.dp)
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = getCategoryIcon(account.icon),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+                Icon(
+                    imageVector = getCategoryIcon(account.icon),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(24.dp)
+                )
             }
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = account.name,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = "Initial Balance: ${account.balance}",
+                    text = "Balance: ${account.balance}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            
-            IconButton(onClick = onEdit) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary)
+
+            FilledTonalIconButton(
+                onClick = { haptic.click(); onEdit() },
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            ) {
+                Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(18.dp))
             }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+
+            FilledTonalIconButton(
+                onClick = { haptic.click(); onDelete() },
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                )
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = "Delete", modifier = Modifier.size(18.dp))
             }
         }
     }

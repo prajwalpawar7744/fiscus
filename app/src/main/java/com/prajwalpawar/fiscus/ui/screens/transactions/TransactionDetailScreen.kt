@@ -2,7 +2,9 @@ package com.prajwalpawar.fiscus.ui.screens.transactions
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Notes
@@ -11,18 +13,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.prajwalpawar.fiscus.domain.model.Account
+import com.prajwalpawar.fiscus.domain.model.Category
 import com.prajwalpawar.fiscus.domain.model.Transaction
 import com.prajwalpawar.fiscus.domain.model.TransactionType
-import com.prajwalpawar.fiscus.domain.model.Category
-import com.prajwalpawar.fiscus.domain.model.Account
 import com.prajwalpawar.fiscus.ui.utils.formatCurrency
 import com.prajwalpawar.fiscus.ui.utils.getCategoryIcon
 import com.prajwalpawar.fiscus.ui.utils.staggeredVerticalFadeIn
@@ -43,184 +42,234 @@ fun TransactionDetailScreen(
     animationsEnabled: Boolean = true
 ) {
     val dateFormatter = SimpleManagement.dateFormatter
-    val timeFormatter = SimpleManagement.timeFormatter
+
+    val amountColor = when (transaction.type) {
+        TransactionType.INCOME   -> MaterialTheme.colorScheme.primary
+        TransactionType.EXPENSE  -> category?.color?.let { Color(it) } ?: MaterialTheme.colorScheme.onSurface
+        TransactionType.TRANSFER -> MaterialTheme.colorScheme.secondary
+    }
+    val amountPrefix = when (transaction.type) {
+        TransactionType.INCOME   -> "+"
+        TransactionType.EXPENSE  -> "−"
+        TransactionType.TRANSFER -> ""
+    }
+    val typeLabel = transaction.type.name.lowercase().replaceFirstChar { it.uppercase() }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 32.dp)
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 36.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Amount and Type
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            val color = when (transaction.type) {
-                TransactionType.INCOME -> MaterialTheme.colorScheme.primary
-                TransactionType.EXPENSE -> MaterialTheme.colorScheme.onSurface
-                TransactionType.TRANSFER -> MaterialTheme.colorScheme.secondary
-            }
-            val prefix = when (transaction.type) {
-                TransactionType.INCOME -> "+"
-                TransactionType.EXPENSE -> "-"
-                TransactionType.TRANSFER -> ""
+        // ── Hero amount block ───────────────────────────────────────────
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .staggeredVerticalFadeIn(0, animationsEnabled)
+        ) {
+            // Category icon badge
+            val iconBgColor = category?.color?.let { Color(it).copy(alpha = 0.15f) }
+                ?: MaterialTheme.colorScheme.surfaceVariant
+            val iconTint = category?.color?.let { Color(it) }
+                ?: MaterialTheme.colorScheme.onSurfaceVariant
+
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .background(iconBgColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = getCategoryIcon(category?.icon ?: ""),
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(32.dp)
+                )
             }
 
             com.prajwalpawar.fiscus.ui.utils.AnimatedAmount(
                 targetAmount = transaction.amount,
                 currencyCode = currencyCode,
-                style = MaterialTheme.typography.displayMedium,
-                fontWeight = FontWeight.Bold,
-                color = color,
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = amountColor,
                 enabled = animationsEnabled,
-                modifier = Modifier.staggeredVerticalFadeIn(0, animationsEnabled)
             )
-            
+
             Surface(
                 shape = CircleShape,
-                color = color.copy(alpha = 0.1f),
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .staggeredVerticalFadeIn(1, animationsEnabled)
+                color = amountColor.copy(alpha = 0.12f)
             ) {
                 Text(
-                    text = transaction.type.name.lowercase().replaceFirstChar { it.uppercase() },
-                    style = MaterialTheme.typography.labelLarge,
-                    color = color,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                    text = typeLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = amountColor,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp)
                 )
             }
         }
 
-        // Transaction Info Details
+        // ── Detail card ─────────────────────────────────────────────────
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .staggeredVerticalFadeIn(2, animationsEnabled),
+                .staggeredVerticalFadeIn(1, animationsEnabled),
             shape = MaterialTheme.shapes.extraLarge,
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
             colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
             )
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 DetailRow(
                     icon = Icons.Default.Title,
                     label = "Title",
                     value = transaction.title
                 )
-                
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                )
                 DetailRow(
                     icon = getCategoryIcon(category?.icon ?: "category"),
                     label = "Category",
                     value = category?.name ?: "Unknown",
-                    valueColor = category?.color?.let { Color(it) } ?: MaterialTheme.colorScheme.onSurface
+                    valueColor = category?.color?.let { Color(it) }
+                        ?: MaterialTheme.colorScheme.onSurface
                 )
-
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                )
                 DetailRow(
                     icon = Icons.Default.CalendarToday,
                     label = "Date",
                     value = dateFormatter.format(transaction.date)
                 )
 
-                // Account Routing
-                Column {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.AccountBalanceWallet,
-                            null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                // Account routing
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        Icons.Default.AccountBalanceWallet,
+                        null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Column {
                         Text(
                             text = "Account",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(12.dp))
-                    
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        AccountChip(account?.name ?: "Unknown", MaterialTheme.colorScheme.primaryContainer)
-                        
-                        if (transaction.type == TransactionType.TRANSFER && toAccount != null) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = null,
-                                modifier = Modifier.padding(horizontal = 12.dp).size(20.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.padding(top = 4.dp)
+                        ) {
+                            AccountChip(
+                                name = account?.name ?: "Unknown",
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                             )
-                            AccountChip(toAccount.name, MaterialTheme.colorScheme.secondaryContainer)
+                            if (transaction.type == TransactionType.TRANSFER && toAccount != null) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                AccountChip(
+                                    name = toAccount.name,
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
                         }
                     }
                 }
 
+                // Note
                 if (transaction.note.isNotBlank()) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                    Column {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.Notes,
-                                null,
-                                modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                    )
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Notes,
+                            null,
+                            modifier = Modifier.size(20.dp).padding(top = 2.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Column {
                             Text(
                                 text = "Note",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = transaction.note,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.padding(top = 4.dp)
                             )
                         }
-                        Text(
-                            text = transaction.note,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
                     }
                 }
             }
         }
 
-        // Actions
+        // ── Action buttons ───────────────────────────────────────────────
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .staggeredVerticalFadeIn(3, animationsEnabled),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                .staggeredVerticalFadeIn(2, animationsEnabled),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OutlinedButton(
                 onClick = onDelete,
-                modifier = Modifier.weight(1f).height(56.dp),
-                shape = MaterialTheme.shapes.large,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+                modifier = Modifier.weight(1f).height(52.dp),
+                shape = MaterialTheme.shapes.extraLarge,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                ),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
+                )
             ) {
-                Icon(Icons.Default.Delete, null)
-                Spacer(Modifier.width(8.dp))
-                Text("Delete")
+                Icon(Icons.Default.Delete, null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("Delete", fontWeight = FontWeight.SemiBold)
             }
-            
+
             Button(
                 onClick = onEdit,
-                modifier = Modifier.weight(1f).height(56.dp),
-                shape = MaterialTheme.shapes.large
+                modifier = Modifier.weight(1f).height(52.dp),
+                shape = MaterialTheme.shapes.extraLarge
             ) {
-                Icon(Icons.Default.Edit, null)
-                Spacer(Modifier.width(8.dp))
-                Text("Edit")
+                Icon(Icons.Default.Edit, null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("Edit", fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -228,7 +277,7 @@ fun TransactionDetailScreen(
 
 @Composable
 fun DetailRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     label: String,
     value: String,
     valueColor: Color = MaterialTheme.colorScheme.onSurface
@@ -237,12 +286,21 @@ fun DetailRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Icon(
-            icon,
-            null,
-            modifier = Modifier.size(20.dp),
-            tint = if (valueColor != MaterialTheme.colorScheme.onSurface) valueColor else MaterialTheme.colorScheme.primary
-        )
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(MaterialTheme.shapes.small)
+                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                icon,
+                null,
+                modifier = Modifier.size(18.dp),
+                tint = if (valueColor != MaterialTheme.colorScheme.onSurface) valueColor
+                       else MaterialTheme.colorScheme.primary
+            )
+        }
         Column {
             Text(
                 text = label,
@@ -260,16 +318,21 @@ fun DetailRow(
 }
 
 @Composable
-fun AccountChip(name: String, containerColor: Color) {
+fun AccountChip(
+    name: String,
+    containerColor: Color,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface
+) {
     Surface(
-        shape = MaterialTheme.shapes.medium,
+        shape = MaterialTheme.shapes.small,
         color = containerColor,
     ) {
         Text(
             text = name,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = contentColor,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
         )
     }
 }

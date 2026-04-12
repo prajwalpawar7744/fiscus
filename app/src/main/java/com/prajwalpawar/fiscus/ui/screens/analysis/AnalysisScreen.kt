@@ -229,7 +229,7 @@ fun AnalysisScreen(
                                                     Icon(
                                                         Icons.Default.ArrowDownward,
                                                         contentDescription = null,
-                                                        tint = Color.Red
+                                                        tint = MaterialTheme.colorScheme.error
                                                     )
                                                 }
                                             )
@@ -244,7 +244,7 @@ fun AnalysisScreen(
                                                     Icon(
                                                         Icons.Default.ArrowUpward,
                                                         contentDescription = null,
-                                                        tint = Color.Green
+                                                        tint = MaterialTheme.colorScheme.primary
                                                     )
                                                 }
                                             )
@@ -531,7 +531,9 @@ fun AnalysisScreen(
                                 BarChart(
                                     dataPoints = if (uiState.selectedTransactionType == TransactionType.INCOME) uiState.incomeDataPoints else uiState.expenseDataPoints,
                                     modifier = chartModifier,
-                                    color = if (uiState.selectedTransactionType == TransactionType.INCOME) Color.Green else MaterialTheme.colorScheme.primary,
+                                    color = if (uiState.selectedTransactionType == TransactionType.INCOME)
+                                        MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.secondary,
                                     currencyCode = uiState.currency,
                                     animationsEnabled = uiState.areAnimationsEnabled,
                                     isMasked = uiState.isPrivacyModeEnabled
@@ -632,49 +634,173 @@ fun AnalysisSummaryCard(
     animationsEnabled: Boolean = true,
     isMasked: Boolean = false
 ) {
+    val net = income - expense
+    val incomeRatio = if (income + expense > 0) (income / (income + expense)).toFloat() else 0.5f
+    val netColor = if (net >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+
     ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.extraLarge,
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-        ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp),
-        shape = MaterialTheme.shapes.extraLarge
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
-        Column(modifier = Modifier.padding(28.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Period Summary",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            // Income / Expense row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Income
+                Surface(
+                    modifier = Modifier.weight(1f),
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.ArrowUpward,
+                                null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                "Income",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        com.prajwalpawar.fiscus.ui.utils.AnimatedAmount(
+                            targetAmount = income,
+                            currencyCode = currencyCode,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            enabled = animationsEnabled,
+                            isMasked = isMasked
+                        )
+                    }
+                }
+
+                // Expense
+                Surface(
+                    modifier = Modifier.weight(1f),
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.error
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.ArrowDownward,
+                                null,
+                                tint = MaterialTheme.colorScheme.onError,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                "Expense",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onError
+                            )
+                        }
+                        com.prajwalpawar.fiscus.ui.utils.AnimatedAmount(
+                            targetAmount = expense,
+                            currencyCode = currencyCode,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onError,
+                            enabled = animationsEnabled,
+                            isMasked = isMasked
+                        )
+                    }
+                }
+            }
+
+            // Income vs Expense ratio bar
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Income ratio",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        "${(incomeRatio * 100).toInt()}% income · ${((1f - incomeRatio) * 100).toInt()}% expense",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                LinearProgressIndicator(
+                    progress = { incomeRatio },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .clip(CircleShape),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.error
+                )
+            }
+
+            // Net savings row
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
-              ) {
-                Column {
-                    Text(
-                        text = "Total Spending",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        if (net >= 0) Icons.Default.Savings else Icons.Default.Warning,
+                        null,
+                        tint = netColor,
+                        modifier = Modifier.size(18.dp)
                     )
                     Text(
-                        text = formatCurrency(expense, currencyCode, isMasked),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                        text = if (net >= 0) "Net Savings" else "Over Budget",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-
-                // Small ratio indicator (Income vs Expense)
-                Box(contentAlignment = Alignment.Center) {
-                    val ratio = if (income > 0) (expense / (income + expense)).toFloat() else 1f
-                    CircularProgressIndicator(
-                        progress = { ratio },
-                        modifier = Modifier.size(64.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.2f),
-                        strokeWidth = 8.dp,
-                        strokeCap = StrokeCap.Round
-                    )
-                }
+                com.prajwalpawar.fiscus.ui.utils.AnimatedAmount(
+                    targetAmount = kotlin.math.abs(net),
+                    currencyCode = currencyCode,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = netColor,
+                    enabled = animationsEnabled,
+                    isMasked = isMasked
+                )
             }
         }
     }
@@ -688,42 +814,39 @@ fun CategoryAnalysisItem(
     animationsEnabled: Boolean = true,
     isMasked: Boolean = false
 ) {
-    val haptic = rememberFiscusHaptic()
-    Surface(
+    val categoryColor = Color(analysis.category.color)
+
+    ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 2.dp)
-            .clip(MaterialTheme.shapes.medium)
-            .fiscusClickable(haptic = haptic, enabledAnimations = animationsEnabled) {
-                // Potential detail view navigation
-            }
-            .clip(MaterialTheme.shapes.medium),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .padding(vertical = 3.dp),
+        shape = MaterialTheme.shapes.extraLarge,
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Surface(
-                shape = MaterialTheme.shapes.medium,
-                color = Color(analysis.category.color).copy(alpha = 0.12f),
-                modifier = Modifier.size(48.dp)
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(categoryColor.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = getCategoryIcon(analysis.category.icon ?: ""),
-                        contentDescription = null,
-                        tint = Color(analysis.category.color),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                Icon(
+                    imageVector = getCategoryIcon(analysis.category.icon ?: ""),
+                    contentDescription = null,
+                    tint = categoryColor,
+                    modifier = Modifier.size(26.dp)
+                )
             }
-
-            Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Row(
@@ -733,47 +856,51 @@ fun CategoryAnalysisItem(
                 ) {
                     Text(
                         text = analysis.category.name,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
                     )
+                    Spacer(Modifier.width(8.dp))
                     Text(
                         text = formatCurrency(analysis.amount, currencyCode, isMasked),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.error // Since it's an expense breakdown usually
+                        color = categoryColor
                     )
                 }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LinearProgressIndicator(
+                    progress = { analysis.percentage },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .clip(CircleShape),
+                    color = categoryColor,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         text = "${analysis.transactionCount} transactions",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "${(analysis.percentage * 100).toInt()}%",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = categoryColor
                     )
                 }
-                
-                Spacer(modifier = Modifier.height(4.dp))
-                LinearProgressIndicator(
-                    progress = { analysis.percentage },
-                    modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
-                    color = Color(analysis.category.color),
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
             }
         }
     }
@@ -802,7 +929,10 @@ fun BarChart(
 
     if (dataPoints.isEmpty()) {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
-            Text("No data available", style = MaterialTheme.typography.bodyMedium)
+            com.prajwalpawar.fiscus.ui.utils.EmptyState(
+                message = "Not enough data",
+                icon = Icons.Default.BarChart
+            )
         }
         return
     }
@@ -912,7 +1042,10 @@ fun PieChart(
 
     if (breakdown.isEmpty()) {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
-            Text("No data for pie chart", style = MaterialTheme.typography.bodyMedium)
+            com.prajwalpawar.fiscus.ui.utils.EmptyState(
+                message = "No data for pie chart",
+                icon = Icons.Default.PieChart
+            )
         }
         return
     }
@@ -1008,7 +1141,10 @@ fun LineChart(
     val allPoints = (if (showExpense) expensePoints else emptyList()) + (if (showIncome) incomePoints else emptyList())
     if (allPoints.isEmpty() || (showExpense && expensePoints.size < 2 && !showIncome) || (showIncome && incomePoints.size < 2 && !showExpense)) {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
-            Text("No data for trend graph", style = MaterialTheme.typography.bodyMedium)
+            com.prajwalpawar.fiscus.ui.utils.EmptyState(
+                message = "Not enough trend data",
+                icon = Icons.AutoMirrored.Filled.ShowChart
+            )
         }
         return
     }
