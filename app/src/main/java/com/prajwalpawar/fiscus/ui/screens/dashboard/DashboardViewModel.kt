@@ -23,7 +23,8 @@ data class DashboardUiState(
     val topBarStyle: String = "standard",
     val areAnimationsEnabled: Boolean = true,
     val accounts: List<AccountWithBalance> = emptyList(),
-    val selectedTransactionDetail: Transaction? = null
+    val selectedTransactionDetail: Transaction? = null,
+    val isLoading: Boolean = true
 )
 
 @HiltViewModel
@@ -101,7 +102,8 @@ class DashboardViewModel @Inject constructor(
             userPhotoUri = prefs.userPhotoUri,
             topBarStyle = prefs.topBarStyle,
             areAnimationsEnabled = prefs.areAnimationsEnabled,
-            accounts = accountsWithBalance
+            accounts = accountsWithBalance,
+            isLoading = false
         )
     }.flowOn(Dispatchers.Default)
     .stateIn(

@@ -1,7 +1,11 @@
 package com.prajwalpawar.fiscus.ui.screens.dashboard
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -32,6 +36,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -280,174 +285,187 @@ fun DashboardScreen(
             }
         },
         floatingActionButton = {
-            val interactionSource = remember { MutableInteractionSource() }
-            val pressed by interactionSource.collectIsPressedAsState()
-
-            val scale by animateFloatAsState(
-                targetValue = if (pressed && uiState.areAnimationsEnabled) 0.9f else 1f
-            )
-
             ExtendedFloatingActionButton(
-                modifier = Modifier.graphicsLayer {
-                    if (uiState.areAnimationsEnabled) {
-                        scaleX = scale
-                        scaleY = scale
-                    }
-                },
-                interactionSource = interactionSource,
                 onClick = {
                     haptic.click()
                     addTransactionViewModel.resetState()
                     showBottomSheet = true
                 },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                text = { Text("Add Transaction") }
+                icon = { Icon(Icons.Default.Add, null) },
+                text = { Text("Add Transaction") },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = MaterialTheme.shapes.large,
+                expanded = scrollBehavior.state.collapsedFraction < 0.5f
             )
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                BalanceCard(
-                    balance = uiState.balance,
-                    income = uiState.totalIncome,
-                    expense = uiState.totalExpense,
-                    currencyCode = uiState.currency,
-                    animationsEnabled = uiState.areAnimationsEnabled
-                )
-            }
-
-            item {
-                Row(
+        androidx.compose.animation.AnimatedContent(
+            targetState = uiState.isLoading,
+            transitionSpec = {
+                com.prajwalpawar.fiscus.ui.utils.FiscusAnimation.Navigation.Enter togetherWith 
+                com.prajwalpawar.fiscus.ui.utils.FiscusAnimation.Navigation.Exit
+            },
+            label = "dashboardLoadingTransition"
+        ) { isLoading ->
+            if (isLoading) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Your Accounts",
-                        style = MaterialTheme.typography.titleMedium
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary,
+                        strokeWidth = 4.dp,
+                        modifier = Modifier.size(48.dp)
                     )
-                    TextButton(onClick = {
-                        haptic.click()
-                        onManageAccounts()
-                    }) {
-                        Text("Manage")
-                    }
                 }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(horizontal = 16.dp),
+                    contentPadding = PaddingValues(bottom = 100.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    item {
+                        BalanceCard(
+                            balance = uiState.totalIncome - uiState.totalExpense,
+                            income = uiState.totalIncome,
+                            expense = uiState.totalExpense,
+                            currencyCode = uiState.currency,
+                            animationsEnabled = uiState.areAnimationsEnabled
+                        )
+                    }
 
-                if (uiState.accounts.isEmpty()) {
-                    OutlinedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        shape = MaterialTheme.shapes.large,
-                        onClick = {
-                            haptic.click()
-                            onManageAccounts()
-                        }
-                    ) {
-                        Column(
+                    item {
+                        Row(
                             modifier = Modifier
-                                .padding(24.dp)
-                                .fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.AddCircleOutline,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(32.dp)
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Add your first account",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = "Your Accounts",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            TextButton(onClick = {
+                                haptic.click()
+                                onManageAccounts()
+                            }) {
+                                Text("Manage")
+                            }
+                        }
+
+                        if (uiState.accounts.isEmpty()) {
+                            OutlinedCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                shape = MaterialTheme.shapes.large,
+                                onClick = {
+                                    haptic.click()
+                                    onManageAccounts()
+                                }
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .padding(24.dp)
+                                        .fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.AddCircleOutline,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "Add your first account",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        } else {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
+                            ) {
+                                itemsIndexed(uiState.accounts) { index, accountWithBalance ->
+                                    AccountCard(
+                                        modifier = Modifier.staggeredVerticalFadeIn(
+                                            index,
+                                            enabled = uiState.areAnimationsEnabled,
+                                            initialDelay = 150
+                                        ),
+                                        accountWithBalance = accountWithBalance,
+                                        currencyCode = uiState.currency,
+                                        animationsEnabled = uiState.areAnimationsEnabled
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Recent Transactions",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            TextButton(onClick = {
+                                haptic.click()
+                                onSeeAllTransactions()
+                            }) {
+                                Text("See All")
+                            }
+                        }
+                    }
+
+                    itemsIndexed(
+                        items = uiState.recentTransactions,
+                        key = { _, it -> it.id ?: it.hashCode() }
+                    ) { index, transaction ->
+                        TransactionItem(
+                            modifier = Modifier.staggeredVerticalFadeIn(
+                                index,
+                                enabled = uiState.areAnimationsEnabled,
+                                initialDelay = 250
+                            ),
+                            transaction = transaction,
+                            animationsEnabled = uiState.areAnimationsEnabled,
+                            category = uiState.categories[transaction.categoryId],
+                            account = uiState.accountsMap[transaction.accountId],
+                            toAccount = transaction.toAccountId?.let { uiState.accountsMap[it] },
+                            currencyCode = uiState.currency,
+                            onClick = {
+                                haptic.click()
+                                viewModel.onTransactionClick(transaction)
+                                showDetailSheet = true
+                            }
+                        )
+                    }
+
+                    if (uiState.recentTransactions.isEmpty()) {
+                        item {
+                            EmptyState(
+                                message = "No transactions yet",
+                                icon = Icons.AutoMirrored.Filled.ReceiptLong
                             )
                         }
                     }
-                } else {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
-                    ) {
-                        itemsIndexed(uiState.accounts) { index, accountWithBalance ->
-                            AccountCard(
-                                modifier = Modifier.staggeredVerticalFadeIn(
-                                    index,
-                                    enabled = uiState.areAnimationsEnabled,
-                                    initialDelay = 150
-                                ),
-                                accountWithBalance = accountWithBalance,
-                                currencyCode = uiState.currency,
-                                animationsEnabled = uiState.areAnimationsEnabled
-                            )
-                        }
-                    }
-                }
-            }
-
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Recent Transactions",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    TextButton(onClick = {
-                        haptic.click()
-                        onSeeAllTransactions()
-                    }) {
-                        Text("See All")
-                    }
-                }
-            }
-
-            itemsIndexed(
-                items = uiState.recentTransactions,
-                key = { _, it -> it.id ?: it.hashCode() }
-            ) { index, transaction ->
-                TransactionItem(
-                    modifier = Modifier.staggeredVerticalFadeIn(
-                        index,
-                        enabled = uiState.areAnimationsEnabled,
-                        initialDelay = 250
-                    ),
-                    transaction = transaction,
-                    animationsEnabled = uiState.areAnimationsEnabled,
-                    category = uiState.categories[transaction.categoryId],
-                    account = uiState.accountsMap[transaction.accountId],
-                    toAccount = transaction.toAccountId?.let { uiState.accountsMap[it] },
-                    currencyCode = uiState.currency,
-                    onClick = {
-                        haptic.click()
-                        viewModel.onTransactionClick(transaction)
-                        showDetailSheet = true
-                    }
-                )
-            }
-
-            if (uiState.recentTransactions.isEmpty()) {
-                item {
-                    EmptyState(
-                        message = "No transactions yet",
-                        icon = Icons.AutoMirrored.Filled.ReceiptLong
-                    )
                 }
             }
         }
