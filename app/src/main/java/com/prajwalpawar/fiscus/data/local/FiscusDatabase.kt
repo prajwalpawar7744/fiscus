@@ -11,7 +11,7 @@ import com.prajwalpawar.fiscus.data.local.entities.TransactionEntity
 
 @Database(
     entities = [TransactionEntity::class, CategoryEntity::class, AccountEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class FiscusDatabase : RoomDatabase() {

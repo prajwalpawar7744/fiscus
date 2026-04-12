@@ -26,7 +26,7 @@ object DatabaseModule {
                 FiscusDatabase::class.java,
                 FiscusDatabase.DATABASE_NAME
             )
-            .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .build()
     }
 
@@ -65,6 +65,13 @@ object DatabaseModule {
 
             // Create unique index on name and type to prevent future duplicates
             db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_categories_name_type ON categories(name, type)")
+        }
+    }
+
+    private val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Re-enforce isSystem flag for all default categories to ensure they can't be deleted
+            db.execSQL("UPDATE categories SET isSystem = 1 WHERE name IN ('Food', 'Travel', 'Education', 'Shopping', 'Health', 'Bills', 'Entertainment', 'Salary', 'Freelance', 'Gift', 'Investment', 'Other', 'Transfer')")
         }
     }
 
