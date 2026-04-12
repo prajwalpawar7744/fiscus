@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ShowChart
@@ -470,18 +472,19 @@ fun AnalysisScreen(
 
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         AnalysisChartType.entries.forEachIndexed { index, type ->
-                            SegmentedButton(
+                            FilterChip(
                                 selected = uiState.selectedChartType == type,
                                 onClick = {
                                     haptic.click()
                                     viewModel.onChartTypeSelected(type)
                                 },
-                                shape = SegmentedButtonDefaults.itemShape(
-                                    index = index,
-                                    count = AnalysisChartType.entries.size
-                                ),
                                 label = {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
@@ -489,6 +492,7 @@ fun AnalysisScreen(
                                                 AnalysisChartType.BAR -> Icons.Default.BarChart
                                                 AnalysisChartType.LINE -> Icons.AutoMirrored.Filled.ShowChart
                                                 AnalysisChartType.PIE -> Icons.Default.PieChart
+                                                AnalysisChartType.HEATMAP -> Icons.Default.CalendarViewMonth
                                             },
                                             contentDescription = null,
                                             modifier = Modifier.size(16.dp)
@@ -500,7 +504,8 @@ fun AnalysisScreen(
                                             style = MaterialTheme.typography.labelSmall
                                         )
                                     }
-                                }
+                                },
+                                shape = MaterialTheme.shapes.medium
                             )
                         }
                     }
@@ -548,6 +553,16 @@ fun AnalysisScreen(
                                 PieChart(
                                     breakdown = uiState.categoryBreakdown,
                                     modifier = Modifier.fillMaxSize(),
+                                    animationsEnabled = uiState.areAnimationsEnabled
+                                )
+                            }
+
+                            AnalysisChartType.HEATMAP -> {
+                                HeatMapChart(
+                                    activityPoints = uiState.activityPoints,
+                                    startDate = uiState.effectiveStartDate,
+                                    endDate = uiState.effectiveEndDate,
+                                    modifier = chartModifier,
                                     animationsEnabled = uiState.areAnimationsEnabled
                                 )
                             }
@@ -879,6 +894,8 @@ fun PieChart(
     animationsEnabled: Boolean = true
 ) {
     val animatedSweep = remember { Animatable(0f) }
+    var selectedCategory by remember { mutableStateOf<CategoryAnalysis?>(null) }
+    val haptic = rememberFiscusHaptic()
 
     LaunchedEffect(breakdown) {
         animatedSweep.snapTo(0f)
@@ -895,17 +912,54 @@ fun PieChart(
     val surfaceColor = MaterialTheme.colorScheme.surface
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Canvas(modifier = Modifier.size(200.dp)) {
+        Canvas(
+            modifier = Modifier
+                .size(200.dp)
+                .pointerInput(breakdown) {
+                    detectTapGestures { offset ->
+                        val centerX = size.width / 2
+                        val centerY = size.height / 2
+                        val angle = Math.toDegrees(Math.atan2((offset.y - centerY).toDouble(), (offset.x - centerX).toDouble())).toFloat()
+                        val normalizedAngle = (angle + 90 + 360) % 360
+                        
+                        var currentAngle = 0f
+                        val found = breakdown.find { analysis ->
+                            val sweepAngle = analysis.percentage * 360f
+                            val isWithin = normalizedAngle >= currentAngle && normalizedAngle < currentAngle + sweepAngle
+                            currentAngle += sweepAngle
+                            isWithin
+                        }
+                        
+                        if (found != null) {
+                            selectedCategory = if (selectedCategory?.category?.id == found.category.id) null else found
+                            if (selectedCategory != null) haptic.click()
+                        } else {
+                            selectedCategory = null
+                        }
+                    }
+                }
+        ) {
             var startAngle = -90f
             breakdown.forEach { analysis ->
                 val sweepAngle = analysis.percentage * 360f * animatedSweep.value
+                val isSelected = selectedCategory?.category?.id == analysis.category.id
                 drawArc(
-                    color = Color(analysis.category.color),
+                    color = Color(analysis.category.color).copy(alpha = if (isSelected) 1f else 0.8f),
                     startAngle = startAngle,
                     sweepAngle = sweepAngle,
                     useCenter = true,
-                    size = size
+                    size = size,
+                    style = if (isSelected) Stroke(width = 8.dp.toPx()) else androidx.compose.ui.graphics.drawscope.Fill
                 )
+                if (!isSelected) {
+                    drawArc(
+                        color = Color(analysis.category.color),
+                        startAngle = startAngle,
+                        sweepAngle = sweepAngle,
+                        useCenter = true,
+                        size = size
+                    )
+                }
                 startAngle += sweepAngle
             }
             // Draw center hole for donut style
@@ -913,6 +967,21 @@ fun PieChart(
                 color = surfaceColor,
                 radius = size.minDimension / 4f
             )
+        }
+
+        // Overlay tooltip
+        selectedCategory?.let { analysis ->
+            Surface(
+                modifier = Modifier.padding(bottom = 220.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                shape = MaterialTheme.shapes.medium,
+                tonalElevation = 4.dp
+            ) {
+                Column(modifier = Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(analysis.category.name, style = MaterialTheme.typography.labelSmall)
+                    Text("${(analysis.percentage * 100).toInt()}%", fontWeight = FontWeight.Bold)
+                }
+            }
         }
     }
 }
@@ -1106,4 +1175,172 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawTimeLine(
             colors = listOf(color.copy(alpha = 0.2f), Color.Transparent)
         )
     )
+}
+
+@Composable
+fun HeatMapChart(
+    activityPoints: List<ActivityPoint>,
+    startDate: java.time.LocalDate?,
+    endDate: java.time.LocalDate?,
+    modifier: Modifier = Modifier,
+    animationsEnabled: Boolean = true
+) {
+    val actualStart = startDate ?: java.time.LocalDate.now().minusWeeks(7)
+    val actualEnd = endDate ?: java.time.LocalDate.now()
+    
+    // We want a 7-row grid (Days of week).
+    // Start from the beginning of the week of actualStart to keep it aligned
+    val firstDayOfWeek = actualStart.minusDays(actualStart.dayOfWeek.value.toLong() - 1)
+    val totalDays = java.time.temporal.ChronoUnit.DAYS.between(firstDayOfWeek, actualEnd).toInt() + 1
+    val columns = (totalDays + 6) / 7
+    
+    val intensityMap = activityPoints.associate { it.date to it.intensity }
+    var selectedDate by remember { mutableStateOf<java.time.LocalDate?>(null) }
+    val haptic = rememberFiscusHaptic()
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        val rangeLabel = if (startDate != null && endDate != null) {
+            "${startDate.format(java.time.format.DateTimeFormatter.ofPattern("MMM dd"))} - ${endDate.format(java.time.format.DateTimeFormatter.ofPattern("MMM dd"))}"
+        } else "Activity Map"
+        
+        androidx.compose.animation.AnimatedContent(
+            targetState = selectedDate,
+            transitionSpec = {
+                (androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn())
+                    .togetherWith(androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut())
+            },
+            label = "titleTransition"
+        ) { date ->
+            if (date != null) {
+                val intensity = intensityMap[date] ?: 0f
+                Surface(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    shape = MaterialTheme.shapes.extraSmall,
+                ) {
+                    Text(
+                        text = "${date.format(java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy"))}: ${(intensity * 100).toInt()}% Activity",
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            } else {
+                Text(
+                    rangeLabel,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+        ) {
+            Box {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    repeat(columns) { col ->
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            repeat(7) { row ->
+                                val dayOffset = col * 7 + row
+                                val currentDay = firstDayOfWeek.plusDays(dayOffset.toLong())
+                                
+                                if (!currentDay.isAfter(actualEnd) && !currentDay.isBefore(firstDayOfWeek)) {
+                                    val intensity = intensityMap[currentDay] ?: 0f
+                                    val isOutsideFilter = startDate != null && (currentDay.isBefore(startDate) || currentDay.isAfter(actualEnd))
+                                    
+                                    val baseColor = MaterialTheme.colorScheme.primary
+                                    val cellColor = when {
+                                        isOutsideFilter -> MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.2f)
+                                        intensity > 0 -> baseColor.copy(alpha = (0.2f + (intensity * 0.8f)).coerceIn(0f, 1f))
+                                        else -> MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f)
+                                    }
+
+                                    var scale by remember { mutableFloatStateOf(0f) }
+                                    LaunchedEffect(col, row) {
+                                        if (animationsEnabled) {
+                                            kotlinx.coroutines.delay((col) * 10L)
+                                            scale = 1f
+                                        } else {
+                                            scale = 1f
+                                        }
+                                    }
+
+                                    val animatedScale by androidx.compose.animation.core.animateFloatAsState(
+                                        targetValue = scale,
+                                        animationSpec = androidx.compose.animation.core.spring(
+                                            dampingRatio = androidx.compose.animation.core.Spring.DampingRatioLowBouncy
+                                        ),
+                                        label = "cellScale"
+                                    )
+
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .graphicsLayer {
+                                                scaleX = animatedScale
+                                                scaleY = animatedScale
+                                            }
+                                            .clip(MaterialTheme.shapes.extraSmall)
+                                            .background(cellColor)
+                                    )
+                                } else {
+                                    // Placeholder for alignment
+                                    Spacer(modifier = Modifier.size(24.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Invisible overlay to capture taps for the entire grid
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .pointerInput(firstDayOfWeek, actualEnd, intensityMap) {
+                            detectTapGestures { offset ->
+                                val cellWidth = 24.dp.toPx()
+                                val spacing = 4.dp.toPx()
+                                val totalCellSize = cellWidth + spacing
+
+                                val col = (offset.x / totalCellSize).toInt().coerceIn(0, columns - 1)
+                                val row = (offset.y / totalCellSize).toInt().coerceIn(0, 6)
+
+                                val clickedDate = firstDayOfWeek.plusDays((col * 7 + row).toLong())
+                                if (!clickedDate.isAfter(actualEnd) && (startDate == null || !clickedDate.isBefore(startDate))) {
+                                    selectedDate = if (selectedDate == clickedDate) null else clickedDate
+                                    if (selectedDate != null) haptic.click()
+                                }
+                            }
+                        }
+                )
+            }
+        }
+
+
+        
+        Row(
+            modifier = Modifier.padding(top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text("Less", style = MaterialTheme.typography.labelSmall)
+            repeat(5) {
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f * it + 0.1f))
+                )
+            }
+            Text("More", style = MaterialTheme.typography.labelSmall)
+        }
+    }
 }

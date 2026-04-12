@@ -21,7 +21,7 @@ enum class AnalysisGranularity {
 }
 
 enum class AnalysisChartType {
-    BAR, LINE, PIE
+    BAR, LINE, PIE, HEATMAP
 }
 
 data class TimeDataPoint(
@@ -49,7 +49,15 @@ data class AnalysisUiState(
     val selectedCategoryId: Long? = null,
     val selectedChartType: AnalysisChartType = AnalysisChartType.BAR,
     val areAnimationsEnabled: Boolean = true,
-    val topBarStyle: String = "standard"
+    val topBarStyle: String = "standard",
+    val activityPoints: List<ActivityPoint> = emptyList(),
+    val effectiveStartDate: LocalDate? = null,
+    val effectiveEndDate: LocalDate? = null
+)
+
+data class ActivityPoint(
+    val date: LocalDate,
+    val intensity: Float // 0.0 to 1.0
 )
 
 data class CategoryAnalysis(
@@ -147,6 +155,20 @@ class AnalysisViewModel @Inject constructor(
             matchesType && matchesCategory && matchesTime
         }
         
+        val now = LocalDate.now()
+        val effectiveStart = when (filters.timeRange) {
+            TimeRange.TODAY -> now
+            TimeRange.THIS_WEEK -> now.minusDays(now.dayOfWeek.value.toLong() - 1)
+            TimeRange.THIS_MONTH -> now.withDayOfMonth(1)
+            TimeRange.THIS_YEAR -> now.withDayOfYear(1)
+            TimeRange.CUSTOM -> filters.startDate ?: now.minusDays(30)
+            TimeRange.ALL -> transactions.minOfOrNull { it.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() } ?: now.minusDays(30)
+        }
+        val effectiveEnd = when (filters.timeRange) {
+            TimeRange.CUSTOM -> filters.endDate ?: now
+            else -> now
+        }
+        
         val expenses = filteredTransactions.filter { it.type == TransactionType.EXPENSE }
         val income = filteredTransactions.filter { it.type == TransactionType.INCOME }
         
@@ -174,6 +196,15 @@ class AnalysisViewModel @Inject constructor(
         val expensePoints = aggregateByTime(expenses, filters.granularity, filters.timeRange, filters.startDate, filters.endDate)
         val incomePoints = aggregateByTime(income, filters.granularity, filters.timeRange, filters.startDate, filters.endDate)
 
+        // Activity points for Heatmap (frequency of transactions)
+        val activityMap = filteredTransactions.groupBy { 
+            it.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() 
+        }
+        val maxActivity = activityMap.values.maxOfOrNull { it.size } ?: 1
+        val activityPoints = activityMap.map { (date, list) ->
+            ActivityPoint(date, list.size.toFloat() / maxActivity)
+        }
+
         AnalysisUiState(
             categoryBreakdown = breakdown,
             totalExpense = totalExpense,
@@ -190,7 +221,10 @@ class AnalysisViewModel @Inject constructor(
             selectedCategoryId = filters.categoryId,
             selectedChartType = filters.chartType,
             areAnimationsEnabled = animationsEnabled,
-            topBarStyle = topBarStyle
+            topBarStyle = topBarStyle,
+            activityPoints = activityPoints,
+            effectiveStartDate = effectiveStart,
+            effectiveEndDate = effectiveEnd
         )
     }.flowOn(Dispatchers.Default)
     .stateIn(
