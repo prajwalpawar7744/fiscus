@@ -133,13 +133,10 @@ class AnalysisViewModel @Inject constructor(
         val topBarStyle = args[5] as String
         val privacyEnabled = args[6] as Boolean
         
-        val filteredTransactions = transactions.filter { transaction ->
-            val matchesType = filters.type == null || transaction.type == filters.type
-            val matchesCategory = filters.categoryId == null || transaction.categoryId == filters.categoryId
-            
+        val timeFilteredTransactions = transactions.filter { transaction ->
             val transactionDate = transaction.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
             val now = LocalDate.now()
-            val matchesTime = when (filters.timeRange) {
+            when (filters.timeRange) {
                 TimeRange.ALL -> true
                 TimeRange.TODAY -> transactionDate.isEqual(now)
                 TimeRange.THIS_WEEK -> {
@@ -154,8 +151,12 @@ class AnalysisViewModel @Inject constructor(
                     } else true
                 }
             }
-            
-            matchesType && matchesCategory && matchesTime
+        }
+        
+        val filteredTransactions = timeFilteredTransactions.filter { transaction ->
+            val matchesType = filters.type == null || transaction.type == filters.type
+            val matchesCategory = filters.categoryId == null || transaction.categoryId == filters.categoryId
+            matchesType && matchesCategory
         }
         
         val now = LocalDate.now()
@@ -175,8 +176,8 @@ class AnalysisViewModel @Inject constructor(
         val expenses = filteredTransactions.filter { it.type == TransactionType.EXPENSE }
         val income = filteredTransactions.filter { it.type == TransactionType.INCOME }
         
-        val totalExpense = expenses.sumOf { it.amount }
-        val totalIncome = income.sumOf { it.amount }
+        val totalExpense = timeFilteredTransactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
+        val totalIncome = timeFilteredTransactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
         
         val categoryMap = categories.associateBy { it.id ?: 0L }
         

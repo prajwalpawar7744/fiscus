@@ -45,7 +45,7 @@ fun TransactionDetailScreen(
 
     val amountColor = when (transaction.type) {
         TransactionType.INCOME   -> MaterialTheme.colorScheme.primary
-        TransactionType.EXPENSE  -> category?.color?.let { Color(it) } ?: MaterialTheme.colorScheme.onSurface
+        TransactionType.EXPENSE  -> MaterialTheme.colorScheme.error
         TransactionType.TRANSFER -> MaterialTheme.colorScheme.secondary
     }
     val amountPrefix = when (transaction.type) {
@@ -72,7 +72,6 @@ fun TransactionDetailScreen(
                 .fillMaxWidth()
                 .staggeredVerticalFadeIn(0, animationsEnabled)
         ) {
-            // Category icon badge
             val iconBgColor = category?.color?.let { Color(it).copy(alpha = 0.15f) }
                 ?: MaterialTheme.colorScheme.surfaceVariant
             val iconTint = category?.color?.let { Color(it) }
@@ -144,8 +143,7 @@ fun TransactionDetailScreen(
                     icon = getCategoryIcon(category?.icon ?: "category"),
                     label = "Category",
                     value = category?.name ?: "Unknown",
-                    valueColor = category?.color?.let { Color(it) }
-                        ?: MaterialTheme.colorScheme.onSurface
+                    valueColor = MaterialTheme.colorScheme.onSurface
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 12.dp),

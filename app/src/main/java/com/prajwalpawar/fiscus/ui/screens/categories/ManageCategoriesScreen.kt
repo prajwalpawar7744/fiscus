@@ -211,12 +211,12 @@ fun CategoryItem(
     val typeContainerColor = when (category.type) {
         TransactionType.INCOME  -> MaterialTheme.colorScheme.primaryContainer
         TransactionType.TRANSFER -> MaterialTheme.colorScheme.secondaryContainer
-        else -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
+        else -> MaterialTheme.colorScheme.error
     }
     val typeContentColor = when (category.type) {
         TransactionType.INCOME  -> MaterialTheme.colorScheme.onPrimaryContainer
         TransactionType.TRANSFER -> MaterialTheme.colorScheme.onSecondaryContainer
-        else -> MaterialTheme.colorScheme.onErrorContainer
+        else -> MaterialTheme.colorScheme.onError
     }
 
     ElevatedCard(
@@ -304,18 +304,24 @@ fun AddCategorySheet(
     onCancel: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
-    var selectedColor by remember { mutableStateOf(Color(0xFF006D39)) }
+    val colors = listOf(
+        MaterialTheme.colorScheme.primary,
+        MaterialTheme.colorScheme.secondary,
+        MaterialTheme.colorScheme.tertiary,
+        MaterialTheme.colorScheme.error,
+        MaterialTheme.colorScheme.primaryContainer,
+        MaterialTheme.colorScheme.secondaryContainer,
+        MaterialTheme.colorScheme.tertiaryContainer,
+        MaterialTheme.colorScheme.errorContainer,
+        MaterialTheme.colorScheme.inversePrimary,
+        MaterialTheme.colorScheme.surfaceVariant,
+        MaterialTheme.colorScheme.outline
+    )
+    
+    var selectedColor by remember { mutableStateOf(colors[0]) }
     var selectedIcon by remember { mutableStateOf("ShoppingBag") }
     var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
     val haptic = rememberFiscusHaptic()
-
-    val colors = listOf(
-        Color(0xFF006D39), Color(0xFF415AA9), Color(0xFF006493),
-        Color(0xFFB91C1C), Color(0xFFEAB308), Color(0xFF8B5CF6),
-        Color(0xFFEC4899), Color(0xFF0EA5E9), Color(0xFF10B981),
-        Color(0xFFF97316), Color(0xFF6366F1), Color(0xFF84CC16),
-        Color(0xFF06B6D4), Color(0xFFD946EF), Color(0xFFF43F5E)
-    )
 
     val icons = listOf(
         "ShoppingBag", "Restaurant", "DirectionsBus", "LocalHospital",
