@@ -2,29 +2,38 @@ package com.prajwalpawar.fiscus.ui.screens.categories
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.prajwalpawar.fiscus.data.local.pref.PreferenceManager
 import com.prajwalpawar.fiscus.domain.model.Category
 import com.prajwalpawar.fiscus.domain.model.TransactionType
 import com.prajwalpawar.fiscus.domain.repository.FiscusRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ManageCategoriesUiState(
-    val categories: List<Category> = emptyList()
+    val categories: List<Category> = emptyList(),
+    val topBarStyle: String = "standard",
+    val areAnimationsEnabled: Boolean = true
 )
 
 @HiltViewModel
 class ManageCategoriesViewModel @Inject constructor(
-    private val repository: FiscusRepository
+    private val repository: FiscusRepository,
+    private val preferenceManager: PreferenceManager
 ) : ViewModel() {
 
-    val uiState: StateFlow<ManageCategoriesUiState> = repository.getCategories()
-        .map { ManageCategoriesUiState(it) }
-        .stateIn(
+    val uiState: StateFlow<ManageCategoriesUiState> = combine(
+        repository.getCategories(),
+        preferenceManager.topBarStyle,
+        preferenceManager.areAnimationsEnabled
+    ) { categories, topBarStyle, areAnimationsEnabled ->
+        ManageCategoriesUiState(
+            categories = categories,
+            topBarStyle = topBarStyle,
+            areAnimationsEnabled = areAnimationsEnabled
+        )
+    }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = ManageCategoriesUiState()

@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -46,25 +48,47 @@ fun ManageCategoriesScreen(
     val uiState by viewModel.uiState.collectAsState()
     val haptic = rememberFiscusHaptic()
     var showAddSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     
     var categoryToDelete by remember { mutableStateOf<Category?>(null) }
 
+    val scrollBehavior = if (uiState.topBarStyle == "longtopbar") {
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    } else {
+        TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    }
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text("Categories", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
+            val titleContent = @Composable { Text("Categories", fontWeight = FontWeight.Bold) }
+            val navigationIconContent = @Composable {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                }
+            }
+            val appBarsColors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                titleContentColor = MaterialTheme.colorScheme.onSurface,
+                scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
             )
+
+            if (uiState.topBarStyle == "longtopbar") {
+                LargeTopAppBar(
+                    title = titleContent,
+                    navigationIcon = navigationIconContent,
+                    colors = appBarsColors,
+                    scrollBehavior = scrollBehavior
+                )
+            } else {
+                TopAppBar(
+                    title = titleContent,
+                    navigationIcon = navigationIconContent,
+                    colors = appBarsColors,
+                    scrollBehavior = scrollBehavior
+                )
+            }
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -97,11 +121,14 @@ fun ManageCategoriesScreen(
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 8.dp)
+                        modifier = Modifier
+                            .padding(vertical = 8.dp)
+                            .staggeredVerticalFadeIn(0, enabled = uiState.areAnimationsEnabled)
                     )
                 }
-                items(expenseCategories, key = { it.id ?: it.name }) { category ->
+                itemsIndexed(expenseCategories, key = { _, it -> it.id ?: it.name }) { index, category ->
                     CategoryItem(
+                        modifier = Modifier.staggeredVerticalFadeIn(index + 1, enabled = uiState.areAnimationsEnabled),
                         category = category,
                         onDelete = { categoryToDelete = it }
                     )
@@ -111,16 +138,21 @@ fun ManageCategoriesScreen(
             if (incomeCategories.isNotEmpty()) {
                 item {
                     Spacer(Modifier.height(16.dp))
+                    val expenseCount = if (expenseCategories.isNotEmpty()) expenseCategories.size + 1 else 0
                     Text(
                         "Income Categories",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 8.dp)
+                        modifier = Modifier
+                            .padding(vertical = 8.dp)
+                            .staggeredVerticalFadeIn(expenseCount, enabled = uiState.areAnimationsEnabled)
                     )
                 }
-                items(incomeCategories, key = { it.id ?: it.name }) { category ->
+                val startIdx = (if (expenseCategories.isNotEmpty()) expenseCategories.size + 1 else 0) + 1
+                itemsIndexed(incomeCategories, key = { _, it -> it.id ?: it.name }) { index, category ->
                     CategoryItem(
+                        modifier = Modifier.staggeredVerticalFadeIn(startIdx + index, enabled = uiState.areAnimationsEnabled),
                         category = category,
                         onDelete = { categoryToDelete = it }
                     )
@@ -132,7 +164,7 @@ fun ManageCategoriesScreen(
     if (showAddSheet) {
         ModalBottomSheet(
             onDismissRequest = { showAddSheet = false },
-            sheetState = sheetState,
+            sheetState = bottomSheetState,
             dragHandle = { BottomSheetDefaults.DragHandle() },
             containerColor = MaterialTheme.colorScheme.surface,
             shape = MaterialTheme.shapes.extraLarge
@@ -164,12 +196,13 @@ fun ManageCategoriesScreen(
 
 @Composable
 fun CategoryItem(
+    modifier: Modifier = Modifier,
     category: Category,
     onDelete: (Category) -> Unit
 ) {
     val haptic = rememberFiscusHaptic()
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         shape = MaterialTheme.shapes.large,
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))

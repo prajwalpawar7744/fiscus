@@ -5,12 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.prajwalpawar.fiscus.domain.model.Account
 import com.prajwalpawar.fiscus.domain.repository.FiscusRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.prajwalpawar.fiscus.data.local.pref.PreferenceManager
 
 data class AccountsUiState(
     val accounts: List<Account> = emptyList(),
@@ -18,16 +16,27 @@ data class AccountsUiState(
     val balance: String = "",
     val icon: String = "account_balance",
     val isEditing: Boolean = false,
-    val selectedAccountId: Long? = null
+    val selectedAccountId: Long? = null,
+    val topBarStyle: String = "standard"
 )
 
 @HiltViewModel
 class AccountsViewModel @Inject constructor(
-    private val repository: FiscusRepository
+    private val repository: FiscusRepository,
+    private val preferenceManager: PreferenceManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AccountsUiState())
-    val uiState: StateFlow<AccountsUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<AccountsUiState> = combine(
+        _uiState,
+        preferenceManager.topBarStyle
+    ) { state, topBarStyle ->
+        state.copy(topBarStyle = topBarStyle)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = AccountsUiState()
+    )
 
     init {
         fetchAccounts()

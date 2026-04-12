@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -33,16 +34,42 @@ fun AccountsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val haptic = rememberFiscusHaptic()
 
+    val scrollBehavior = if (uiState.topBarStyle == "longtopbar") {
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    } else {
+        TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    }
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text("Manage Accounts", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
+            val titleContent = @Composable { Text("Manage Accounts", fontWeight = FontWeight.Bold) }
+            val navigationIconContent = @Composable {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
+            }
+            val appBarsColors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                titleContentColor = MaterialTheme.colorScheme.onSurface,
+                scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
             )
+
+            if (uiState.topBarStyle == "longtopbar") {
+                LargeTopAppBar(
+                    title = titleContent,
+                    navigationIcon = navigationIconContent,
+                    colors = appBarsColors,
+                    scrollBehavior = scrollBehavior
+                )
+            } else {
+                TopAppBar(
+                    title = titleContent,
+                    navigationIcon = navigationIconContent,
+                    colors = appBarsColors,
+                    scrollBehavior = scrollBehavior
+                )
+            }
         }
     ) { padding ->
         LazyColumn(
