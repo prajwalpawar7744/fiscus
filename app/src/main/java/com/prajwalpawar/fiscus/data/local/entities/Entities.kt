@@ -16,13 +16,17 @@ data class TransactionEntity(
     val note: String = ""
 )
 
-@Entity(tableName = "categories")
+@Entity(
+    tableName = "categories",
+    indices = [androidx.room.Index(value = ["name", "type"], unique = true)]
+)
 data class CategoryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
     val icon: String,
     val color: Int,
-    val type: String? = null
+    val type: String? = null,
+    val isSystem: Boolean = false
 )
 
 @Entity(tableName = "accounts")

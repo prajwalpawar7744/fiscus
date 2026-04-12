@@ -36,7 +36,8 @@ import com.prajwalpawar.fiscus.BuildConfig
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    viewModel: SettingsViewModel
+    viewModel: SettingsViewModel,
+    onManageCategories: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -347,6 +348,13 @@ fun SettingsScreen(
                         subtitle = uiState.currency,
                         animationsEnabled = uiState.areAnimationsEnabled,
                         onClick = { showCurrencyDialog = true }
+                    )
+                    SettingsItem(
+                        icon = Icons.Default.Category,
+                        title = "Manage Categories",
+                        subtitle = "Add or edit custom categories",
+                        animationsEnabled = uiState.areAnimationsEnabled,
+                        onClick = onManageCategories
                     )
                 }
             }

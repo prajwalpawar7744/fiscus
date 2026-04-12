@@ -88,24 +88,24 @@ class AddTransactionViewModel @Inject constructor(
     private suspend fun seedDefaultCategories() {
         val defaults = listOf(
             // Expenses
-            Category(name = "Food", icon = "restaurant", color = 0xFF4CAF50.toInt(), type = TransactionType.EXPENSE),
-            Category(name = "Travel", icon = "directions_car", color = 0xFF2196F3.toInt(), type = TransactionType.EXPENSE),
-            Category(name = "Education", icon = "school", color = 0xFFFFC107.toInt(), type = TransactionType.EXPENSE),
-            Category(name = "Shopping", icon = "shopping_cart", color = 0xFF9C27B0.toInt(), type = TransactionType.EXPENSE),
-            Category(name = "Health", icon = "medical_services", color = 0xFFF44336.toInt(), type = TransactionType.EXPENSE),
-            Category(name = "Bills", icon = "receipt_long", color = 0xFFFF5722.toInt(), type = TransactionType.EXPENSE),
-            Category(name = "Entertainment", icon = "movie", color = 0xFFE91E63.toInt(), type = TransactionType.EXPENSE),
-            Category(name = "Other", icon = "category", color = 0xFF9E9E9E.toInt(), type = TransactionType.EXPENSE),
+            Category(name = "Food", icon = "restaurant", color = 0xFF4CAF50.toInt(), type = TransactionType.EXPENSE, isSystem = true),
+            Category(name = "Travel", icon = "directions_car", color = 0xFF2196F3.toInt(), type = TransactionType.EXPENSE, isSystem = true),
+            Category(name = "Education", icon = "school", color = 0xFFFFC107.toInt(), type = TransactionType.EXPENSE, isSystem = true),
+            Category(name = "Shopping", icon = "shopping_cart", color = 0xFF9C27B0.toInt(), type = TransactionType.EXPENSE, isSystem = true),
+            Category(name = "Health", icon = "medical_services", color = 0xFFF44336.toInt(), type = TransactionType.EXPENSE, isSystem = true),
+            Category(name = "Bills", icon = "receipt_long", color = 0xFFFF5722.toInt(), type = TransactionType.EXPENSE, isSystem = true),
+            Category(name = "Entertainment", icon = "movie", color = 0xFFE91E63.toInt(), type = TransactionType.EXPENSE, isSystem = true),
+            Category(name = "Other", icon = "category", color = 0xFF9E9E9E.toInt(), type = TransactionType.EXPENSE, isSystem = true),
             
             // Income
-            Category(name = "Salary", icon = "payments", color = 0xFF00BCD4.toInt(), type = TransactionType.INCOME),
-            Category(name = "Freelance", icon = "work", color = 0xFF4CAF50.toInt(), type = TransactionType.INCOME),
-            Category(name = "Gift", icon = "redeem", color = 0xFFFF9800.toInt(), type = TransactionType.INCOME),
-            Category(name = "Investment", icon = "trending_up", color = 0xFF8BC34A.toInt(), type = TransactionType.INCOME),
-            Category(name = "Other", icon = "category", color = 0xFF9E9E9E.toInt(), type = TransactionType.INCOME),
+            Category(name = "Salary", icon = "payments", color = 0xFF00BCD4.toInt(), type = TransactionType.INCOME, isSystem = true),
+            Category(name = "Freelance", icon = "work", color = 0xFF4CAF50.toInt(), type = TransactionType.INCOME, isSystem = true),
+            Category(name = "Gift", icon = "redeem", color = 0xFFFF9800.toInt(), type = TransactionType.INCOME, isSystem = true),
+            Category(name = "Investment", icon = "trending_up", color = 0xFF8BC34A.toInt(), type = TransactionType.INCOME, isSystem = true),
+            Category(name = "Other", icon = "category", color = 0xFF9E9E9E.toInt(), type = TransactionType.INCOME, isSystem = true),
             
             // Transfer
-            Category(name = "Transfer", icon = "swap_horiz", color = 0xFF607D8B.toInt(), type = TransactionType.TRANSFER)
+            Category(name = "Transfer", icon = "swap_horiz", color = 0xFF607D8B.toInt(), type = TransactionType.TRANSFER, isSystem = true)
         )
         defaults.forEach { repository.insertCategory(it) }
     }

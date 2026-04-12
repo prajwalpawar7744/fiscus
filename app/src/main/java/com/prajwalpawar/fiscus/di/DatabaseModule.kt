@@ -26,7 +26,7 @@ object DatabaseModule {
                 FiscusDatabase::class.java,
                 FiscusDatabase.DATABASE_NAME
             )
-            .addMigrations(MIGRATION_2_3)
+            .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
             .build()
     }
 
@@ -41,6 +41,30 @@ object DatabaseModule {
             
             // Transfer: 0xFF607D8B -> -10453621
             db.execSQL("INSERT INTO categories (name, icon, color, type) VALUES ('Transfer', 'swap_horiz', -10453621, 'TRANSFER')")
+        }
+    }
+
+    private val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Add isSystem column to categories
+            db.execSQL("ALTER TABLE categories ADD COLUMN isSystem INTEGER NOT NULL DEFAULT 0")
+            
+            // Clean up duplicates before adding unique index
+            // We keep the one with the smallest ID for each (name, type) pair
+            db.execSQL("""
+                DELETE FROM categories 
+                WHERE id NOT IN (
+                    SELECT MIN(id) 
+                    FROM categories 
+                    GROUP BY name, IFNULL(type, 'NULL')
+                )
+            """.trimIndent())
+
+            // Mark existing categories as system categories
+            db.execSQL("UPDATE categories SET isSystem = 1 WHERE name IN ('Food', 'Travel', 'Education', 'Shopping', 'Health', 'Bills', 'Entertainment', 'Salary', 'Freelance', 'Gift', 'Investment', 'Other', 'Transfer')")
+
+            // Create unique index on name and type to prevent future duplicates
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_categories_name_type ON categories(name, type)")
         }
     }
 

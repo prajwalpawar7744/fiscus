@@ -17,6 +17,7 @@ interface FiscusRepository {
     // Categories
     fun getCategories(): Flow<List<Category>>
     suspend fun insertCategory(category: Category)
+    suspend fun deleteCategory(category: Category)
 
     // Accounts
     fun getAccounts(): Flow<List<Account>>

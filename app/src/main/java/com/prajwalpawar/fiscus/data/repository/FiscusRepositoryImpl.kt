@@ -60,6 +60,10 @@ class FiscusRepositoryImpl @Inject constructor(
         categoryDao.insertCategory(category.toEntity())
     }
 
+    override suspend fun deleteCategory(category: Category) {
+        categoryDao.deleteCategory(category.toEntity())
+    }
+
     override fun getAccounts(): Flow<List<Account>> {
         return accountDao.getAllAccounts().map { entities ->
             entities.map { it.toDomain() }
@@ -110,7 +114,7 @@ fun Transaction.toEntity() = TransactionEntity(
     note = note
 )
 
-fun CategoryEntity.toDomain() = Category(id, name, icon, color, type?.let { TransactionType.valueOf(it) })
-fun Category.toEntity() = CategoryEntity(id ?: 0, name, icon, color, type?.name)
+fun CategoryEntity.toDomain() = Category(id, name, icon, color, type?.let { TransactionType.valueOf(it) }, isSystem)
+fun Category.toEntity() = CategoryEntity(id ?: 0, name, icon, color, type?.name, isSystem)
 fun AccountEntity.toDomain() = Account(id, name, balance, icon)
 fun Account.toEntity() = AccountEntity(id ?: 0, name, balance, icon)

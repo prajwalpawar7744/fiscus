@@ -50,7 +50,8 @@ data class Category(
     val name: String,
     val icon: String,
     val color: Int,
-    val type: TransactionType? = null
+    val type: TransactionType? = null,
+    val isSystem: Boolean = false
 )
 
 @Serializable
