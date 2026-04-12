@@ -212,7 +212,8 @@ private fun AccountFormSheet(
         Text(
             text = if (uiState.isEditing) "Edit Account" else "New Account",
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.staggeredVerticalFadeIn(0)
         )
 
         OutlinedTextField(
@@ -220,7 +221,7 @@ private fun AccountFormSheet(
             onValueChange = viewModel::onNameChange,
             label = { Text("Account Name") },
             placeholder = { Text("e.g. HDFC Savings") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(1),
             shape = MaterialTheme.shapes.large,
             singleLine = true,
             leadingIcon = { Icon(Icons.Default.Label, null) }
@@ -230,14 +231,17 @@ private fun AccountFormSheet(
             value = uiState.balance,
             onValueChange = viewModel::onBalanceChange,
             label = { Text("Initial Balance") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(2),
             shape = MaterialTheme.shapes.large,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,
             leadingIcon = { Icon(Icons.Default.AttachMoney, null) }
         )
 
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.staggeredVerticalFadeIn(3)
+        ) {
             Text(
                 "Choose Icon",
                 style = MaterialTheme.typography.labelLarge,
@@ -272,7 +276,7 @@ private fun AccountFormSheet(
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(4),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OutlinedButton(

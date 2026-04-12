@@ -338,7 +338,7 @@ fun AddCategorySheet(
     ) {
         // Header row with live preview
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(0),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -374,7 +374,7 @@ fun AddCategorySheet(
         }
 
         // Type Selector
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(1)) {
             SegmentedButton(
                 selected = selectedType == TransactionType.EXPENSE,
                 onClick = { selectedType = TransactionType.EXPENSE },
@@ -396,13 +396,16 @@ fun AddCategorySheet(
             onValueChange = { name = it },
             label = { Text("Category Name") },
             placeholder = { Text("e.g. Subscriptions") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(2),
             singleLine = true,
             shape = MaterialTheme.shapes.large,
             leadingIcon = { Icon(Icons.Default.Label, null) }
         )
 
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.staggeredVerticalFadeIn(3)
+        ) {
             Text(
                 "Color",
                 style = MaterialTheme.typography.labelLarge,
@@ -441,7 +444,10 @@ fun AddCategorySheet(
             }
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.staggeredVerticalFadeIn(4)
+        ) {
             Text(
                 "Icon",
                 style = MaterialTheme.typography.labelLarge,
@@ -483,7 +489,7 @@ fun AddCategorySheet(
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(5),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OutlinedButton(
