@@ -18,7 +18,7 @@ android {
         applicationId = "com.prajwalpawar.fiscus"
         minSdk = 26
         versionCode = 1
-        versionName = "1.4.0"
+        versionName = "1.4.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

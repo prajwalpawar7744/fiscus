@@ -72,7 +72,7 @@ fun AnalysisScreen(
             if (uiState.topBarStyle == "longtopbar") {
                 LargeTopAppBar(
                     title = { Text("Analysis", fontWeight = FontWeight.Bold) },
-                    colors = TopAppBarDefaults.largeTopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface,
                         titleContentColor = MaterialTheme.colorScheme.onSurface,
                         scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
@@ -770,7 +770,7 @@ fun CategoryAnalysisItem(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = getCategoryIcon(analysis.category.icon ?: ""),
+                    imageVector = getCategoryIcon(analysis.category.icon),
                     contentDescription = null,
                     tint = categoryColor,
                     modifier = Modifier.size(26.dp)

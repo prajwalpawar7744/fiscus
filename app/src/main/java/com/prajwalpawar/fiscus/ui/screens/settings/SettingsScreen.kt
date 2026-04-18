@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -121,7 +122,7 @@ fun SettingsScreen(
             if (uiState.topBarStyle == "longtopbar") {
                 LargeTopAppBar(
                     title = { Text("Settings", fontWeight = FontWeight.Bold) },
-                    colors = TopAppBarDefaults.largeTopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface,
                         titleContentColor = MaterialTheme.colorScheme.onSurface,
                         scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
@@ -311,7 +312,7 @@ fun SettingsScreen(
                     )
 
                     SettingsItem(
-                        icon = Icons.Default.Label,
+                        icon = Icons.AutoMirrored.Filled.Label,
                         title = "Navigation Labels",
                         subtitle = when(uiState.navLabelMode) {
                             "always" -> "Always show"

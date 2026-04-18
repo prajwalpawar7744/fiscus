@@ -180,7 +180,7 @@ fun TransactionsScreen(
             if (uiState.topBarStyle == "longtopbar") {
                 LargeTopAppBar(
                     title = { Text("Transactions", fontWeight = FontWeight.ExtraBold) },
-                    colors = TopAppBarDefaults.largeTopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface,
                         titleContentColor = MaterialTheme.colorScheme.onSurface,
                         scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
