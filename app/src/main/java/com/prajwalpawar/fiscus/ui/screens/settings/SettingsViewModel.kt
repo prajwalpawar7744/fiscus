@@ -29,7 +29,8 @@ data class SettingsUiState(
     val areAnimationsEnabled: Boolean = true,
     val accentColor: String = "Emerald",
     val isPrivacyModeEnabled: Boolean = false,
-    val borderRadius: Int = 12
+    val borderRadius: Int = 12,
+    val navLabelMode: String = "always"
 )
 
 @HiltViewModel
@@ -51,7 +52,8 @@ class SettingsViewModel @Inject constructor(
         preferenceManager.areAnimationsEnabled,
         preferenceManager.accentColor,
         preferenceManager.isPrivacyModeEnabled,
-        preferenceManager.borderRadius
+        preferenceManager.borderRadius,
+        preferenceManager.navLabelMode
     ) { args ->
         SettingsUiState(
             userName = args[0] as String,
@@ -64,7 +66,8 @@ class SettingsViewModel @Inject constructor(
             areAnimationsEnabled = args[7] as Boolean,
             accentColor = args[8] as String,
             isPrivacyModeEnabled = args[9] as Boolean,
-            borderRadius = args[10] as Int
+            borderRadius = args[10] as Int,
+            navLabelMode = args[11] as String
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
@@ -158,6 +161,12 @@ class SettingsViewModel @Inject constructor(
     fun updateBorderRadius(radius: Int) {
         viewModelScope.launch {
             preferenceManager.updateBorderRadius(radius)
+        }
+    }
+
+    fun updateNavLabelMode(mode: String) {
+        viewModelScope.launch {
+            preferenceManager.updateNavLabelMode(mode)
         }
     }
 

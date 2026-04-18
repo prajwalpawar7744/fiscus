@@ -29,6 +29,7 @@ class PreferenceManager @Inject constructor(
         val ACCENT_COLOR = stringPreferencesKey("accent_color")
         val PRIVACY_MODE_ENABLED = booleanPreferencesKey("privacy_mode_enabled")
         val BORDER_RADIUS = intPreferencesKey("border_radius")
+        val NAV_LABEL_MODE = stringPreferencesKey("nav_label_mode")
     }
 
     val userName: Flow<String> = dataStore.data.map { preferences ->
@@ -73,6 +74,10 @@ class PreferenceManager @Inject constructor(
 
     val borderRadius: Flow<Int> = dataStore.data.map { preferences ->
         preferences[PreferencesKeys.BORDER_RADIUS] ?: 12 // Default 12dp
+    }
+
+    val navLabelMode: Flow<String> = dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.NAV_LABEL_MODE] ?: "always"
     }
 
     suspend fun updateUserName(name: String) {
@@ -138,6 +143,12 @@ class PreferenceManager @Inject constructor(
     suspend fun updateBorderRadius(radius: Int) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.BORDER_RADIUS] = radius
+        }
+    }
+
+    suspend fun updateNavLabelMode(mode: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.NAV_LABEL_MODE] = mode
         }
     }
 }

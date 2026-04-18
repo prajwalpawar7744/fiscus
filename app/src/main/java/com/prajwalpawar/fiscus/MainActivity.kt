@@ -193,6 +193,10 @@ fun FiscusAppContent(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination?.route
+    val settingsState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+
+    val alwaysShowLabel = settingsState.navLabelMode == "always"
+    val showLabels = settingsState.navLabelMode != "never"
 
     NavigationSuiteScaffold(
         modifier = Modifier.fillMaxSize(),
@@ -218,9 +222,10 @@ fun FiscusAppContent(
                         contentDescription = "Overview"
                     )
                 },
-                label = { 
+                label = if (showLabels) { { 
                     Text("Overview", fontWeight = if (isDashboard) FontWeight.SemiBold else FontWeight.Medium) 
-                }
+                } } else null,
+                alwaysShowLabel = alwaysShowLabel
             )
             
             val isTransactions = currentDestination == "transactions"
@@ -239,9 +244,10 @@ fun FiscusAppContent(
                         contentDescription = "History"
                     )
                 },
-                label = { 
+                label = if (showLabels) { { 
                     Text("History", fontWeight = if (isTransactions) FontWeight.SemiBold else FontWeight.Medium) 
-                }
+                } } else null,
+                alwaysShowLabel = alwaysShowLabel
             )
             
             val isAnalysis = currentDestination == "analysis"
@@ -260,9 +266,10 @@ fun FiscusAppContent(
                         contentDescription = "Analysis"
                     )
                 },
-                label = { 
+                label = if (showLabels) { { 
                     Text("Analysis", fontWeight = if (isAnalysis) FontWeight.SemiBold else FontWeight.Medium) 
-                }
+                } } else null,
+                alwaysShowLabel = alwaysShowLabel
             )
             
             val isSettings = currentDestination == "settings"
@@ -281,9 +288,10 @@ fun FiscusAppContent(
                         contentDescription = "Settings"
                     )
                 },
-                label = { 
+                label = if (showLabels) { { 
                     Text("Settings", fontWeight = if (isSettings) FontWeight.SemiBold else FontWeight.Medium) 
-                }
+                } } else null,
+                alwaysShowLabel = alwaysShowLabel
             )
         }
     ) {

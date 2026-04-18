@@ -59,6 +59,7 @@ fun SettingsScreen(
     var showImportWarning by remember { mutableStateOf(false) }
     var showAccentDialog by remember { mutableStateOf(false) }
     var showRadiusDialog by remember { mutableStateOf(false) }
+    var showNavLabelDialog by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -307,6 +308,18 @@ fun SettingsScreen(
                         subtitle = "${uiState.borderRadius}dp",
                         animationsEnabled = uiState.areAnimationsEnabled,
                         onClick = { showRadiusDialog = true }
+                    )
+
+                    SettingsItem(
+                        icon = Icons.Default.Label,
+                        title = "Navigation Labels",
+                        subtitle = when(uiState.navLabelMode) {
+                            "always" -> "Always show"
+                            "selected" -> "Only when selected"
+                            else -> "Never"
+                        },
+                        animationsEnabled = uiState.areAnimationsEnabled,
+                        onClick = { showNavLabelDialog = true }
                     )
                 }
             }
@@ -591,6 +604,46 @@ fun SettingsScreen(
                 TextButton(onClick = { showRadiusDialog = false }) {
                     Text("Done")
                 }
+            }
+        )
+    }
+
+    if (showNavLabelDialog) {
+        val modes = listOf(
+            Triple("always", "Always show", "Labels are visible for all tabs"),
+            Triple("selected", "Only when selected", "Labels pop into view on selection"),
+            Triple("never", "Never", "Clean, icon-only navigation")
+        )
+        AlertDialog(
+            onDismissRequest = { showNavLabelDialog = false },
+            title = { Text("Navigation Labels") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    modes.forEach { (mode, title, desc) ->
+                        Row(
+                            Modifier.fillMaxWidth()
+                                .fiscusClickable(haptic = haptic) { 
+                                    viewModel.updateNavLabelMode(mode)
+                                    showNavLabelDialog = false
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = uiState.navLabelMode == mode,
+                                onClick = null 
+                            )
+                            Spacer(Modifier.width(16.dp))
+                            Column {
+                                Text(title, style = MaterialTheme.typography.bodyLarge)
+                                Text(desc, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showNavLabelDialog = false }) { Text("Cancel") }
             }
         )
     }
