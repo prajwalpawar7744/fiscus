@@ -504,7 +504,8 @@ fun AnalysisScreen(
                     expense = uiState.totalExpense,
                     currencyCode = uiState.currency,
                     animationsEnabled = uiState.areAnimationsEnabled,
-                    isMasked = uiState.isPrivacyModeEnabled
+                    isMasked = uiState.isPrivacyModeEnabled,
+                    modifier = Modifier.staggeredVerticalFadeIn(0, enabled = uiState.areAnimationsEnabled)
                 )
             }
 
@@ -554,14 +555,15 @@ fun AnalysisSummaryCard(
     expense: Double,
     currencyCode: String,
     animationsEnabled: Boolean = true,
-    isMasked: Boolean = false
+    isMasked: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
     val net = income - expense
     val incomeRatio = if (income + expense > 0) (income / (income + expense)).toFloat() else 0.5f
     val netColor = if (net >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
 
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.extraLarge,
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.elevatedCardColors(
@@ -736,12 +738,17 @@ fun CategoryAnalysisItem(
     animationsEnabled: Boolean = true,
     isMasked: Boolean = false
 ) {
+    val haptic = rememberFiscusHaptic()
     val categoryColor = Color(analysis.category.color)
 
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 3.dp),
+            .padding(vertical = 3.dp)
+            .fiscusClickable(
+                haptic = haptic,
+                enabledAnimations = animationsEnabled
+            ) { /* Detailed breakdown can be added here */ },
         shape = MaterialTheme.shapes.extraLarge,
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.elevatedCardColors(

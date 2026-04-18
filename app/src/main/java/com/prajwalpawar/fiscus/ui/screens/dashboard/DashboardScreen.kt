@@ -337,7 +337,8 @@ fun DashboardScreen(
                             expense = uiState.totalExpense,
                             currencyCode = uiState.currency,
                             animationsEnabled = uiState.areAnimationsEnabled,
-                            isMasked = uiState.isPrivacyModeEnabled
+                            isMasked = uiState.isPrivacyModeEnabled,
+                            modifier = Modifier.staggeredVerticalFadeIn(0, uiState.areAnimationsEnabled)
                         )
                     }
 
@@ -345,7 +346,8 @@ fun DashboardScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 8.dp),
+                                .padding(top = 8.dp)
+                                .staggeredVerticalFadeIn(1, uiState.areAnimationsEnabled),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -406,7 +408,7 @@ fun DashboardScreen(
                                         modifier = Modifier.staggeredVerticalFadeIn(
                                             index,
                                             enabled = uiState.areAnimationsEnabled,
-                                            initialDelay = 150
+                                            initialDelay = 400
                                         ),
                                         accountWithBalance = accountWithBalance,
                                         currencyCode = uiState.currency,
@@ -422,7 +424,8 @@ fun DashboardScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 8.dp),
+                                .padding(top = 8.dp)
+                                .staggeredVerticalFadeIn(2, uiState.areAnimationsEnabled),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -445,9 +448,9 @@ fun DashboardScreen(
                     ) { index, transaction ->
                         TransactionItem(
                             modifier = Modifier.staggeredVerticalFadeIn(
-                                index,
+                                index + 3,
                                 enabled = uiState.areAnimationsEnabled,
-                                initialDelay = 250
+                                initialDelay = 100
                             ),
                             transaction = transaction,
                             animationsEnabled = uiState.areAnimationsEnabled,
@@ -457,7 +460,6 @@ fun DashboardScreen(
                             currencyCode = uiState.currency,
                             isMasked = uiState.isPrivacyModeEnabled,
                             onClick = {
-                                haptic.click()
                                 viewModel.onTransactionClick(transaction)
                                 showDetailSheet = true
                             }
@@ -485,7 +487,8 @@ fun BalanceCard(
     expense: Double,
     currencyCode: String,
     animationsEnabled: Boolean = true,
-    isMasked: Boolean = false
+    isMasked: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
     var progress by remember { mutableFloatStateOf(0f) }
 
@@ -500,7 +503,7 @@ fun BalanceCard(
     )
 
     ElevatedCard(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .graphicsLayer {
@@ -781,7 +784,11 @@ fun AccountCard(
 ) {
     ElevatedCard(
         modifier = modifier
-            .width(160.dp),
+            .width(160.dp)
+            .fiscusClickable(
+                haptic = rememberFiscusHaptic(),
+                enabledAnimations = animationsEnabled
+            ) { /* No action yet, but can be added */ },
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
