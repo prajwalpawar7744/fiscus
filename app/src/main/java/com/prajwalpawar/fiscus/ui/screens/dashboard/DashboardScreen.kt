@@ -398,7 +398,10 @@ fun DashboardScreen(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
                             ) {
-                                itemsIndexed(uiState.accounts) { index, accountWithBalance ->
+                                itemsIndexed(
+                                    items = uiState.accounts,
+                                    key = { _, acc -> acc.account.id ?: acc.account.hashCode() }
+                                ) { index, accountWithBalance ->
                                     AccountCard(
                                         modifier = Modifier.staggeredVerticalFadeIn(
                                             index,

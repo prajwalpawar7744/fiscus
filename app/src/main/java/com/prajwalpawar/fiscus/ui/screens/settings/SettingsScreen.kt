@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -57,6 +58,7 @@ fun SettingsScreen(
     var showResetDialog by remember { mutableStateOf(false) }
     var showImportWarning by remember { mutableStateOf(false) }
     var showAccentDialog by remember { mutableStateOf(false) }
+    var showRadiusDialog by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -298,6 +300,14 @@ fun SettingsScreen(
                         },
                         onClick = { viewModel.updateAnimationsEnabled(!uiState.areAnimationsEnabled) }
                     )
+
+                    SettingsItem(
+                        icon = Icons.Default.RoundedCorner,
+                        title = "Border Radius",
+                        subtitle = "${uiState.borderRadius}dp",
+                        animationsEnabled = uiState.areAnimationsEnabled,
+                        onClick = { showRadiusDialog = true }
+                    )
                 }
             }
 
@@ -537,6 +547,50 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showCurrencyDialog = false }) { Text("Close") }
+            }
+        )
+    }
+
+    if (showRadiusDialog) {
+        AlertDialog(
+            onDismissRequest = { showRadiusDialog = false },
+            title = { Text("Border Radius") },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Preview box
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(RoundedCornerShape(uiState.borderRadius.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(uiState.borderRadius.dp))
+                    )
+
+                    Text(
+                        text = "${uiState.borderRadius} dp",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    Slider(
+                        value = uiState.borderRadius.toFloat(),
+                        onValueChange = { 
+                            haptic.click()
+                            viewModel.updateBorderRadius(it.toInt()) 
+                        },
+                        valueRange = 0f..28f,
+                        steps = 27
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showRadiusDialog = false }) {
+                    Text("Done")
+                }
             }
         )
     }

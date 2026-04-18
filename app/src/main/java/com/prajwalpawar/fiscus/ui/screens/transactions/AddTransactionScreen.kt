@@ -243,7 +243,10 @@ fun AddTransactionScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             contentPadding = PaddingValues(horizontal = 4.dp)
                         ) {
-                            items(uiState.accounts) { account ->
+                            items(
+                                items = uiState.accounts,
+                                key = { it.id ?: it.hashCode() }
+                            ) { account ->
                                 val isSelected = uiState.accountId == account.id
                                 val isOtherSelected = uiState.toAccountId == account.id && uiState.type == TransactionType.TRANSFER
                                 Surface(
@@ -297,7 +300,10 @@ fun AddTransactionScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             contentPadding = PaddingValues(horizontal = 4.dp)
                         ) {
-                            items(uiState.accounts) { account ->
+                            items(
+                                items = uiState.accounts,
+                                key = { it.id ?: it.hashCode() }
+                            ) { account ->
                                 val isSelected = uiState.toAccountId == account.id
                                 val isOtherSelected = uiState.accountId == account.id
                                 Surface(
@@ -351,7 +357,10 @@ fun AddTransactionScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = PaddingValues(horizontal = 4.dp)
                     ) {
-                        items(uiState.categories) { category ->
+                        items(
+                            items = uiState.categories,
+                            key = { it.id ?: it.hashCode() }
+                        ) { category ->
                             val isSelected = uiState.categoryId == category.id
                             Surface(
                                 modifier = Modifier

@@ -127,7 +127,10 @@ fun AccountsScreen(
                     )
                 }
 
-                itemsIndexed(uiState.accounts) { index, account ->
+                itemsIndexed(
+                    items = uiState.accounts,
+                    key = { _, acc -> acc.id ?: acc.hashCode() }
+                ) { index, account ->
                     AccountListItem(
                         modifier = Modifier.staggeredVerticalFadeIn(index),
                         account = account,

@@ -10,6 +10,9 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Shapes
 
 private fun getPalette(accentColor: String, dark: Boolean): AppPalette {
     return when (accentColor) {
@@ -70,6 +73,7 @@ fun FiscusTheme(
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     accentColor: String = "Emerald",
+    borderRadius: Int = 12,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -84,9 +88,18 @@ fun FiscusTheme(
         }
     }
 
+    val shapes = Shapes(
+        extraSmall = RoundedCornerShape((borderRadius / 3f).dp),
+        small = RoundedCornerShape((borderRadius / 1.5f).dp),
+        medium = RoundedCornerShape(borderRadius.dp),
+        large = RoundedCornerShape((borderRadius * 1.33f).dp),
+        extraLarge = RoundedCornerShape((borderRadius * 2.33f).dp)
+    )
+
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = shapes,
         content = content
     )
 }
