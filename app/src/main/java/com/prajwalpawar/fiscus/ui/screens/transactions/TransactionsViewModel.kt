@@ -27,10 +27,12 @@ data class TransactionsUiState(
     val currency: String = "USD",
     val searchText: String = "",
     val selectedCategoryId: Long? = null,
+    val selectedAccountId: Long? = null,
     val selectedTimeRange: TimeRange = TimeRange.ALL,
     val startDate: LocalDate? = null,
     val endDate: LocalDate? = null,
     val allCategories: List<Category> = emptyList(),
+    val allAccounts: List<Account> = emptyList(),
     val areAnimationsEnabled: Boolean = true,
     val topBarStyle: String = "standard",
     val selectedTransactionDetail: Transaction? = null,
@@ -46,6 +48,7 @@ class TransactionsViewModel @Inject constructor(
 
     private val _searchText = MutableStateFlow("")
     private val _selectedCategoryId = MutableStateFlow<Long?>(null)
+    private val _selectedAccountId = MutableStateFlow<Long?>(null)
     private val _selectedTimeRange = MutableStateFlow(TimeRange.ALL)
     private val _startDate = MutableStateFlow<LocalDate?>(null)
     private val _endDate = MutableStateFlow<LocalDate?>(null)
@@ -56,19 +59,28 @@ class TransactionsViewModel @Inject constructor(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _filters = combine(
+    private val _filters = combine<Any?, FilterParams>(
         _searchText.debounce(300L),
         _selectedCategoryId,
+        _selectedAccountId,
         _selectedTimeRange,
         _startDate,
         _endDate
-    ) { search, categoryId, timeRange, start, end ->
-        FilterParams(search, categoryId, timeRange, start, end)
+    ) { args ->
+        FilterParams(
+            search = args[0] as String,
+            categoryId = args[1] as Long?,
+            accountId = args[2] as Long?,
+            timeRange = args[3] as TimeRange,
+            startDate = args[4] as LocalDate?,
+            endDate = args[5] as LocalDate?
+        )
     }
 
     private data class FilterParams(
         val search: String,
         val categoryId: Long?,
+        val accountId: Long?,
         val timeRange: TimeRange,
         val startDate: LocalDate?,
         val endDate: LocalDate?
@@ -100,12 +112,13 @@ class TransactionsViewModel @Inject constructor(
         val rawSearchText = args[7] as String
         val privacyEnabled = args[8] as Boolean
         
-        val (search, categoryId, timeRange, start, end) = filters
+        val (search, categoryId, accountId, timeRange, start, end) = filters
         
         val filteredTransactions = transactions.filter { transaction ->
             val matchesSearch = transaction.title.contains(search, ignoreCase = true) || 
-                               transaction.note.contains(search, ignoreCase = true)
+                                transaction.note.contains(search, ignoreCase = true)
             val matchesCategory = categoryId == null || transaction.categoryId == categoryId
+            val matchesAccount = accountId == null || transaction.accountId == accountId || transaction.toAccountId == accountId
             
             val transactionDate = transaction.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
             val now = LocalDate.now()
@@ -125,7 +138,7 @@ class TransactionsViewModel @Inject constructor(
                 }
             }
             
-            matchesSearch && matchesCategory && matchesTime
+            matchesSearch && matchesCategory && matchesAccount && matchesTime
         }.sortedByDescending { it.date }
         
         // Group by Month-Year string -> Group by LocalDate -> List of Transactions
@@ -145,10 +158,12 @@ class TransactionsViewModel @Inject constructor(
             currency = currency,
             searchText = rawSearchText,
             selectedCategoryId = categoryId,
+            selectedAccountId = accountId,
             selectedTimeRange = timeRange,
             startDate = start,
             endDate = end,
             allCategories = categories.distinctBy { "${it.name}-${it.type}" },
+            allAccounts = accounts,
             areAnimationsEnabled = animationsEnabled,
             topBarStyle = topBarStyle,
             isPrivacyModeEnabled = privacyEnabled
@@ -184,6 +199,10 @@ class TransactionsViewModel @Inject constructor(
 
     fun onCategorySelected(categoryId: Long?) {
         _selectedCategoryId.value = categoryId
+    }
+
+    fun onAccountSelected(accountId: Long?) {
+        _selectedAccountId.value = accountId
     }
 
     fun onTimeRangeSelected(range: TimeRange) {

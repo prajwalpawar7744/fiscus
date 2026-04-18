@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material.icons.filled.Upload
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.DatePickerDialog
@@ -68,6 +69,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -91,6 +97,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.prajwalpawar.fiscus.ui.components.ConfirmationDialog
 import com.prajwalpawar.fiscus.ui.screens.dashboard.TransactionItem
 import com.prajwalpawar.fiscus.ui.utils.EmptyState
+import com.prajwalpawar.fiscus.ui.utils.getCategoryIcon
 import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
 import com.prajwalpawar.fiscus.ui.utils.staggeredVerticalFadeIn
 import kotlinx.coroutines.delay
@@ -287,93 +294,61 @@ fun TransactionsScreen(
                             )
                         )
 
-                        // Compact Dropdown Filters
+                        // Scrollable Filter Chips
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            // Category Dropdown
+                            // Category Filter Chip
                             var categoryExpanded by remember { mutableStateOf(false) }
-                            ExposedDropdownMenuBox(
-                                expanded = categoryExpanded,
-                                onExpandedChange = { categoryExpanded = !categoryExpanded },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                val selectedCategory =
-                                    uiState.allCategories.find { it.id == uiState.selectedCategoryId }
-                                OutlinedTextField(
-                                    value = selectedCategory?.name ?: "All Categories",
-                                    onValueChange = {},
-                                    readOnly = true,
-                                    maxLines = 1,
-                                    label = {
-                                        Text(
-                                            "Category",
-                                            style = MaterialTheme.typography.labelSmall
-                                        )
+                            val selectedCategory = uiState.allCategories.find { it.id == uiState.selectedCategoryId }
+                            
+                            Box {
+                                FilterChip(
+                                    selected = selectedCategory != null,
+                                    onClick = { categoryExpanded = true },
+                                    label = { Text(selectedCategory?.name ?: "All Categories") },
+                                    leadingIcon = {
+                                        if (selectedCategory != null) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(12.dp)
+                                                    .background(Color(selectedCategory.color), CircleShape)
+                                            )
+                                        } else {
+                                            Icon(Icons.Default.Category, null, Modifier.size(18.dp))
+                                        }
                                     },
-                                    trailingIcon = {
-                                        ExposedDropdownMenuDefaults.TrailingIcon(
-                                            expanded = categoryExpanded
-                                        )
-                                    },
-                                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
-                                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                                        focusedBorderColor = MaterialTheme.colorScheme.primary
-                                    ),
-                                    modifier = Modifier.menuAnchor(
-                                        ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                                        true
-                                    ),
-                                    shape = MaterialTheme.shapes.medium,
-                                    textStyle = MaterialTheme.typography.bodyMedium
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                                    shape = CircleShape
                                 )
-                                ExposedDropdownMenu(
+                                DropdownMenu(
                                     expanded = categoryExpanded,
                                     onDismissRequest = { categoryExpanded = false }
                                 ) {
                                     DropdownMenuItem(
-                                        text = {
-                                            Text(
-                                                "All Categories",
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                        },
+                                        text = { Text("All Categories") },
                                         onClick = {
                                             viewModel.onCategorySelected(null)
                                             categoryExpanded = false
                                         },
-                                        leadingIcon = {
-                                            Icon(
-                                                Icons.Default.Category,
-                                                contentDescription = null
-                                            )
-                                        }
+                                        leadingIcon = { Icon(Icons.Default.Category, null) }
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                                     uiState.allCategories.forEach { category ->
                                         DropdownMenuItem(
-                                            text = {
-                                                Text(
-                                                    category.name,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
-                                                )
-                                            },
+                                            text = { Text(category.name) },
                                             onClick = {
                                                 viewModel.onCategorySelected(category.id)
                                                 categoryExpanded = false
                                             },
                                             leadingIcon = {
-                                                // Optional: Display a small color circle if available
                                                 Box(
                                                     modifier = Modifier
                                                         .size(12.dp)
-                                                        .background(
-                                                            Color(category.color),
-                                                            CircleShape
-                                                        )
+                                                        .background(Color(category.color), CircleShape)
                                                 )
                                             }
                                         )
@@ -381,65 +356,96 @@ fun TransactionsScreen(
                                 }
                             }
 
-                            // Time Range Dropdown
+                            // Wallet Filter Chip
+                            var accountExpanded by remember { mutableStateOf(false) }
+                            val selectedAccount = uiState.allAccounts.find { it.id == uiState.selectedAccountId }
+                            
+                            Box {
+                                FilterChip(
+                                    selected = selectedAccount != null,
+                                    onClick = { accountExpanded = true },
+                                    label = { Text(selectedAccount?.name ?: "All Wallets") },
+                                    leadingIcon = {
+                                        Icon(
+                                            if (selectedAccount != null) getCategoryIcon(selectedAccount.icon) else Icons.Default.AccountBalanceWallet,
+                                            null,
+                                            Modifier.size(18.dp)
+                                        )
+                                    },
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = accountExpanded) },
+                                    shape = CircleShape
+                                )
+                                DropdownMenu(
+                                    expanded = accountExpanded,
+                                    onDismissRequest = { accountExpanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("All Wallets") },
+                                        onClick = {
+                                            viewModel.onAccountSelected(null)
+                                            accountExpanded = false
+                                        },
+                                        leadingIcon = { Icon(Icons.Default.AccountBalanceWallet, null) }
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                                    uiState.allAccounts.forEach { account ->
+                                        DropdownMenuItem(
+                                            text = { Text(account.name) },
+                                            onClick = {
+                                                viewModel.onAccountSelected(account.id)
+                                                accountExpanded = false
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    getCategoryIcon(account.icon),
+                                                    null,
+                                                    Modifier.size(18.dp),
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Time Range Filter Chip
                             var timeExpanded by remember { mutableStateOf(false) }
                             var showDatePicker by remember { mutableStateOf(false) }
+                            val timeLabel = when (uiState.selectedTimeRange) {
+                                TimeRange.CUSTOM -> if (uiState.startDate != null && uiState.endDate != null) {
+                                    "${uiState.startDate} - ${uiState.endDate}"
+                                } else "Custom Range"
+                                else -> uiState.selectedTimeRange.name.lowercase()
+                                    .replaceFirstChar { it.uppercase() }.replace("_", " ")
+                            }
 
-                            ExposedDropdownMenuBox(
-                                expanded = timeExpanded,
-                                onExpandedChange = { timeExpanded = !timeExpanded },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                val timeLabel = when (uiState.selectedTimeRange) {
-                                    TimeRange.CUSTOM -> if (uiState.startDate != null && uiState.endDate != null) {
-                                        "${uiState.startDate} - ${uiState.endDate}"
-                                    } else "Custom Range"
-
-                                    else -> uiState.selectedTimeRange.name.lowercase()
-                                        .replaceFirstChar { it.uppercase() }.replace("_", " ")
-                                }
-
-                                OutlinedTextField(
-                                    value = timeLabel,
-                                    onValueChange = {},
-                                    readOnly = true,
-                                    maxLines = 1,
-                                    label = {
-                                        Text(
-                                            "Time Period",
-                                            style = MaterialTheme.typography.labelSmall
-                                        )
+                            Box {
+                                FilterChip(
+                                    selected = uiState.selectedTimeRange != TimeRange.ALL,
+                                    onClick = { timeExpanded = true },
+                                    label = { Text(timeLabel) },
+                                    leadingIcon = {
+                                        val icon = when (uiState.selectedTimeRange) {
+                                            TimeRange.TODAY -> Icons.Default.Today
+                                            TimeRange.THIS_WEEK -> Icons.Default.DateRange
+                                            TimeRange.THIS_MONTH -> Icons.Default.CalendarMonth
+                                            TimeRange.THIS_YEAR -> Icons.Default.CalendarToday
+                                            TimeRange.CUSTOM -> Icons.Default.EditCalendar
+                                            else -> Icons.Default.History
+                                        }
+                                        Icon(icon, null, Modifier.size(18.dp))
                                     },
-                                    trailingIcon = {
-                                        ExposedDropdownMenuDefaults.TrailingIcon(
-                                            expanded = timeExpanded
-                                        )
-                                    },
-                                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
-                                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                                        focusedBorderColor = MaterialTheme.colorScheme.primary
-                                    ),
-                                    modifier = Modifier.menuAnchor(
-                                        ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                                        true
-                                    ),
-                                    shape = MaterialTheme.shapes.medium,
-                                    textStyle = MaterialTheme.typography.bodyMedium
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = timeExpanded) },
+                                    shape = CircleShape
                                 )
-                                ExposedDropdownMenu(
+                                DropdownMenu(
                                     expanded = timeExpanded,
                                     onDismissRequest = { timeExpanded = false }
                                 ) {
                                     TimeRange.entries.forEach { range ->
                                         DropdownMenuItem(
                                             text = {
-                                                Text(
-                                                    range.name.lowercase()
-                                                        .replaceFirstChar { it.uppercase() }
-                                                        .replace("_", " "),
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
-                                                )
+                                                Text(range.name.lowercase().replaceFirstChar { it.uppercase() }.replace("_", " "))
                                             },
                                             onClick = {
                                                 viewModel.onTimeRangeSelected(range)
@@ -457,7 +463,7 @@ fun TransactionsScreen(
                                                     TimeRange.CUSTOM -> Icons.Default.EditCalendar
                                                     else -> Icons.Default.History
                                                 }
-                                                Icon(icon, contentDescription = null)
+                                                Icon(icon, null)
                                             }
                                         )
                                     }
@@ -470,39 +476,24 @@ fun TransactionsScreen(
                                     onDismissRequest = { showDatePicker = false },
                                     confirmButton = {
                                         TextButton(onClick = {
-                                            val start =
-                                                dateRangePickerState.selectedStartDateMillis?.let {
-                                                    Instant.ofEpochMilli(it)
-                                                        .atZone(ZoneId.systemDefault())
-                                                        .toLocalDate()
-                                                }
-                                            val end =
-                                                dateRangePickerState.selectedEndDateMillis?.let {
-                                                    Instant.ofEpochMilli(it)
-                                                        .atZone(ZoneId.systemDefault())
-                                                        .toLocalDate()
-                                                }
+                                            val start = dateRangePickerState.selectedStartDateMillis?.let {
+                                                Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                                            }
+                                            val end = dateRangePickerState.selectedEndDateMillis?.let {
+                                                Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                                            }
                                             viewModel.onDateRangeSelected(start, end)
                                             showDatePicker = false
                                         }) { Text("Confirm") }
                                     },
                                     dismissButton = {
-                                        TextButton(onClick = {
-                                            showDatePicker = false
-                                        }) { Text("Cancel") }
+                                        TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
                                     }
                                 ) {
                                     DateRangePicker(
                                         state = dateRangePickerState,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(450.dp),
-                                        title = {
-                                            Text(
-                                                "Select Date Range",
-                                                modifier = Modifier.padding(16.dp)
-                                            )
-                                        }
+                                        modifier = Modifier.fillMaxWidth().height(450.dp),
+                                        title = { Text("Select Date Range", modifier = Modifier.padding(16.dp)) }
                                     )
                                 }
                             }
@@ -527,7 +518,7 @@ fun TransactionsScreen(
                         enter = fadeIn(tween(500)) + scaleIn(initialScale = 0.9f)
                     ) {
                         EmptyState(
-                            message = if (uiState.searchText.isNotEmpty() || uiState.selectedCategoryId != null || uiState.selectedTimeRange != TimeRange.ALL)
+                            message = if (uiState.searchText.isNotEmpty() || uiState.selectedCategoryId != null || uiState.selectedAccountId != null || uiState.selectedTimeRange != TimeRange.ALL)
                                 "No matching transactions" else "No transactions found",
                             icon = Icons.AutoMirrored.Filled.ReceiptLong
                         )

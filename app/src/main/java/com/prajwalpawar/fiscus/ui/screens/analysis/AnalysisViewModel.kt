@@ -46,7 +46,10 @@ data class AnalysisUiState(
     val endDate: LocalDate? = null,
     val selectedTransactionType: TransactionType? = TransactionType.EXPENSE,
     val allCategories: List<Category> = emptyList(),
+    val allAccounts: com.prajwalpawar.fiscus.domain.model.Account? = null, // Wait, I need list of accounts
     val selectedCategoryId: Long? = null,
+    val selectedAccountId: Long? = null,
+    val allAccountsList: List<com.prajwalpawar.fiscus.domain.model.Account> = emptyList(),
     val selectedChartType: AnalysisChartType = AnalysisChartType.BAR,
     val areAnimationsEnabled: Boolean = true,
     val topBarStyle: String = "standard",
@@ -80,6 +83,7 @@ class AnalysisViewModel @Inject constructor(
     private val _endDate = MutableStateFlow<LocalDate?>(null)
     private val _selectedTransactionType = MutableStateFlow<TransactionType?>(TransactionType.EXPENSE)
     private val _selectedCategoryId = MutableStateFlow<Long?>(null)
+    private val _selectedAccountId = MutableStateFlow<Long?>(null)
     private val _selectedChartType = MutableStateFlow(AnalysisChartType.BAR)
 
     private val _categories = repository.getCategories()
@@ -93,6 +97,7 @@ class AnalysisViewModel @Inject constructor(
         _endDate,
         _selectedTransactionType,
         _selectedCategoryId,
+        _selectedAccountId,
         _selectedChartType
     ) { params ->
         FilterParams(
@@ -102,7 +107,8 @@ class AnalysisViewModel @Inject constructor(
             endDate = params[3] as? LocalDate,
             type = params[4] as? TransactionType,
             categoryId = params[5] as? Long,
-            chartType = params[6] as AnalysisChartType
+            accountId = params[6] as? Long,
+            chartType = params[7] as AnalysisChartType
         )
     }
 
@@ -113,12 +119,18 @@ class AnalysisViewModel @Inject constructor(
         val endDate: LocalDate?,
         val type: TransactionType?,
         val categoryId: Long?,
+        val accountId: Long?,
         val chartType: AnalysisChartType
     )
+
+    private val _accounts = repository.getAccounts()
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val uiState: StateFlow<AnalysisUiState> = combine<Any?, AnalysisUiState>(
         repository.getTransactions(),
         _categories,
+        _accounts,
         preferenceManager.currency,
         _filters,
         preferenceManager.areAnimationsEnabled,
@@ -127,11 +139,12 @@ class AnalysisViewModel @Inject constructor(
     ) { args ->
         val transactions = args[0] as List<Transaction>
         val categories = args[1] as List<Category>
-        val currency = args[2] as String
-        val filters = args[3] as FilterParams
-        val animationsEnabled = args[4] as Boolean
-        val topBarStyle = args[5] as String
-        val privacyEnabled = args[6] as Boolean
+        val accounts = args[2] as List<com.prajwalpawar.fiscus.domain.model.Account>
+        val currency = args[3] as String
+        val filters = args[4] as FilterParams
+        val animationsEnabled = args[5] as Boolean
+        val topBarStyle = args[6] as String
+        val privacyEnabled = args[7] as Boolean
         
         val timeFilteredTransactions = transactions.filter { transaction ->
             val transactionDate = transaction.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
@@ -156,7 +169,16 @@ class AnalysisViewModel @Inject constructor(
         val filteredTransactions = timeFilteredTransactions.filter { transaction ->
             val matchesType = filters.type == null || transaction.type == filters.type
             val matchesCategory = filters.categoryId == null || transaction.categoryId == filters.categoryId
-            matchesType && matchesCategory
+            val matchesAccount = filters.accountId == null || transaction.accountId == filters.accountId || transaction.toAccountId == filters.accountId
+            matchesType && matchesCategory && matchesAccount
+        }
+        
+        // Final filter for period summary (includes account/category but maybe not type if summary shows both?)
+        // Actually, period summary usually shows TOTAL income/expense for the selected filters.
+        val summaryTransactions = timeFilteredTransactions.filter { transaction ->
+            val matchesCategory = filters.categoryId == null || transaction.categoryId == filters.categoryId
+            val matchesAccount = filters.accountId == null || transaction.accountId == filters.accountId || transaction.toAccountId == filters.accountId
+            matchesCategory && matchesAccount
         }
         
         val now = LocalDate.now()
@@ -176,8 +198,8 @@ class AnalysisViewModel @Inject constructor(
         val expenses = filteredTransactions.filter { it.type == TransactionType.EXPENSE }
         val income = filteredTransactions.filter { it.type == TransactionType.INCOME }
         
-        val totalExpense = timeFilteredTransactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
-        val totalIncome = timeFilteredTransactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
+        val totalExpense = summaryTransactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
+        val totalIncome = summaryTransactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
         
         val categoryMap = categories.associateBy { it.id ?: 0L }
         
@@ -223,6 +245,8 @@ class AnalysisViewModel @Inject constructor(
             selectedTransactionType = filters.type,
             allCategories = categories.distinctBy { "${it.name}-${it.type}" },
             selectedCategoryId = filters.categoryId,
+            selectedAccountId = filters.accountId,
+            allAccountsList = accounts,
             selectedChartType = filters.chartType,
             areAnimationsEnabled = animationsEnabled,
             topBarStyle = topBarStyle,
@@ -257,6 +281,10 @@ class AnalysisViewModel @Inject constructor(
 
     fun onCategorySelected(categoryId: Long?) {
         _selectedCategoryId.value = categoryId
+    }
+
+    fun onAccountSelected(accountId: Long?) {
+        _selectedAccountId.value = accountId
     }
 
     fun onChartTypeSelected(chartType: AnalysisChartType) {
