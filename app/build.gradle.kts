@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -20,13 +23,42 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            val keystorePropertiesFile = rootProject.file("keystore.properties")
+            if (keystorePropertiesFile.exists()) {
+                val properties = Properties().apply {
+                    load(FileInputStream(keystorePropertiesFile))
+                }
+                storeFile = rootProject.file(properties.getProperty("storeFile") ?: "")
+                storePassword = properties.getProperty("storePassword")
+                keyAlias = properties.getProperty("keyAlias")
+                keyPassword = properties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            
+            // Use release signing if configured, otherwise fallback to debug
+            val releaseConfig = signingConfigs.findByName("release")
+            signingConfig = if (releaseConfig?.storeFile?.exists() == true) {
+                releaseConfig
+            } else {
+                signingConfigs.getByName("debug")
+            }
+        }
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            isMinifyEnabled = false
         }
     }
     compileOptions {

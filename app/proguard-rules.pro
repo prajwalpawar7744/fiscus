@@ -1,21 +1,28 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Preserve line numbers for obfuscated stack traces
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# kotlinx.serialization rules
+-keepattributes *Annotation*, EnclosingMethod, InnerClasses, Signature
+-keepclassmembernames class com.prajwalpawar.fiscus.** {
+    @kotlinx.serialization.Serializable <fields>;
+}
+-keepclassmembers class com.prajwalpawar.fiscus.** {
+    *** Companion;
+    *** serializer(...);
+    <init>(int, ...);
+}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Room rules - Only keep the classes that are specifically needed for the database
+-keep @androidx.room.Entity class *
+-keep @androidx.room.Dao class *
+-keep class * extends androidx.room.RoomDatabase { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Hilt/Dagger rules (mostly handled by R8, but preserve entry points)
+-keep class * extends androidx.lifecycle.ViewModel { *; }
+
+# General optimization
+-optimizations !code/allocation/variable
+
+# Keep metadata for reflection if needed (e.g. for serialization)
+-keep class kotlin.Metadata { *; }
