@@ -17,7 +17,8 @@ A personal finance application built with Jetpack Compose and Material Design 3.
 *   **Advanced Theme Engine**: 
     *   Full support for system-wide **Light and Dark modes** with intelligent contrast ratios.
     *   **Dynamic Color** integration for Android 12+ (Material You). Features dynamic `colorScheme` populated pickers for customizing categories that flawlessly blend with user wallpapers.
-    *   **Responsive UI Mechanics**: Context-aware bottom navigation indicators (Filled vs Outlined state variants) showcasing maximum adherence to MD3 fluidity.
+    *   **Global Layout Customization**: Real-time adjustable **Border Radius** (0dp to 28dp) that dynamically recalculates all Material 3 shape tokens for a personalized component aesthetic.
+    *   **Responsive UI Mechanics**: Context-aware bottom navigation indicators with customizable **Label visibility modes** (Always, Selected, or Never) for a tailored navigation experience.
     *   **Premium Accent Palettes**: Curated presets like **Emerald**, **Indigo**, **Sapphire**, and **Crimson** for when dynamic color is disabled.
 *   **Biometric Security**: Secure local authentication using the Android Biometric Framework.
 *   **Data Persistence**: Full offline capability using Room database with schema migration support and DataStore for persistent preferences.
