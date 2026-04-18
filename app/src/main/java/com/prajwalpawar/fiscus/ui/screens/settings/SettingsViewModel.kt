@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.prajwalpawar.fiscus.data.local.pref.PreferenceManager
 import com.prajwalpawar.fiscus.domain.repository.FiscusRepository
 import com.prajwalpawar.fiscus.data.local.backup.BackupManager
+import java.io.InputStream
+import java.io.OutputStream
 import android.content.Context
 import android.net.Uri
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -156,11 +158,11 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    suspend fun exportData(): String? {
-        return backupManager.exportData()
+    suspend fun exportDatabase(outputStream: OutputStream): Boolean {
+        return backupManager.exportDatabase(outputStream)
     }
 
-    suspend fun importData(jsonData: String): Boolean {
-        return backupManager.importData(jsonData)
+    suspend fun importDatabase(inputStream: InputStream): Boolean {
+        return backupManager.importDatabase(inputStream)
     }
 }

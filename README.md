@@ -15,12 +15,13 @@ A personal finance application built with Jetpack Compose and Material Design 3.
 *   **Privacy Mode**: A toggleable global masking mode that blurs or masks all sensitive balance and transaction amounts—perfect for use in public places.
 *   **Adaptive Header Styles**: Support for **Standard** and **Dynamic Expanding (Large)** top bar styles throughout the application.
 *   **Advanced Theme Engine**: 
-    *   Full support for system-wide **Light and Dark modes**.
-    *   **Dynamic Color** integration for Android 12+ (Material You).
+    *   Full support for system-wide **Light and Dark modes** with intelligent contrast ratios.
+    *   **Dynamic Color** integration for Android 12+ (Material You). Features dynamic `colorScheme` populated pickers for customizing categories that flawlessly blend with user wallpapers.
+    *   **Responsive UI Mechanics**: Context-aware bottom navigation indicators (Filled vs Outlined state variants) showcasing maximum adherence to MD3 fluidity.
     *   **Premium Accent Palettes**: Curated presets like **Emerald**, **Indigo**, **Sapphire**, and **Crimson** for when dynamic color is disabled.
 *   **Biometric Security**: Secure local authentication using the Android Biometric Framework.
 *   **Data Persistence**: Full offline capability using Room database with schema migration support and DataStore for persistent preferences.
-*   **Backup & Migration**: Standardized JSON-based data export and import for seamless platform migration.
+*   **Backup & Migration**: Robust direct SQLite `.db` file backup and restoration mechanism that fully integrates with Room's schema migrations—eliminating data loss cross-versions.
 
 ### Optimization & Engineering
 *   **Pre-warmed Architecture**: ViewModels initialized at optimal scopes to ensure zero-latency data availability during transitions.

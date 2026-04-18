@@ -1,73 +1,62 @@
 package com.prajwalpawar.fiscus.data.local.backup
 
 import android.content.Context
-import com.prajwalpawar.fiscus.domain.model.Account
-import com.prajwalpawar.fiscus.domain.model.Transaction
-import com.prajwalpawar.fiscus.domain.model.Category
-import com.prajwalpawar.fiscus.domain.repository.FiscusRepository
+import androidx.sqlite.db.SimpleSQLiteQuery
+import com.prajwalpawar.fiscus.data.local.FiscusDatabase
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.first
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.InputStream
+import java.io.OutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@Serializable
-data class BackupData(
-    val transactions: List<Transaction>,
-    val categories: List<Category>,
-    val accounts: List<Account> = emptyList()
-)
-
 @Singleton
 class BackupManager @Inject constructor(
-    private val repository: FiscusRepository,
+    private val database: FiscusDatabase,
     @ApplicationContext private val context: Context
 ) {
-    private val json = Json { 
-        prettyPrint = true
-        ignoreUnknownKeys = true
-        encodeDefaults = true
-    }
-
-    suspend fun exportData(): String? {
-        return try {
-            val transactions = repository.getTransactions().first()
-            val categories = repository.getCategories().first()
-            val accounts = repository.getAccounts().first()
-            val backupData = BackupData(transactions, categories, accounts)
-            json.encodeToString(backupData)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
+    suspend fun exportDatabase(outputStream: OutputStream): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                // Force checkpoint the WAL so all data is pushed to the main file
+                database.query(SimpleSQLiteQuery("pragma wal_checkpoint(full)")).use { it.moveToFirst() }
+                
+                val dbFile = context.getDatabasePath(FiscusDatabase.DATABASE_NAME)
+                dbFile.inputStream().use { input ->
+                    input.copyTo(outputStream)
+                }
+                true
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
+            }
         }
     }
 
-    suspend fun importData(jsonData: String): Boolean {
-        return try {
-            val backupData = json.decodeFromString<BackupData>(jsonData)
-            
-            // Clear existing data
-            repository.clearAllData()
-
-            // Re-insert accounts first (as they might be referenced)
-            backupData.accounts.forEach { account ->
-                repository.insertAccount(account)
+    suspend fun importDatabase(inputStream: InputStream): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                // Close the active database connection
+                database.close()
+                
+                val dbFile = context.getDatabasePath(FiscusDatabase.DATABASE_NAME)
+                val walFile = context.getDatabasePath("${FiscusDatabase.DATABASE_NAME}-wal")
+                val shmFile = context.getDatabasePath("${FiscusDatabase.DATABASE_NAME}-shm")
+                
+                // Delete existing WAL and SHM files to prevent corruption with the incoming DB file
+                if (walFile.exists()) walFile.delete()
+                if (shmFile.exists()) shmFile.delete()
+                
+                // Overwrite the main DB file
+                dbFile.outputStream().use { output ->
+                    inputStream.copyTo(output)
+                }
+                true
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
             }
-
-            // Re-insert categories
-            backupData.categories.forEach { category ->
-                repository.insertCategory(category)
-            }
-
-            // Re-insert transactions
-            backupData.transactions.forEach { transaction ->
-                repository.insertTransaction(transaction)
-            }
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
         }
     }
 }

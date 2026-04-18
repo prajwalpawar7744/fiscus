@@ -63,22 +63,22 @@ fun SettingsScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     val exportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/json"),
+        contract = ActivityResultContracts.CreateDocument("application/vnd.sqlite3"),
         onResult = { uri ->
             uri?.let {
                 scope.launch {
-                    val jsonData = viewModel.exportData()
-                    if (jsonData != null) {
-                        try {
-                            context.contentResolver.openOutputStream(it)?.use { output ->
-                                output.write(jsonData.toByteArray())
-                            }
-                            snackbarHostState.showSnackbar("Data exported successfully")
-                        } catch (e: Exception) {
-                            snackbarHostState.showSnackbar("Export failed: ${e.message}")
+                    try {
+                        val success = context.contentResolver.openOutputStream(it)?.use { output ->
+                            viewModel.exportDatabase(output)
+                        } ?: false
+                        
+                        if (success) {
+                            snackbarHostState.showSnackbar("Database exported successfully")
+                        } else {
+                            snackbarHostState.showSnackbar("Export failed")
                         }
-                    } else {
-                        snackbarHostState.showSnackbar("Export failed: No data")
+                    } catch (e: Exception) {
+                        snackbarHostState.showSnackbar("Export failed: ${e.message}")
                     }
                 }
             }
@@ -91,16 +91,18 @@ fun SettingsScreen(
             uri?.let {
                 scope.launch {
                     try {
-                        val inputStream = context.contentResolver.openInputStream(it)
-                        val reader = BufferedReader(InputStreamReader(inputStream))
-                        val jsonData = reader.readText()
-                        inputStream?.close()
+                        val success = context.contentResolver.openInputStream(it)?.use { input ->
+                            viewModel.importDatabase(input)
+                        } ?: false
                         
-                        val success = viewModel.importData(jsonData)
                         if (success) {
-                            snackbarHostState.showSnackbar("Data imported successfully")
+                            val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+                            val componentName = intent?.component
+                            val mainIntent = android.content.Intent.makeRestartActivityTask(componentName)
+                            context.startActivity(mainIntent)
+                            Runtime.getRuntime().exit(0)
                         } else {
-                            snackbarHostState.showSnackbar("Import failed: Invalid data")
+                            snackbarHostState.showSnackbar("Import failed")
                         }
                     } catch (e: Exception) {
                         snackbarHostState.showSnackbar("Import failed: ${e.message}")
@@ -369,14 +371,14 @@ fun SettingsScreen(
                 ) {
                     SettingsItem(
                         title = "Export Data",
-                        subtitle = "Save your data to a JSON file",
+                        subtitle = "Save your data to a database file",
                         icon = Icons.Default.CloudDownload,
                         animationsEnabled = uiState.areAnimationsEnabled,
-                        onClick = { exportLauncher.launch("fiscus_backup_${System.currentTimeMillis()}.json") }
+                        onClick = { exportLauncher.launch("fiscus_backup_${System.currentTimeMillis()}.db") }
                     )
                     SettingsItem(
                         title = "Import Data",
-                        subtitle = "Restore data from a JSON file",
+                        subtitle = "Restore data from a database file",
                         icon = Icons.Default.CloudUpload,
                         animationsEnabled = uiState.areAnimationsEnabled,
                         onClick = { showImportWarning = true }
@@ -456,7 +458,7 @@ fun SettingsScreen(
             onDismissRequest = { showImportWarning = false },
             onConfirm = {
                 showImportWarning = false
-                importLauncher.launch("application/json")
+                importLauncher.launch("*/*")
             },
             title = "Import Data?",
             text = "Importing data will replace your current transactions, accounts, and categories with the data from the backup file. Proceed?",
