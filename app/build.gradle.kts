@@ -15,7 +15,7 @@ android {
         applicationId = "com.prajwalpawar.fiscus"
         minSdk = 26
         versionCode = 1
-        versionName = "1.3.5"
+        versionName = "1.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -38,14 +38,14 @@ android {
         compose = true
         buildConfig = true
     }
-    
-    baselineProfile {
-        filter {
-            include("com.prajwalpawar.fiscus.**")
-        }
-        warnings {
-            maxAgpVersion = false
-        }
+}
+
+baselineProfile {
+    filter {
+        include("com.prajwalpawar.fiscus.**")
+    }
+    warnings {
+        maxAgpVersion = false
     }
 }
 
