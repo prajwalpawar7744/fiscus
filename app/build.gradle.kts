@@ -12,13 +12,13 @@ plugins {
 
 android {
     namespace = "com.prajwalpawar.fiscus"
-    compileSdk = 36 // Standardizing to a stable version if 36 is too new/experimental for tools
+    compileSdk = 37 // Standardizing to a stable version if 36 is too new/experimental for tools
 
     defaultConfig {
         applicationId = "com.prajwalpawar.fiscus"
         minSdk = 26
         versionCode = 1
-        versionName = "1.4.2"
+        versionName = "1.4.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

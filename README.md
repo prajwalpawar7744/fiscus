@@ -8,6 +8,7 @@ A personal finance application built with Jetpack Compose and Material Design 3.
 *   **Dynamic Dashboard**: Comprehensive overview of real-time balance, income distributions, and expense summaries.
 *   **Account Management**: Support for multiple financial accounts with dedicated balance tracking and custom icons.
 *   **Transaction Tracking**: Detailed history management with smart categorization and date-based grouping.
+*   **Item Breakdown**: Ability to add granular sub-items (name and price) within a single transaction—ideal for grocery receipts or bill itemization—with real-time total calculation.
 *   **Custom Categories**: Create, edit, and delete personalized spending/income categories with a rich icon and color library.
 *   **Analytical Reporting**: Visual data representation through custom Bar, Line, and Pie charts using hardware-accelerated drawing.
 
