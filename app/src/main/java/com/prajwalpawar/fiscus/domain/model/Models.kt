@@ -31,6 +31,14 @@ enum class TransactionType {
 }
 
 @Serializable
+data class TransactionSubItem(
+    val id: Long? = null,
+    val transactionId: Long? = null,
+    val name: String,
+    val amount: Double
+)
+
+@Serializable
 data class Transaction(
     val id: Long? = null,
     val title: String,
@@ -41,7 +49,8 @@ data class Transaction(
     val toAccountId: Long? = null,
     @Serializable(with = DateSerializer::class)
     val date: Date,
-    val note: String = ""
+    val note: String = "",
+    val subItems: List<TransactionSubItem> = emptyList()
 )
 
 @Serializable

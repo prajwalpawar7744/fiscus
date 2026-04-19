@@ -1,5 +1,6 @@
 package com.prajwalpawar.fiscus.ui.screens.transactions
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -21,6 +22,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -432,6 +434,147 @@ fun AddTransactionScreen(
                         focusedContainerColor = Color.Transparent
                     )
                 )
+
+                if (uiState.type != TransactionType.TRANSFER) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+                }
+
+                // Breakdown Section
+                if (uiState.type != TransactionType.TRANSFER) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.FormatListBulleted,
+                                    null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Item Breakdown",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Switch(
+                                checked = uiState.isBreakdownEnabled,
+                                onCheckedChange = viewModel::toggleBreakdown,
+                                thumbContent = if (uiState.isBreakdownEnabled) {
+                                    {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                                        )
+                                    }
+                                } else null
+                            )
+                        }
+                    }
+
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = uiState.isBreakdownEnabled,
+                        enter = androidx.compose.animation.expandVertically() + androidx.compose.animation.fadeIn(),
+                        exit = androidx.compose.animation.shrinkVertically() + androidx.compose.animation.fadeOut()
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            uiState.subItems.forEachIndexed { index, item ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    OutlinedTextField(
+                                        value = item.name,
+                                        onValueChange = { viewModel.onSubItemNameChange(index, it) },
+                                        label = { Text("Item") },
+                                        placeholder = { Text("e.g. Oil") },
+                                        modifier = Modifier.weight(1.5f),
+                                        shape = MaterialTheme.shapes.medium,
+                                        singleLine = true,
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            unfocusedContainerColor = Color.Transparent,
+                                            focusedContainerColor = Color.Transparent
+                                        )
+                                    )
+                                    OutlinedTextField(
+                                        value = if (item.amount == 0.0) "" else item.amount.toString(),
+                                        onValueChange = { viewModel.onSubItemAmountChange(index, it) },
+                                        label = { Text("Price") },
+                                        modifier = Modifier.weight(1f),
+                                        shape = MaterialTheme.shapes.medium,
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                        singleLine = true,
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            unfocusedContainerColor = Color.Transparent,
+                                            focusedContainerColor = Color.Transparent
+                                        )
+                                    )
+                                    IconButton(
+                                        onClick = { viewModel.removeSubItem(index) },
+                                        modifier = Modifier.size(48.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.DeleteOutline, 
+                                            null, 
+                                            tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            OutlinedButton(
+                                onClick = { viewModel.addSubItem() },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = MaterialTheme.shapes.medium,
+                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                            ) {
+                                Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Add Item")
+                            }
+                            
+                            if (uiState.subItems.isNotEmpty()) {
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                                    shape = MaterialTheme.shapes.medium
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Total Breakdown:",
+                                            style = MaterialTheme.typography.labelLarge,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "$${uiState.subItems.sumOf { it.amount }}",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 

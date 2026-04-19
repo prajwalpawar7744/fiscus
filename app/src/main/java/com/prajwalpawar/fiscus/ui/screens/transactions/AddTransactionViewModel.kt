@@ -15,6 +15,7 @@ import com.prajwalpawar.fiscus.data.local.pref.PreferenceManager
 import java.util.Date
 import javax.inject.Inject
 import com.prajwalpawar.fiscus.domain.model.Account
+import com.prajwalpawar.fiscus.domain.model.TransactionSubItem
 
 data class AddTransactionUiState(
     val title: String = "",
@@ -29,7 +30,9 @@ data class AddTransactionUiState(
     val isSaved: Boolean = false,
     val transactionId: Long? = null,
     val date: Date = Date(),
-    val areAnimationsEnabled: Boolean = true
+    val areAnimationsEnabled: Boolean = true,
+    val subItems: List<TransactionSubItem> = emptyList(),
+    val isBreakdownEnabled: Boolean = false
 )
 
 @HiltViewModel
@@ -158,6 +161,64 @@ class AddTransactionViewModel @Inject constructor(
         _uiState.update { it.copy(categoryId = categoryId) }
     }
 
+    fun toggleBreakdown(enabled: Boolean) {
+        _uiState.update { state ->
+            val totalAmount = state.subItems.sumOf { it.amount }
+            state.copy(
+                isBreakdownEnabled = enabled,
+                amount = if (enabled && totalAmount > 0) totalAmount.toString() else state.amount
+            )
+        }
+    }
+
+    fun addSubItem() {
+        _uiState.update { state ->
+            state.copy(
+                subItems = state.subItems + TransactionSubItem(name = "", amount = 0.0)
+            )
+        }
+    }
+
+    fun removeSubItem(index: Int) {
+        _uiState.update { state ->
+            val newList = state.subItems.toMutableList()
+            if (index in newList.indices) {
+                newList.removeAt(index)
+            }
+            val totalAmount = newList.sumOf { it.amount }
+            state.copy(
+                subItems = newList,
+                amount = if (state.isBreakdownEnabled) totalAmount.toString() else state.amount
+            )
+        }
+    }
+
+    fun onSubItemNameChange(index: Int, name: String) {
+        _uiState.update { state ->
+            val newList = state.subItems.toMutableList()
+            if (index in newList.indices) {
+                newList[index] = newList[index].copy(name = name)
+            }
+            state.copy(subItems = newList)
+        }
+    }
+
+    fun onSubItemAmountChange(index: Int, amountStr: String) {
+        val amount = amountStr.toDoubleOrNull() ?: 0.0
+        _uiState.update { state ->
+            val newList = state.subItems.toMutableList()
+            if (index in newList.indices) {
+                newList[index] = newList[index].copy(amount = amount)
+            }
+            // Auto-update total amount if breakdown is enabled
+            val totalAmount = newList.sumOf { it.amount }
+            state.copy(
+                subItems = newList,
+                amount = if (state.isBreakdownEnabled) totalAmount.toString() else state.amount
+            )
+        }
+    }
+
     fun onTypeChange(type: TransactionType) {
         _uiState.update { currentState ->
             val filtered = _allCategories.value.filter { it.type == null || it.type == type }
@@ -166,7 +227,8 @@ class AddTransactionViewModel @Inject constructor(
                 categoryId = filtered.find { it.name == "Transfer" }?.id ?: filtered.firstOrNull()?.id,
                 toAccountId = if (type == TransactionType.TRANSFER) {
                     _allAccounts.value.firstOrNull { it.id != currentState.accountId }?.id
-                } else null
+                } else null,
+                isBreakdownEnabled = if (type == TransactionType.TRANSFER) false else currentState.isBreakdownEnabled
             )
         }
     }
@@ -192,6 +254,8 @@ class AddTransactionViewModel @Inject constructor(
                 accountId = transaction.accountId,
                 toAccountId = transaction.toAccountId,
                 date = transaction.date,
+                subItems = transaction.subItems,
+                isBreakdownEnabled = transaction.subItems.isNotEmpty(),
                 isSaved = false
             )
         }
@@ -211,7 +275,8 @@ class AddTransactionViewModel @Inject constructor(
                     accountId = currentState.accountId!!,
                     toAccountId = currentState.toAccountId,
                     date = currentState.date,
-                    note = currentState.note
+                    note = currentState.note,
+                    subItems = if (currentState.isBreakdownEnabled) currentState.subItems.filter { it.name.isNotBlank() && it.amount > 0 } else emptyList()
                 )
                 if (currentState.transactionId == null) {
                     repository.insertTransaction(transaction)

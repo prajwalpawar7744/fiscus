@@ -8,10 +8,16 @@ import com.prajwalpawar.fiscus.data.local.dao.TransactionDao
 import com.prajwalpawar.fiscus.data.local.entities.AccountEntity
 import com.prajwalpawar.fiscus.data.local.entities.CategoryEntity
 import com.prajwalpawar.fiscus.data.local.entities.TransactionEntity
+import com.prajwalpawar.fiscus.data.local.entities.TransactionSubItemEntity
 
 @Database(
-    entities = [TransactionEntity::class, CategoryEntity::class, AccountEntity::class],
-    version = 5,
+    entities = [
+        TransactionEntity::class,
+        CategoryEntity::class,
+        AccountEntity::class,
+        TransactionSubItemEntity::class
+    ],
+    version = 6,
     exportSchema = false
 )
 abstract class FiscusDatabase : RoomDatabase() {
