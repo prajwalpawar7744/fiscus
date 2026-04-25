@@ -26,7 +26,7 @@ class PreferenceManager @Inject constructor(
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         val TOP_BAR_STYLE = stringPreferencesKey("top_bar_style")
         val ANIMATIONS_ENABLED = booleanPreferencesKey("animations_enabled")
-        val ACCENT_COLOR = stringPreferencesKey("accent_color")
+
         val PRIVACY_MODE_ENABLED = booleanPreferencesKey("privacy_mode_enabled")
         val BORDER_RADIUS = intPreferencesKey("border_radius")
         val NAV_LABEL_MODE = stringPreferencesKey("nav_label_mode")
@@ -64,9 +64,7 @@ class PreferenceManager @Inject constructor(
         preferences[PreferencesKeys.ANIMATIONS_ENABLED] ?: true
     }
 
-    val accentColor: Flow<String> = dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.ACCENT_COLOR] ?: "Emerald"
-    }
+
 
     val isPrivacyModeEnabled: Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[PreferencesKeys.PRIVACY_MODE_ENABLED] ?: false
@@ -128,11 +126,7 @@ class PreferenceManager @Inject constructor(
         }
     }
 
-    suspend fun updateAccentColor(accent: String) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.ACCENT_COLOR] = accent
-        }
-    }
+
 
     suspend fun updatePrivacyModeEnabled(enabled: Boolean) {
         dataStore.edit { preferences ->

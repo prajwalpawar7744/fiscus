@@ -115,7 +115,6 @@ class MainActivity : FragmentActivity() {
             FiscusTheme(
                 darkTheme = darkTheme,
                 dynamicColor = settingsState.isDynamicColorEnabled,
-                accentColor = settingsState.accentColor,
                 borderRadius = settingsState.borderRadius
             ) {
                 Surface(

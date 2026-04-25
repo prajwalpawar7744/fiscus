@@ -27,7 +27,6 @@ data class SettingsUiState(
     val isDynamicColorEnabled: Boolean = true,
     val topBarStyle: String = "standard",
     val areAnimationsEnabled: Boolean = true,
-    val accentColor: String = "Emerald",
     val isPrivacyModeEnabled: Boolean = false,
     val borderRadius: Int = 12,
     val navLabelMode: String = "always"
@@ -50,7 +49,6 @@ class SettingsViewModel @Inject constructor(
         preferenceManager.isDynamicColorEnabled,
         preferenceManager.topBarStyle,
         preferenceManager.areAnimationsEnabled,
-        preferenceManager.accentColor,
         preferenceManager.isPrivacyModeEnabled,
         preferenceManager.borderRadius,
         preferenceManager.navLabelMode
@@ -64,10 +62,9 @@ class SettingsViewModel @Inject constructor(
             isDynamicColorEnabled = args[5] as Boolean,
             topBarStyle = args[6] as String,
             areAnimationsEnabled = args[7] as Boolean,
-            accentColor = args[8] as String,
-            isPrivacyModeEnabled = args[9] as Boolean,
-            borderRadius = args[10] as Int,
-            navLabelMode = args[11] as String
+            isPrivacyModeEnabled = args[8] as Boolean,
+            borderRadius = args[9] as Int,
+            navLabelMode = args[10] as String
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
@@ -146,11 +143,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun updateAccentColor(accent: String) {
-        viewModelScope.launch {
-            preferenceManager.updateAccentColor(accent)
-        }
-    }
+
 
     fun updatePrivacyModeEnabled(enabled: Boolean) {
         viewModelScope.launch {

@@ -58,7 +58,7 @@ fun SettingsScreen(
     var showCurrencyDialog by remember { mutableStateOf(false) }
     var showResetDialog by remember { mutableStateOf(false) }
     var showImportWarning by remember { mutableStateOf(false) }
-    var showAccentDialog by remember { mutableStateOf(false) }
+
     var showRadiusDialog by remember { mutableStateOf(false) }
     var showNavLabelDialog by remember { mutableStateOf(false) }
 
@@ -257,23 +257,7 @@ fun SettingsScreen(
                         )
                     }
 
-                    if (!uiState.isDynamicColorEnabled || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-                        SettingsItem(
-                            icon = Icons.Default.Palette,
-                            title = "Accent Color",
-                            subtitle = uiState.accentColor,
-                            trailingContent = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary)
-                                )
-                            },
-                            animationsEnabled = uiState.areAnimationsEnabled,
-                            onClick = { showAccentDialog = true }
-                        )
-                    }
+
 
                     SettingsItem(
                         icon = Icons.Default.ViewHeadline,
@@ -649,60 +633,7 @@ fun SettingsScreen(
         )
     }
 
-    if (showAccentDialog) {
-        val accents = listOf(
-            Triple("Emerald", Color(0xFF006D39), "Lush green tone"),
-            Triple("Indigo", Color(0xFF415AA9), "Deep blue violet"),
-            Triple("Sapphire", Color(0xFF006493), "Ocean blue"),
-            Triple("Crimson", Color(0xFFB91C1C), "Bold red accent")
-        )
-        AlertDialog(
-            onDismissRequest = { showAccentDialog = false },
-            icon = { Icon(Icons.Default.ColorLens, null) },
-            title = { Text("Accent Color") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    accents.forEach { (name, color, description) ->
-                        val isSelected = uiState.accentColor == name
-                        ListItem(
-                            headlineContent = { Text(name, fontWeight = FontWeight.SemiBold) },
-                            supportingContent = { Text(description, style = MaterialTheme.typography.bodySmall) },
-                            leadingContent = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clip(CircleShape)
-                                        .background(color),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    if (isSelected) {
-                                        Icon(
-                                            Icons.Default.Check,
-                                            null,
-                                            tint = Color.White,
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                    }
-                                }
-                            },
-                            modifier = Modifier
-                                .clip(MaterialTheme.shapes.large)
-                                .fiscusClickable(haptic = haptic, enabledAnimations = uiState.areAnimationsEnabled) {
-                                    viewModel.updateAccentColor(name)
-                                    showAccentDialog = false
-                                },
-                            colors = ListItemDefaults.colors(
-                                containerColor = if (isSelected) color.copy(alpha = 0.1f) else Color.Transparent
-                            )
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showAccentDialog = false }) { Text("Close") }
-            }
-        )
-    }
+
 }
 
 @Composable
