@@ -15,51 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 
 
-
-private fun AppPalette.toColorScheme(dark: Boolean): ColorScheme {
-    return if (dark) {
-        darkColorScheme(
-            primary = primary,
-            onPrimary = onPrimary,
-            primaryContainer = primaryContainer,
-            onPrimaryContainer = onPrimaryContainer,
-            secondary = secondary,
-            onSecondary = onSecondary,
-            secondaryContainer = secondaryContainer,
-            onSecondaryContainer = onSecondaryContainer,
-            tertiary = tertiary,
-            onTertiary = onTertiary,
-            tertiaryContainer = tertiaryContainer,
-            onTertiaryContainer = onTertiaryContainer,
-            background = background,
-            onBackground = onBackground,
-            surface = surface,
-            onSurface = onSurface,
-            surfaceContainer = surfaceContainer
-        )
-    } else {
-        lightColorScheme(
-            primary = primary,
-            onPrimary = onPrimary,
-            primaryContainer = primaryContainer,
-            onPrimaryContainer = onPrimaryContainer,
-            secondary = secondary,
-            onSecondary = onSecondary,
-            secondaryContainer = secondaryContainer,
-            onSecondaryContainer = onSecondaryContainer,
-            tertiary = tertiary,
-            onTertiary = onTertiary,
-            tertiaryContainer = tertiaryContainer,
-            onTertiaryContainer = onTertiaryContainer,
-            background = background,
-            onBackground = onBackground,
-            surface = surface,
-            onSurface = onSurface,
-            surfaceContainer = surfaceContainer
-        )
-    }
-}
-
 @Composable
 fun FiscusTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -75,8 +30,7 @@ fun FiscusTheme(
         }
 
         else -> {
-            val palette = if (darkTheme) MonochromeDark else MonochromeLight
-            palette.toColorScheme(darkTheme)
+            if (darkTheme) MonochromeDarkColorScheme else MonochromeLightColorScheme
         }
     }
 
