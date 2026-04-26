@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.CardDefaults
@@ -647,14 +648,10 @@ fun TransactionItem(
 ) {
     val amountColor = when (transaction.type) {
         TransactionType.INCOME -> MaterialTheme.colorScheme.primary
-        TransactionType.EXPENSE -> MaterialTheme.colorScheme.onSurface
+        TransactionType.EXPENSE -> MaterialTheme.colorScheme.error
         TransactionType.TRANSFER -> MaterialTheme.colorScheme.secondary
     }
-    val prefix = when (transaction.type) {
-        TransactionType.INCOME -> "+"
-        TransactionType.EXPENSE -> "-"
-        TransactionType.TRANSFER -> ""
-    }
+
 
     Row(
         modifier = modifier
@@ -764,12 +761,37 @@ fun TransactionItem(
         Spacer(modifier = Modifier.width(8.dp))
 
         Column(horizontalAlignment = Alignment.End) {
-            Text(
-                text = "$prefix${formatCurrency(transaction.amount, currencyCode, isMasked)}",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = amountColor
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                when (transaction.type) {
+                    TransactionType.INCOME -> Icon(
+                        imageVector = Icons.Default.ArrowUpward,
+                        contentDescription = "Income",
+                        modifier = Modifier.size(16.dp),
+                        tint = amountColor
+                    )
+                    TransactionType.EXPENSE -> Icon(
+                        imageVector = Icons.Default.ArrowDownward,
+                        contentDescription = "Expense",
+                        modifier = Modifier.size(16.dp),
+                        tint = amountColor
+                    )
+                    TransactionType.TRANSFER -> Icon(
+                        imageVector = Icons.Default.SwapHoriz,
+                        contentDescription = "Transfer",
+                        modifier = Modifier.size(16.dp),
+                        tint = amountColor
+                    )
+                }
+                Text(
+                    text = formatCurrency(transaction.amount, currencyCode, isMasked),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = amountColor
+                )
+            }
             Spacer(modifier = Modifier.height(2.dp))
             val dateFormatter =
                 remember { java.text.SimpleDateFormat("MMM dd", java.util.Locale.getDefault()) }
