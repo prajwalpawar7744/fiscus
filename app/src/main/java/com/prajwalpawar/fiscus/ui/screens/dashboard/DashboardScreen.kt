@@ -88,6 +88,7 @@ import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionDetailScreen
 import com.prajwalpawar.fiscus.ui.utils.AnimatedAmount
 import com.prajwalpawar.fiscus.ui.utils.EmptyState
 import com.prajwalpawar.fiscus.ui.utils.fiscusClickable
+import com.prajwalpawar.fiscus.ui.utils.fiscusScaleIn
 import com.prajwalpawar.fiscus.ui.utils.formatCurrency
 import com.prajwalpawar.fiscus.ui.utils.getCategoryIcon
 import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
@@ -496,26 +497,10 @@ fun BalanceCard(
     isCompact: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    var progress by remember { mutableFloatStateOf(0f) }
-
-    LaunchedEffect(Unit) {
-        progress = 1f
-    }
-
-    val animatedProgress by animateFloatAsState(
-        targetValue = if (animationsEnabled) progress else 1f,
-        animationSpec = tween(350, easing = androidx.compose.animation.core.FastOutSlowInEasing),
-        label = "balanceCardProgress"
-    )
-
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .graphicsLayer {
-                alpha = animatedProgress
-                translationY = (1f - animatedProgress) * 20f
-            },
+            .padding(vertical = 8.dp),
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -594,7 +579,8 @@ fun SummaryCard(
 ) {
     Surface(
         modifier = modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .fiscusScaleIn(enabled = animationsEnabled, initialScale = 0.96f),
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
     ) {

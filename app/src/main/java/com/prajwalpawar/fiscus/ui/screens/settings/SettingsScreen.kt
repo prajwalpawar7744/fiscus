@@ -25,9 +25,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import com.prajwalpawar.fiscus.ui.components.ConfirmationDialog
+import com.prajwalpawar.fiscus.ui.utils.fiscusClickable
+import com.prajwalpawar.fiscus.ui.utils.fiscusScaleIn
 import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
 import com.prajwalpawar.fiscus.ui.utils.staggeredVerticalFadeIn
-import com.prajwalpawar.fiscus.ui.utils.fiscusClickable
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import android.os.Build
@@ -172,6 +173,7 @@ fun SettingsScreen(
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.surfaceContainerLowest)
                                 .border(2.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                                .fiscusScaleIn(enabled = uiState.areAnimationsEnabled, initialScale = 0.9f, delay = 200)
                                 .fiscusClickable(haptic = haptic, enabledAnimations = uiState.areAnimationsEnabled) {
                                     photoLauncher.launch("image/*")
                                 },

@@ -133,7 +133,7 @@ fun AccountsScreen(
                     key = { _, acc -> acc.id ?: acc.hashCode() }
                 ) { index, account ->
                     AccountListItem(
-                        modifier = Modifier.staggeredVerticalFadeIn(index),
+                        modifier = Modifier.staggeredVerticalFadeIn(index, enabled = uiState.areAnimationsEnabled),
                         account = account,
                         currencyCode = uiState.currency,
                         isCompact = uiState.isCompactNumberFormatEnabled,
@@ -219,7 +219,7 @@ private fun AccountFormSheet(
             text = if (uiState.isEditing) "Edit Account" else "New Account",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.staggeredVerticalFadeIn(0)
+            modifier = Modifier.staggeredVerticalFadeIn(0, enabled = uiState.areAnimationsEnabled)
         )
 
         OutlinedTextField(
@@ -227,7 +227,7 @@ private fun AccountFormSheet(
             onValueChange = viewModel::onNameChange,
             label = { Text("Account Name") },
             placeholder = { Text("e.g. HDFC Savings") },
-            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(1),
+            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(1, enabled = uiState.areAnimationsEnabled),
             shape = MaterialTheme.shapes.large,
             singleLine = true,
             leadingIcon = { Icon(Icons.AutoMirrored.Filled.Label, null) }
@@ -237,7 +237,7 @@ private fun AccountFormSheet(
             value = uiState.balance,
             onValueChange = viewModel::onBalanceChange,
             label = { Text("Initial Balance") },
-            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(2),
+            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(2, enabled = uiState.areAnimationsEnabled),
             shape = MaterialTheme.shapes.large,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,
@@ -246,7 +246,7 @@ private fun AccountFormSheet(
 
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.staggeredVerticalFadeIn(3)
+            modifier = Modifier.staggeredVerticalFadeIn(3, enabled = uiState.areAnimationsEnabled)
         ) {
             Text(
                 "Choose Icon",
@@ -282,7 +282,7 @@ private fun AccountFormSheet(
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(4),
+            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(4, enabled = uiState.areAnimationsEnabled),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OutlinedButton(

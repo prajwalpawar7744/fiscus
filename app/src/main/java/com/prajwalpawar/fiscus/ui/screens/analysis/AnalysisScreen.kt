@@ -55,6 +55,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import com.prajwalpawar.fiscus.ui.utils.fiscusClickable
+import com.prajwalpawar.fiscus.ui.utils.fiscusScaleIn
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -150,21 +151,11 @@ fun AnalysisScreen(
                             )
                         }
 
-                        val scale by animateFloatAsState(
-                            targetValue = 1f,
-                            animationSpec = if (uiState.areAnimationsEnabled) tween(300) else snap()
-                        )
-
                         // Scrollable Filter Chips Section
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .graphicsLayer {
-                                    if (uiState.areAnimationsEnabled) {
-                                        scaleX = scale
-                                        scaleY = scale
-                                    }
-                                },
+                                .fiscusScaleIn(enabled = uiState.areAnimationsEnabled, initialScale = 0.95f),
                             color = MaterialTheme.colorScheme.surfaceContainerLow,
                             shape = MaterialTheme.shapes.extraLarge,
                             tonalElevation = 2.dp
@@ -447,6 +438,7 @@ fun AnalysisScreen(
                             .fillMaxWidth()
                             .height(260.dp)
                             .padding(top = 16.dp)
+                            .fiscusScaleIn(enabled = uiState.areAnimationsEnabled, initialScale = 0.98f)
 
                         when (type) {
                             AnalysisChartType.BAR -> {

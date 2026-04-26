@@ -15,14 +15,17 @@ fun EmptyState(message: String, icon: ImageVector) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 48.dp),
+            .padding(vertical = 48.dp)
+            .staggeredVerticalFadeIn(0),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Surface(
             shape = CircleShape,
             color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-            modifier = Modifier.size(96.dp)
+            modifier = Modifier
+                .size(96.dp)
+                .pulsate()
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(

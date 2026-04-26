@@ -1,23 +1,13 @@
 package com.prajwalpawar.fiscus.ui.utils
 
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.graphicsLayer
@@ -30,7 +20,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.graphics.Color
 
 /**
@@ -124,6 +113,71 @@ fun Modifier.scaleOnPress(enabled: Boolean = true): Modifier = composed {
     this.graphicsLayer {
         this.scaleX = scale
         this.scaleY = scale
+    }
+}
+
+/**
+ * A modifier that applies a scale-in entry animation.
+ */
+fun Modifier.fiscusScaleIn(
+    enabled: Boolean = true,
+    initialScale: Float = 0.8f,
+    delay: Int = 0
+): Modifier = composed {
+    if (!enabled) return@composed this
+    
+    var visible by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (visible) 1f else initialScale,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "scaleIn"
+    )
+    val alpha by animateFloatAsState(
+        targetValue = if (visible) 1f else 0f,
+        animationSpec = tween(300),
+        label = "scaleInAlpha"
+    )
+
+    LaunchedEffect(Unit) {
+        if (delay > 0) kotlinx.coroutines.delay(delay.toLong())
+        visible = true
+    }
+
+    this.graphicsLayer {
+        scaleX = scale
+        scaleY = scale
+        this.alpha = alpha
+    }
+}
+
+/**
+ * A modifier that adds a continuous pulsating effect.
+ * Useful for highlighting buttons or empty states.
+ */
+fun Modifier.pulsate(
+    enabled: Boolean = true,
+    minScale: Float = 0.95f,
+    duration: Int = 1200
+): Modifier = composed {
+    if (!enabled) return@composed this
+    
+    val infiniteTransition = androidx.compose.animation.core.rememberInfiniteTransition(label = "pulsate")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = minScale,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            animation = tween(duration, easing = LinearOutSlowInEasing),
+            repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+        ),
+        label = "pulsateScale"
+    )
+
+    this.graphicsLayer {
+        scaleX = scale
+        scaleY = scale
     }
 }
 

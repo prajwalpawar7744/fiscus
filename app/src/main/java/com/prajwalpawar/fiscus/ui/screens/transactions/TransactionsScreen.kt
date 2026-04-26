@@ -98,6 +98,7 @@ import com.prajwalpawar.fiscus.ui.components.ConfirmationDialog
 import com.prajwalpawar.fiscus.ui.screens.dashboard.TransactionItem
 import com.prajwalpawar.fiscus.ui.utils.EmptyState
 import com.prajwalpawar.fiscus.ui.utils.getCategoryIcon
+import com.prajwalpawar.fiscus.ui.utils.fiscusScaleIn
 import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
 import com.prajwalpawar.fiscus.ui.utils.staggeredVerticalFadeIn
 import kotlinx.coroutines.delay
@@ -236,7 +237,8 @@ fun TransactionsScreen(
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .fiscusScaleIn(enabled = uiState.areAnimationsEnabled, initialScale = 0.95f),
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
                     shape = MaterialTheme.shapes.extraLarge,
                     tonalElevation = 2.dp

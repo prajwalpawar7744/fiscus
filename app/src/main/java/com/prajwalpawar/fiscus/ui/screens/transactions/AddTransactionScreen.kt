@@ -34,6 +34,7 @@ import com.prajwalpawar.fiscus.domain.model.Account
 import com.prajwalpawar.fiscus.domain.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.ConfirmationDialog
 import com.prajwalpawar.fiscus.ui.utils.getCategoryIcon
+import com.prajwalpawar.fiscus.ui.utils.fiscusScaleIn
 import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
 import com.prajwalpawar.fiscus.ui.utils.staggeredVerticalFadeIn
 import java.text.SimpleDateFormat
@@ -107,7 +108,8 @@ fun AddTransactionScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp),
+                    .padding(24.dp)
+                    .fiscusScaleIn(enabled = uiState.areAnimationsEnabled, initialScale = 0.95f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(

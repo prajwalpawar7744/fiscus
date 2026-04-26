@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.prajwalpawar.fiscus.domain.model.Category
 import com.prajwalpawar.fiscus.domain.model.TransactionType
 import com.prajwalpawar.fiscus.ui.utils.fiscusClickable
+import com.prajwalpawar.fiscus.ui.utils.fiscusScaleIn
 import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
 import com.prajwalpawar.fiscus.ui.utils.staggeredVerticalFadeIn
 import com.prajwalpawar.fiscus.ui.utils.getCategoryIcon
@@ -334,8 +335,9 @@ fun AddCategorySheet(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
-            .padding(bottom = 36.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+            .padding(bottom = 32.dp)
+            .fiscusScaleIn(initialScale = 0.98f),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         // Header row with live preview
         Row(

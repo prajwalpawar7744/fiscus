@@ -19,7 +19,8 @@ data class AccountsUiState(
     val selectedAccountId: Long? = null,
     val topBarStyle: String = "standard",
     val currency: String = "USD",
-    val isCompactNumberFormatEnabled: Boolean = false
+    val isCompactNumberFormatEnabled: Boolean = false,
+    val areAnimationsEnabled: Boolean = true
 )
 
 @HiltViewModel
@@ -33,12 +34,14 @@ class AccountsViewModel @Inject constructor(
         _uiState,
         preferenceManager.topBarStyle,
         preferenceManager.currency,
-        preferenceManager.isCompactNumberFormatEnabled
-    ) { state, topBarStyle, currency, isCompact ->
+        preferenceManager.isCompactNumberFormatEnabled,
+        preferenceManager.areAnimationsEnabled
+    ) { state, topBarStyle, currency, isCompact, areAnimationsEnabled ->
         state.copy(
             topBarStyle = topBarStyle,
             currency = currency,
-            isCompactNumberFormatEnabled = isCompact
+            isCompactNumberFormatEnabled = isCompact,
+            areAnimationsEnabled = areAnimationsEnabled
         )
     }.stateIn(
         scope = viewModelScope,
