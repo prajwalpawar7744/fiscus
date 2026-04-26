@@ -6,8 +6,8 @@ import java.util.*
 
 @SuppressLint("DefaultLocale")
 fun formatCurrency(
-    amount: Double, 
-    currencyCode: String, 
+    amount: Double,
+    currencyCode: String,
     isMasked: Boolean = false,
     isCompact: Boolean = false
 ): String {
@@ -22,7 +22,7 @@ fun formatCurrency(
     }
 
     val locale = getLocaleForCurrency(currencyCode)
-    
+
     return try {
         val symbol = Currency.getInstance(currencyCode).getSymbol(locale)
         val formattedAmount = if (isCompact) {
@@ -35,7 +35,7 @@ fun formatCurrency(
             val currencyFormat = format.format(amount)
             return currencyFormat
         }
-        
+
         // For compact mode, we manually construct the string with the symbol
         "$symbol$formattedAmount"
     } catch (e: Exception) {

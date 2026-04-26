@@ -149,15 +149,20 @@ fun Transaction.toEntity() = TransactionEntity(
 )
 
 fun CategoryEntity.toDomain() = Category(
-    id = id, 
-    name = name, 
-    icon = icon, 
-    color = color, 
-    type = type?.let { 
-        try { TransactionType.valueOf(it) } catch(e: Exception) { null } 
-    }, 
+    id = id,
+    name = name,
+    icon = icon,
+    color = color,
+    type = type?.let {
+        try {
+            TransactionType.valueOf(it)
+        } catch (e: Exception) {
+            null
+        }
+    },
     isSystem = isSystem
 )
+
 fun Category.toEntity() = CategoryEntity(id ?: 0, name, icon, color, type?.name, isSystem)
 fun AccountEntity.toDomain() = Account(id, name, balance, icon)
 fun Account.toEntity() = AccountEntity(id ?: 0, name, balance, icon)

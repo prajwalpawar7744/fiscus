@@ -93,96 +93,102 @@ class TransactionsViewModel @Inject constructor(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _transactionsUiState: StateFlow<TransactionsUiState> = combine<Any?, TransactionsUiState>(
-        repository.getTransactions(),
-        _categories,
-        _accounts,
-        preferenceManager.currency,
-        _filters,
-        preferenceManager.areAnimationsEnabled,
-        preferenceManager.topBarStyle,
-        _searchText,
-        preferenceManager.isPrivacyModeEnabled,
-        preferenceManager.isCompactNumberFormatEnabled
-    ) { args ->
-        @Suppress("UNCHECKED_CAST")
-        val transactions = args[0] as List<Transaction>
-        @Suppress("UNCHECKED_CAST")
-        val categories = args[1] as List<Category>
-        @Suppress("UNCHECKED_CAST")
-        val accounts = args[2] as List<Account>
-        val currency = args[3] as String
-        val filters = args[4] as FilterParams
-        val animationsEnabled = args[5] as Boolean
-        val topBarStyle = args[6] as String
-        val rawSearchText = args[7] as String
-        val privacyEnabled = args[8] as Boolean
-        val compactEnabled = args[9] as Boolean
-        
-        val (search, categoryId, accountId, timeRange, start, end) = filters
-        
-        val filteredTransactions = transactions.filter { transaction ->
-            val matchesSearch = transaction.title.contains(search, ignoreCase = true) || 
-                                transaction.note.contains(search, ignoreCase = true)
-            val matchesCategory = categoryId == null || transaction.categoryId == categoryId
-            val matchesAccount = accountId == null || transaction.accountId == accountId || transaction.toAccountId == accountId
-            
-            val transactionDate = transaction.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-            val now = LocalDate.now()
-            val matchesTime = when (timeRange) {
-                TimeRange.ALL -> true
-                TimeRange.TODAY -> transactionDate.isEqual(now)
-                TimeRange.THIS_WEEK -> {
-                    val startOfWeek = now.minusDays(now.dayOfWeek.value.toLong() - 1)
-                    !transactionDate.isBefore(startOfWeek) && !transactionDate.isAfter(now)
-                }
-                TimeRange.THIS_MONTH -> transactionDate.month == now.month && transactionDate.year == now.year
-                TimeRange.THIS_YEAR -> transactionDate.year == now.year
-                TimeRange.CUSTOM -> {
-                    if (start != null && end != null) {
-                        !transactionDate.isBefore(start) && !transactionDate.isAfter(end)
-                    } else true
-                }
-            }
-            
-            matchesSearch && matchesCategory && matchesAccount && matchesTime
-        }.sortedByDescending { it.date }
-        
-        // Group by Month-Year string -> Group by LocalDate -> List of Transactions
-        val grouped = filteredTransactions.groupBy { transaction ->
-            val date = transaction.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-            "${date.month} ${date.year}"
-        }.mapValues { entry ->
-            entry.value.groupBy { transaction ->
-                transaction.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-            }
-        }
+    private val _transactionsUiState: StateFlow<TransactionsUiState> =
+        combine<Any?, TransactionsUiState>(
+            repository.getTransactions(),
+            _categories,
+            _accounts,
+            preferenceManager.currency,
+            _filters,
+            preferenceManager.areAnimationsEnabled,
+            preferenceManager.topBarStyle,
+            _searchText,
+            preferenceManager.isPrivacyModeEnabled,
+            preferenceManager.isCompactNumberFormatEnabled
+        ) { args ->
+            @Suppress("UNCHECKED_CAST")
+            val transactions = args[0] as List<Transaction>
 
-        TransactionsUiState(
-            groupedTransactions = grouped,
-            categories = categories.associateBy { it.id ?: 0L },
-            accounts = accounts.associateBy { it.id ?: 0L },
-            currency = currency,
-            searchText = rawSearchText,
-            selectedCategoryId = categoryId,
-            selectedAccountId = accountId,
-            selectedTimeRange = timeRange,
-            startDate = start,
-            endDate = end,
-            allCategories = categories.distinctBy { "${it.name}-${it.type}" },
-            allAccounts = accounts,
-            areAnimationsEnabled = animationsEnabled,
-            topBarStyle = topBarStyle,
-            isPrivacyModeEnabled = privacyEnabled,
-            isCompactNumberFormatEnabled = compactEnabled
-        )
-    }
-.flowOn(Dispatchers.Default)
-    .stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = TransactionsUiState()
-    )
+            @Suppress("UNCHECKED_CAST")
+            val categories = args[1] as List<Category>
+
+            @Suppress("UNCHECKED_CAST")
+            val accounts = args[2] as List<Account>
+            val currency = args[3] as String
+            val filters = args[4] as FilterParams
+            val animationsEnabled = args[5] as Boolean
+            val topBarStyle = args[6] as String
+            val rawSearchText = args[7] as String
+            val privacyEnabled = args[8] as Boolean
+            val compactEnabled = args[9] as Boolean
+
+            val (search, categoryId, accountId, timeRange, start, end) = filters
+
+            val filteredTransactions = transactions.filter { transaction ->
+                val matchesSearch = transaction.title.contains(search, ignoreCase = true) ||
+                        transaction.note.contains(search, ignoreCase = true)
+                val matchesCategory = categoryId == null || transaction.categoryId == categoryId
+                val matchesAccount =
+                    accountId == null || transaction.accountId == accountId || transaction.toAccountId == accountId
+
+                val transactionDate =
+                    transaction.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                val now = LocalDate.now()
+                val matchesTime = when (timeRange) {
+                    TimeRange.ALL -> true
+                    TimeRange.TODAY -> transactionDate.isEqual(now)
+                    TimeRange.THIS_WEEK -> {
+                        val startOfWeek = now.minusDays(now.dayOfWeek.value.toLong() - 1)
+                        !transactionDate.isBefore(startOfWeek) && !transactionDate.isAfter(now)
+                    }
+
+                    TimeRange.THIS_MONTH -> transactionDate.month == now.month && transactionDate.year == now.year
+                    TimeRange.THIS_YEAR -> transactionDate.year == now.year
+                    TimeRange.CUSTOM -> {
+                        if (start != null && end != null) {
+                            !transactionDate.isBefore(start) && !transactionDate.isAfter(end)
+                        } else true
+                    }
+                }
+
+                matchesSearch && matchesCategory && matchesAccount && matchesTime
+            }.sortedByDescending { it.date }
+
+            // Group by Month-Year string -> Group by LocalDate -> List of Transactions
+            val grouped = filteredTransactions.groupBy { transaction ->
+                val date = transaction.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                "${date.month} ${date.year}"
+            }.mapValues { entry ->
+                entry.value.groupBy { transaction ->
+                    transaction.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                }
+            }
+
+            TransactionsUiState(
+                groupedTransactions = grouped,
+                categories = categories.associateBy { it.id ?: 0L },
+                accounts = accounts.associateBy { it.id ?: 0L },
+                currency = currency,
+                searchText = rawSearchText,
+                selectedCategoryId = categoryId,
+                selectedAccountId = accountId,
+                selectedTimeRange = timeRange,
+                startDate = start,
+                endDate = end,
+                allCategories = categories.distinctBy { "${it.name}-${it.type}" },
+                allAccounts = accounts,
+                areAnimationsEnabled = animationsEnabled,
+                topBarStyle = topBarStyle,
+                isPrivacyModeEnabled = privacyEnabled,
+                isCompactNumberFormatEnabled = compactEnabled
+            )
+        }
+            .flowOn(Dispatchers.Default)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Eagerly,
+                initialValue = TransactionsUiState()
+            )
 
     private val _selectedTransaction = MutableStateFlow<Transaction?>(null)
 
@@ -225,17 +231,17 @@ class TransactionsViewModel @Inject constructor(
     suspend fun exportTransactionsToCsv(): String {
         val state = uiState.value
         val allFilteredTransactions = mutableListOf<Transaction>()
-        
+
         // Flatten grouped transactions
         state.groupedTransactions.values.forEach { dateGroups ->
             dateGroups.values.forEach { transactions ->
                 allFilteredTransactions.addAll(transactions)
             }
         }
-        
+
         // Sort by date descending (already mostly done by grouping, but let's be sure)
         val sortedTransactions = allFilteredTransactions.sortedByDescending { it.date }
-        
+
         return reportManager.generateCsvReport(
             transactions = sortedTransactions,
             categories = state.categories,

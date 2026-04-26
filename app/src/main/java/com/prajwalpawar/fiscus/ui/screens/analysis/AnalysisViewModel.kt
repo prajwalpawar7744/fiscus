@@ -82,7 +82,8 @@ class AnalysisViewModel @Inject constructor(
     private val _selectedTimeRange = MutableStateFlow(TimeRange.ALL)
     private val _startDate = MutableStateFlow<LocalDate?>(null)
     private val _endDate = MutableStateFlow<LocalDate?>(null)
-    private val _selectedTransactionType = MutableStateFlow<TransactionType?>(TransactionType.EXPENSE)
+    private val _selectedTransactionType =
+        MutableStateFlow<TransactionType?>(TransactionType.EXPENSE)
     private val _selectedCategoryId = MutableStateFlow<Long?>(null)
     private val _selectedAccountId = MutableStateFlow<Long?>(null)
     private val _selectedChartType = MutableStateFlow(AnalysisChartType.BAR)
@@ -141,8 +142,10 @@ class AnalysisViewModel @Inject constructor(
     ) { args ->
         @Suppress("UNCHECKED_CAST")
         val transactions = args[0] as List<Transaction>
+
         @Suppress("UNCHECKED_CAST")
         val categories = args[1] as List<Category>
+
         @Suppress("UNCHECKED_CAST")
         val accounts = args[2] as List<com.prajwalpawar.fiscus.domain.model.Account>
         val currency = args[3] as String
@@ -151,9 +154,10 @@ class AnalysisViewModel @Inject constructor(
         val topBarStyle = args[6] as String
         val privacyEnabled = args[7] as Boolean
         val compactEnabled = args[8] as Boolean
-        
+
         val timeFilteredTransactions = transactions.filter { transaction ->
-            val transactionDate = transaction.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+            val transactionDate =
+                transaction.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
             val now = LocalDate.now()
             when (filters.timeRange) {
                 TimeRange.ALL -> true
@@ -162,31 +166,38 @@ class AnalysisViewModel @Inject constructor(
                     val startOfWeek = now.minusDays(now.dayOfWeek.value.toLong() - 1)
                     !transactionDate.isBefore(startOfWeek) && !transactionDate.isAfter(now)
                 }
+
                 TimeRange.THIS_MONTH -> transactionDate.month == now.month && transactionDate.year == now.year
                 TimeRange.THIS_YEAR -> transactionDate.year == now.year
                 TimeRange.CUSTOM -> {
                     if (filters.startDate != null && filters.endDate != null) {
-                        !transactionDate.isBefore(filters.startDate) && !transactionDate.isAfter(filters.endDate)
+                        !transactionDate.isBefore(filters.startDate) && !transactionDate.isAfter(
+                            filters.endDate
+                        )
                     } else true
                 }
             }
         }
-        
+
         val filteredTransactions = timeFilteredTransactions.filter { transaction ->
             val matchesType = filters.type == null || transaction.type == filters.type
-            val matchesCategory = filters.categoryId == null || transaction.categoryId == filters.categoryId
-            val matchesAccount = filters.accountId == null || transaction.accountId == filters.accountId || transaction.toAccountId == filters.accountId
+            val matchesCategory =
+                filters.categoryId == null || transaction.categoryId == filters.categoryId
+            val matchesAccount =
+                filters.accountId == null || transaction.accountId == filters.accountId || transaction.toAccountId == filters.accountId
             matchesType && matchesCategory && matchesAccount
         }
-        
+
         // Final filter for period summary (includes account/category but maybe not type if summary shows both?)
         // Actually, period summary usually shows TOTAL income/expense for the selected filters.
         val summaryTransactions = timeFilteredTransactions.filter { transaction ->
-            val matchesCategory = filters.categoryId == null || transaction.categoryId == filters.categoryId
-            val matchesAccount = filters.accountId == null || transaction.accountId == filters.accountId || transaction.toAccountId == filters.accountId
+            val matchesCategory =
+                filters.categoryId == null || transaction.categoryId == filters.categoryId
+            val matchesAccount =
+                filters.accountId == null || transaction.accountId == filters.accountId || transaction.toAccountId == filters.accountId
             matchesCategory && matchesAccount
         }
-        
+
         val now = LocalDate.now()
         val effectiveStart = when (filters.timeRange) {
             TimeRange.TODAY -> now
@@ -194,21 +205,25 @@ class AnalysisViewModel @Inject constructor(
             TimeRange.THIS_MONTH -> now.withDayOfMonth(1)
             TimeRange.THIS_YEAR -> now.withDayOfYear(1)
             TimeRange.CUSTOM -> filters.startDate ?: now.minusDays(30)
-            TimeRange.ALL -> transactions.minOfOrNull { it.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() } ?: now.minusDays(30)
+            TimeRange.ALL -> transactions.minOfOrNull {
+                it.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+            } ?: now.minusDays(30)
         }
         val effectiveEnd = when (filters.timeRange) {
             TimeRange.CUSTOM -> filters.endDate ?: now
             else -> now
         }
-        
+
         val expenses = filteredTransactions.filter { it.type == TransactionType.EXPENSE }
         val income = filteredTransactions.filter { it.type == TransactionType.INCOME }
-        
-        val totalExpense = summaryTransactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
-        val totalIncome = summaryTransactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
-        
+
+        val totalExpense =
+            summaryTransactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
+        val totalIncome =
+            summaryTransactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
+
         val categoryMap = categories.associateBy { it.id ?: 0L }
-        
+
         val breakdown = if (filters.type == TransactionType.INCOME) {
             income.groupBy { it.categoryId }
         } else {
@@ -225,12 +240,24 @@ class AnalysisViewModel @Inject constructor(
             )
         }.sortedByDescending { it.amount }
 
-        val expensePoints = aggregateByTime(expenses, filters.granularity, filters.timeRange, filters.startDate, filters.endDate)
-        val incomePoints = aggregateByTime(income, filters.granularity, filters.timeRange, filters.startDate, filters.endDate)
+        val expensePoints = aggregateByTime(
+            expenses,
+            filters.granularity,
+            filters.timeRange,
+            filters.startDate,
+            filters.endDate
+        )
+        val incomePoints = aggregateByTime(
+            income,
+            filters.granularity,
+            filters.timeRange,
+            filters.startDate,
+            filters.endDate
+        )
 
         // Activity points for Heatmap (frequency of transactions)
-        val activityMap = filteredTransactions.groupBy { 
-            it.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() 
+        val activityMap = filteredTransactions.groupBy {
+            it.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
         }
         val maxActivity = activityMap.values.maxOfOrNull { it.size } ?: 1
         val activityPoints = activityMap.map { (date, list) ->
@@ -263,12 +290,12 @@ class AnalysisViewModel @Inject constructor(
             isCompactNumberFormatEnabled = compactEnabled
         )
     }.flowOn(Dispatchers.Default)
-    .stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = AnalysisUiState()
-    )
-    
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = AnalysisUiState()
+        )
+
     fun setGranularity(granularity: AnalysisGranularity) {
         _granularity.value = granularity
     }
@@ -306,14 +333,14 @@ class AnalysisViewModel @Inject constructor(
         endDate: LocalDate?
     ): List<TimeDataPoint> {
         val zoneId = ZoneId.systemDefault()
-        
+
         val dateFormat = if (granularity == AnalysisGranularity.DAILY) {
             DateTimeFormatter.ofPattern("dd MMM", Locale.getDefault())
         } else {
             DateTimeFormatter.ofPattern("MMM yyyy", Locale.getDefault())
         }
 
-        return transactions.groupBy { 
+        return transactions.groupBy {
             val date = it.date.toInstant().atZone(zoneId).toLocalDate()
             if (granularity == AnalysisGranularity.MONTHLY) {
                 date.withDayOfMonth(1)
@@ -321,6 +348,6 @@ class AnalysisViewModel @Inject constructor(
         }.map { (date, transList) ->
             date to TimeDataPoint(dateFormat.format(date), transList.sumOf { it.amount })
         }.sortedBy { it.first }
-        .map { it.second }
+            .map { it.second }
     }
 }

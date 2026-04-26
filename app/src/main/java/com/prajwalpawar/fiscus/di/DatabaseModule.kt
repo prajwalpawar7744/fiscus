@@ -22,10 +22,10 @@ object DatabaseModule {
     @Singleton
     fun provideFiscusDatabase(app: Application): FiscusDatabase {
         return Room.databaseBuilder(
-                app,
-                FiscusDatabase::class.java,
-                FiscusDatabase.DATABASE_NAME
-            )
+            app,
+            FiscusDatabase::class.java,
+            FiscusDatabase.DATABASE_NAME
+        )
             .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
             .fallbackToDestructiveMigration(dropAllTables = true)
             .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
@@ -40,7 +40,7 @@ object DatabaseModule {
             // 2. Insert new default categories for existing users
             // Bills: 0xFFFF5722 -> -43230
             db.execSQL("INSERT INTO categories (name, icon, color, type) VALUES ('Bills', 'receipt_long', -43230, 'EXPENSE')")
-            
+
             // Transfer: 0xFF607D8B -> -10453621
             db.execSQL("INSERT INTO categories (name, icon, color, type) VALUES ('Transfer', 'swap_horiz', -10453621, 'TRANSFER')")
         }
@@ -50,17 +50,19 @@ object DatabaseModule {
         override fun migrate(db: SupportSQLiteDatabase) {
             // Add isSystem column to categories
             db.execSQL("ALTER TABLE categories ADD COLUMN isSystem INTEGER NOT NULL DEFAULT 0")
-            
+
             // Clean up duplicates before adding unique index
             // We keep the one with the smallest ID for each (name, type) pair
-            db.execSQL("""
+            db.execSQL(
+                """
                 DELETE FROM categories 
                 WHERE id NOT IN (
                     SELECT MIN(id) 
                     FROM categories 
                     GROUP BY name, IFNULL(type, 'NULL')
                 )
-            """.trimIndent())
+            """.trimIndent()
+            )
 
             // Mark existing categories as system categories
             db.execSQL("UPDATE categories SET isSystem = 1 WHERE name IN ('Food', 'Travel', 'Education', 'Shopping', 'Health', 'Bills', 'Entertainment', 'Salary', 'Freelance', 'Gift', 'Investment', 'Other', 'Transfer')")
@@ -80,7 +82,8 @@ object DatabaseModule {
     private val MIGRATION_5_6 = object : Migration(5, 6) {
         override fun migrate(db: SupportSQLiteDatabase) {
             // Create the new transaction_sub_items table
-            db.execSQL("""
+            db.execSQL(
+                """
                 CREATE TABLE IF NOT EXISTS `transaction_sub_items` (
                     `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
                     `transactionId` INTEGER NOT NULL, 
@@ -88,8 +91,9 @@ object DatabaseModule {
                     `amount` REAL NOT NULL, 
                     FOREIGN KEY(`transactionId`) REFERENCES `transactions`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
                 )
-            """.trimIndent())
-            
+            """.trimIndent()
+            )
+
             // Create index for transactionId as required by Room
             db.execSQL("CREATE INDEX IF NOT EXISTS `index_transaction_sub_items_transactionId` ON `transaction_sub_items` (`transactionId`)")
         }

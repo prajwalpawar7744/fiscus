@@ -20,8 +20,9 @@ class BackupManager @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 // Force checkpoint the WAL so all data is pushed to the main file
-                database.query(SimpleSQLiteQuery("pragma wal_checkpoint(full)")).use { it.moveToFirst() }
-                
+                database.query(SimpleSQLiteQuery("pragma wal_checkpoint(full)"))
+                    .use { it.moveToFirst() }
+
                 val dbFile = context.getDatabasePath(FiscusDatabase.DATABASE_NAME)
                 dbFile.inputStream().use { input ->
                     input.copyTo(outputStream)
@@ -39,15 +40,15 @@ class BackupManager @Inject constructor(
             try {
                 // Close the active database connection
                 database.close()
-                
+
                 val dbFile = context.getDatabasePath(FiscusDatabase.DATABASE_NAME)
                 val walFile = context.getDatabasePath("${FiscusDatabase.DATABASE_NAME}-wal")
                 val shmFile = context.getDatabasePath("${FiscusDatabase.DATABASE_NAME}-shm")
-                
+
                 // Delete existing WAL and SHM files to prevent corruption with the incoming DB file
                 if (walFile.exists()) walFile.delete()
                 if (shmFile.exists()) shmFile.delete()
-                
+
                 // Overwrite the main DB file
                 dbFile.outputStream().use { output ->
                     inputStream.copyTo(output)

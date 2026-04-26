@@ -46,7 +46,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            
+
             // Use release signing if configured, otherwise fallback to debug
             val releaseConfig = signingConfigs.findByName("release")
             signingConfig = if (releaseConfig?.storeFile?.exists() == true) {
@@ -123,7 +123,7 @@ dependencies {
 
     // SplashScreen
     implementation(libs.androidx.core.splashscreen)
-    
+
     // Profile Installer for Baseline Profiles
     implementation(libs.androidx.profileinstaller)
 

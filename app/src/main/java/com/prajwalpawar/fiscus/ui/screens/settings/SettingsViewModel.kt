@@ -90,14 +90,15 @@ class SettingsViewModel @Inject constructor(
     private fun saveImageToInternalStorage(uri: Uri): String? {
         return try {
             val inputStream = context.contentResolver.openInputStream(uri)
-            
+
             // Delete old profile photos to prevent storage bloat
-            context.filesDir.listFiles { _, name -> name.startsWith("profile_photo_") }?.forEach { it.delete() }
-            
+            context.filesDir.listFiles { _, name -> name.startsWith("profile_photo_") }
+                ?.forEach { it.delete() }
+
             val filename = "profile_photo_${System.currentTimeMillis()}.jpg"
             val file = File(context.filesDir, filename)
             val outputStream = FileOutputStream(file)
-            
+
             inputStream?.use { input ->
                 outputStream.use { output ->
                     input.copyTo(output)
@@ -145,7 +146,6 @@ class SettingsViewModel @Inject constructor(
             preferenceManager.updateAnimationsEnabled(enabled)
         }
     }
-
 
 
     fun updatePrivacyModeEnabled(enabled: Boolean) {

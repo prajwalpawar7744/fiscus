@@ -92,18 +92,25 @@ class DashboardViewModel @Inject constructor(
         _userPrefs
     ) { data: DashboardData, allTransactions: List<Transaction>, prefs: DashboardUserPrefs ->
         val accountsWithBalance = data.accounts.map { account ->
-            val accountTransactions = allTransactions.filter { it.accountId == account.id || it.toAccountId == account.id }
-            val accountIncome = accountTransactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
-            val accountExpense = accountTransactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
-            val transferIn = accountTransactions.filter { it.type == TransactionType.TRANSFER && it.toAccountId == account.id }.sumOf { it.amount }
-            val transferOut = accountTransactions.filter { it.type == TransactionType.TRANSFER && it.accountId == account.id }.sumOf { it.amount }
-            
+            val accountTransactions =
+                allTransactions.filter { it.accountId == account.id || it.toAccountId == account.id }
+            val accountIncome =
+                accountTransactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
+            val accountExpense = accountTransactions.filter { it.type == TransactionType.EXPENSE }
+                .sumOf { it.amount }
+            val transferIn =
+                accountTransactions.filter { it.type == TransactionType.TRANSFER && it.toAccountId == account.id }
+                    .sumOf { it.amount }
+            val transferOut =
+                accountTransactions.filter { it.type == TransactionType.TRANSFER && it.accountId == account.id }
+                    .sumOf { it.amount }
+
             AccountWithBalance(
                 account = account,
                 balance = account.balance + accountIncome - accountExpense + transferIn - transferOut
             )
         }
-        
+
         DashboardUiState(
             balance = data.income - data.expense + data.accounts.sumOf { it.balance },
             totalIncome = data.income,
@@ -122,11 +129,11 @@ class DashboardViewModel @Inject constructor(
             isCompactNumberFormatEnabled = prefs.isCompactNumberFormatEnabled
         )
     }.flowOn(Dispatchers.Default)
-    .stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = DashboardUiState()
-    )
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = DashboardUiState()
+        )
 
     private val _selectedTransactionDetail = MutableStateFlow<Transaction?>(null)
 

@@ -306,8 +306,8 @@ fun DashboardScreen(
         androidx.compose.animation.AnimatedContent(
             targetState = uiState.isLoading,
             transitionSpec = {
-                com.prajwalpawar.fiscus.ui.utils.FiscusAnimation.Navigation.Enter togetherWith 
-                com.prajwalpawar.fiscus.ui.utils.FiscusAnimation.Navigation.Exit
+                com.prajwalpawar.fiscus.ui.utils.FiscusAnimation.Navigation.Enter togetherWith
+                        com.prajwalpawar.fiscus.ui.utils.FiscusAnimation.Navigation.Exit
             },
             label = "dashboardLoadingTransition"
         ) { isLoading ->
@@ -342,7 +342,10 @@ fun DashboardScreen(
                             animationsEnabled = uiState.areAnimationsEnabled,
                             isMasked = uiState.isPrivacyModeEnabled,
                             isCompact = uiState.isCompactNumberFormatEnabled,
-                            modifier = Modifier.staggeredVerticalFadeIn(0, uiState.areAnimationsEnabled)
+                            modifier = Modifier.staggeredVerticalFadeIn(
+                                0,
+                                uiState.areAnimationsEnabled
+                            )
                         )
                     }
 
@@ -696,12 +699,14 @@ fun TransactionItem(
             ) {
                 Surface(
                     shape = MaterialTheme.shapes.extraSmall,
-                    color = category?.color?.let { Color(it).copy(alpha = 0.1f) } ?: MaterialTheme.colorScheme.surfaceVariant,
+                    color = category?.color?.let { Color(it).copy(alpha = 0.1f) }
+                        ?: MaterialTheme.colorScheme.surfaceVariant,
                 ) {
                     Text(
                         text = category?.name ?: "No Category",
                         style = MaterialTheme.typography.labelSmall,
-                        color = category?.color?.let { Color(it) } ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = category?.color?.let { Color(it) }
+                            ?: MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -768,12 +773,14 @@ fun TransactionItem(
                         modifier = Modifier.size(16.dp),
                         tint = amountColor
                     )
+
                     TransactionType.EXPENSE -> Icon(
                         imageVector = Icons.Default.ArrowDownward,
                         contentDescription = "Expense",
                         modifier = Modifier.size(16.dp),
                         tint = amountColor
                     )
+
                     TransactionType.TRANSFER -> Icon(
                         imageVector = Icons.Default.SwapHoriz,
                         contentDescription = "Transfer",

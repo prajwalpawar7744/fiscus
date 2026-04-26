@@ -66,7 +66,7 @@ fun AnalysisScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val haptic = rememberFiscusHaptic()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-    
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -155,7 +155,10 @@ fun AnalysisScreen(
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .fiscusScaleIn(enabled = uiState.areAnimationsEnabled, initialScale = 0.95f),
+                                .fiscusScaleIn(
+                                    enabled = uiState.areAnimationsEnabled,
+                                    initialScale = 0.95f
+                                ),
                             color = MaterialTheme.colorScheme.surfaceContainerLow,
                             shape = MaterialTheme.shapes.extraLarge,
                             tonalElevation = 2.dp
@@ -192,7 +195,11 @@ fun AnalysisScreen(
                                             }
                                             Icon(icon, null, Modifier.size(18.dp))
                                         },
-                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
+                                        trailingIcon = {
+                                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                                expanded = typeExpanded
+                                            )
+                                        },
                                         shape = CircleShape
                                     )
                                     DropdownMenu(
@@ -201,38 +208,84 @@ fun AnalysisScreen(
                                     ) {
                                         DropdownMenuItem(
                                             text = { Text("Expenses") },
-                                            onClick = { viewModel.onTransactionTypeSelected(TransactionType.EXPENSE); typeExpanded = false },
-                                            leadingIcon = { Icon(Icons.Default.ArrowDownward, null, tint = MaterialTheme.colorScheme.error) }
+                                            onClick = {
+                                                viewModel.onTransactionTypeSelected(
+                                                    TransactionType.EXPENSE
+                                                ); typeExpanded = false
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.ArrowDownward,
+                                                    null,
+                                                    tint = MaterialTheme.colorScheme.error
+                                                )
+                                            }
                                         )
                                         DropdownMenuItem(
                                             text = { Text("Income") },
-                                            onClick = { viewModel.onTransactionTypeSelected(TransactionType.INCOME); typeExpanded = false },
-                                            leadingIcon = { Icon(Icons.Default.ArrowUpward, null, tint = MaterialTheme.colorScheme.primary) }
+                                            onClick = {
+                                                viewModel.onTransactionTypeSelected(
+                                                    TransactionType.INCOME
+                                                ); typeExpanded = false
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.ArrowUpward,
+                                                    null,
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
                                         )
                                         DropdownMenuItem(
                                             text = { Text("All Types") },
-                                            onClick = { viewModel.onTransactionTypeSelected(null); typeExpanded = false },
-                                            leadingIcon = { Icon(Icons.Default.HorizontalRule, null) }
+                                            onClick = {
+                                                viewModel.onTransactionTypeSelected(null); typeExpanded =
+                                                false
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.HorizontalRule,
+                                                    null
+                                                )
+                                            }
                                         )
                                     }
                                 }
 
                                 // Category Filter Chip
                                 var categoryExpanded by remember { mutableStateOf(false) }
-                                val selectedCategory = uiState.allCategories.find { it.id == uiState.selectedCategoryId }
+                                val selectedCategory =
+                                    uiState.allCategories.find { it.id == uiState.selectedCategoryId }
                                 Box {
                                     FilterChip(
                                         selected = selectedCategory != null,
                                         onClick = { categoryExpanded = true },
-                                        label = { Text(selectedCategory?.name ?: "All Categories") },
+                                        label = {
+                                            Text(
+                                                selectedCategory?.name ?: "All Categories"
+                                            )
+                                        },
                                         leadingIcon = {
                                             if (selectedCategory != null) {
-                                                Box(Modifier.size(12.dp).background(Color(selectedCategory.color), CircleShape))
+                                                Box(
+                                                    Modifier.size(12.dp).background(
+                                                        Color(selectedCategory.color),
+                                                        CircleShape
+                                                    )
+                                                )
                                             } else {
-                                                Icon(Icons.Default.Category, null, Modifier.size(18.dp))
+                                                Icon(
+                                                    Icons.Default.Category,
+                                                    null,
+                                                    Modifier.size(18.dp)
+                                                )
                                             }
                                         },
-                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                                        trailingIcon = {
+                                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                                expanded = categoryExpanded
+                                            )
+                                        },
                                         shape = CircleShape
                                     )
                                     DropdownMenu(
@@ -241,15 +294,28 @@ fun AnalysisScreen(
                                     ) {
                                         DropdownMenuItem(
                                             text = { Text("All Categories") },
-                                            onClick = { viewModel.onCategorySelected(null); categoryExpanded = false },
+                                            onClick = {
+                                                viewModel.onCategorySelected(null); categoryExpanded =
+                                                false
+                                            },
                                             leadingIcon = { Icon(Icons.Default.Category, null) }
                                         )
                                         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                                         uiState.allCategories.forEach { category ->
                                             DropdownMenuItem(
                                                 text = { Text(category.name) },
-                                                onClick = { viewModel.onCategorySelected(category.id); categoryExpanded = false },
-                                                leadingIcon = { Box(Modifier.size(12.dp).background(Color(category.color), CircleShape)) }
+                                                onClick = {
+                                                    viewModel.onCategorySelected(category.id); categoryExpanded =
+                                                    false
+                                                },
+                                                leadingIcon = {
+                                                    Box(
+                                                        Modifier.size(12.dp).background(
+                                                            Color(category.color),
+                                                            CircleShape
+                                                        )
+                                                    )
+                                                }
                                             )
                                         }
                                     }
@@ -257,7 +323,8 @@ fun AnalysisScreen(
 
                                 // Wallet Filter Chip
                                 var accountExpanded by remember { mutableStateOf(false) }
-                                val selectedAccount = uiState.allAccountsList.find { it.id == uiState.selectedAccountId }
+                                val selectedAccount =
+                                    uiState.allAccountsList.find { it.id == uiState.selectedAccountId }
                                 Box {
                                     FilterChip(
                                         selected = selectedAccount != null,
@@ -265,12 +332,18 @@ fun AnalysisScreen(
                                         label = { Text(selectedAccount?.name ?: "All Wallets") },
                                         leadingIcon = {
                                             Icon(
-                                                if (selectedAccount != null) getCategoryIcon(selectedAccount.icon) else Icons.Default.AccountBalanceWallet,
+                                                if (selectedAccount != null) getCategoryIcon(
+                                                    selectedAccount.icon
+                                                ) else Icons.Default.AccountBalanceWallet,
                                                 null,
                                                 Modifier.size(18.dp)
                                             )
                                         },
-                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = accountExpanded) },
+                                        trailingIcon = {
+                                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                                expanded = accountExpanded
+                                            )
+                                        },
                                         shape = CircleShape
                                     )
                                     DropdownMenu(
@@ -279,16 +352,32 @@ fun AnalysisScreen(
                                     ) {
                                         DropdownMenuItem(
                                             text = { Text("All Wallets") },
-                                            onClick = { viewModel.onAccountSelected(null); accountExpanded = false },
-                                            leadingIcon = { Icon(Icons.Default.AccountBalanceWallet, null) }
+                                            onClick = {
+                                                viewModel.onAccountSelected(null); accountExpanded =
+                                                false
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.AccountBalanceWallet,
+                                                    null
+                                                )
+                                            }
                                         )
                                         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                                         uiState.allAccountsList.forEach { account ->
                                             DropdownMenuItem(
                                                 text = { Text(account.name) },
-                                                onClick = { viewModel.onAccountSelected(account.id); accountExpanded = false },
+                                                onClick = {
+                                                    viewModel.onAccountSelected(account.id); accountExpanded =
+                                                    false
+                                                },
                                                 leadingIcon = {
-                                                    Icon(getCategoryIcon(account.icon), null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+                                                    Icon(
+                                                        getCategoryIcon(account.icon),
+                                                        null,
+                                                        Modifier.size(18.dp),
+                                                        tint = MaterialTheme.colorScheme.primary
+                                                    )
                                                 }
                                             )
                                         }
@@ -302,7 +391,9 @@ fun AnalysisScreen(
                                     TimeRange.CUSTOM -> if (uiState.startDate != null && uiState.endDate != null) {
                                         "${uiState.startDate} - ${uiState.endDate}"
                                     } else "Custom"
-                                    else -> uiState.selectedTimeRange.name.lowercase().replaceFirstChar { it.uppercase() }.replace("_", " ")
+
+                                    else -> uiState.selectedTimeRange.name.lowercase()
+                                        .replaceFirstChar { it.uppercase() }.replace("_", " ")
                                 }
                                 Box {
                                     FilterChip(
@@ -320,7 +411,11 @@ fun AnalysisScreen(
                                             }
                                             Icon(icon, null, Modifier.size(18.dp))
                                         },
-                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = timeExpanded) },
+                                        trailingIcon = {
+                                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                                expanded = timeExpanded
+                                            )
+                                        },
                                         shape = CircleShape
                                     )
                                     DropdownMenu(
@@ -329,21 +424,30 @@ fun AnalysisScreen(
                                     ) {
                                         TimeRange.entries.forEach { range ->
                                             DropdownMenuItem(
-                                                text = { Text(range.name.lowercase().replaceFirstChar { it.uppercase() }.replace("_", " ")) },
+                                                text = {
+                                                    Text(
+                                                        range.name.lowercase()
+                                                            .replaceFirstChar { it.uppercase() }
+                                                            .replace("_", " ")
+                                                    )
+                                                },
                                                 onClick = {
                                                     viewModel.onTimeRangeSelected(range)
                                                     timeExpanded = false
-                                                    if (range == TimeRange.CUSTOM) showDatePicker = true
+                                                    if (range == TimeRange.CUSTOM) showDatePicker =
+                                                        true
                                                 },
                                                 leadingIcon = {
-                                                    Icon(when (range) {
-                                                        TimeRange.TODAY -> Icons.Default.Today
-                                                        TimeRange.THIS_WEEK -> Icons.Default.DateRange
-                                                        TimeRange.THIS_MONTH -> Icons.Default.CalendarMonth
-                                                        TimeRange.THIS_YEAR -> Icons.Default.CalendarToday
-                                                        TimeRange.CUSTOM -> Icons.Default.EditCalendar
-                                                        else -> Icons.Default.History
-                                                    }, null)
+                                                    Icon(
+                                                        when (range) {
+                                                            TimeRange.TODAY -> Icons.Default.Today
+                                                            TimeRange.THIS_WEEK -> Icons.Default.DateRange
+                                                            TimeRange.THIS_MONTH -> Icons.Default.CalendarMonth
+                                                            TimeRange.THIS_YEAR -> Icons.Default.CalendarToday
+                                                            TimeRange.CUSTOM -> Icons.Default.EditCalendar
+                                                            else -> Icons.Default.History
+                                                        }, null
+                                                    )
                                                 }
                                             )
                                         }
@@ -355,24 +459,37 @@ fun AnalysisScreen(
                                             onDismissRequest = { showDatePicker = false },
                                             confirmButton = {
                                                 TextButton(onClick = {
-                                                    val start = dateRangePickerState.selectedStartDateMillis?.let {
-                                                        Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
-                                                    }
-                                                    val end = dateRangePickerState.selectedEndDateMillis?.let {
-                                                        Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
-                                                    }
+                                                    val start =
+                                                        dateRangePickerState.selectedStartDateMillis?.let {
+                                                            Instant.ofEpochMilli(it)
+                                                                .atZone(ZoneId.systemDefault())
+                                                                .toLocalDate()
+                                                        }
+                                                    val end =
+                                                        dateRangePickerState.selectedEndDateMillis?.let {
+                                                            Instant.ofEpochMilli(it)
+                                                                .atZone(ZoneId.systemDefault())
+                                                                .toLocalDate()
+                                                        }
                                                     viewModel.onDateRangeSelected(start, end)
                                                     showDatePicker = false
                                                 }) { Text("Confirm") }
                                             },
                                             dismissButton = {
-                                                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                                                TextButton(onClick = {
+                                                    showDatePicker = false
+                                                }) { Text("Cancel") }
                                             }
                                         ) {
                                             DateRangePicker(
                                                 state = dateRangePickerState,
                                                 modifier = Modifier.fillMaxWidth().height(450.dp),
-                                                title = { Text("Select Date Range", modifier = Modifier.padding(16.dp)) }
+                                                title = {
+                                                    Text(
+                                                        "Select Date Range",
+                                                        modifier = Modifier.padding(16.dp)
+                                                    )
+                                                }
                                             )
                                         }
                                     }
@@ -438,7 +555,10 @@ fun AnalysisScreen(
                             .fillMaxWidth()
                             .height(260.dp)
                             .padding(top = 16.dp)
-                            .fiscusScaleIn(enabled = uiState.areAnimationsEnabled, initialScale = 0.98f)
+                            .fiscusScaleIn(
+                                enabled = uiState.areAnimationsEnabled,
+                                initialScale = 0.98f
+                            )
 
                         when (type) {
                             AnalysisChartType.BAR -> {
@@ -500,7 +620,10 @@ fun AnalysisScreen(
                     animationsEnabled = uiState.areAnimationsEnabled,
                     isMasked = uiState.isPrivacyModeEnabled,
                     isCompact = uiState.isCompactNumberFormatEnabled,
-                    modifier = Modifier.staggeredVerticalFadeIn(0, enabled = uiState.areAnimationsEnabled)
+                    modifier = Modifier.staggeredVerticalFadeIn(
+                        0,
+                        enabled = uiState.areAnimationsEnabled
+                    )
                 )
             }
 
@@ -522,7 +645,9 @@ fun AnalysisScreen(
 
                     AnimatedVisibility(
                         visible = emptyVisible,
-                        enter = if (uiState.areAnimationsEnabled) fadeIn(tween(400)) + scaleIn(initialScale = 0.85f) else fadeIn(snap())
+                        enter = if (uiState.areAnimationsEnabled) fadeIn(tween(400)) + scaleIn(
+                            initialScale = 0.85f
+                        ) else fadeIn(snap())
                     ) {
                         EmptyState(
                             message = "No expenses to analyze yet",
@@ -533,7 +658,11 @@ fun AnalysisScreen(
             } else {
                 itemsIndexed(uiState.categoryBreakdown) { index, analysis ->
                     CategoryAnalysisItem(
-                        modifier = Modifier.staggeredVerticalFadeIn(index, enabled = uiState.areAnimationsEnabled, initialDelay = 150),
+                        modifier = Modifier.staggeredVerticalFadeIn(
+                            index,
+                            enabled = uiState.areAnimationsEnabled,
+                            initialDelay = 150
+                        ),
                         analysis = analysis,
                         currencyCode = uiState.currency,
                         animationsEnabled = uiState.areAnimationsEnabled,
@@ -557,7 +686,8 @@ fun AnalysisSummaryCard(
 ) {
     val net = income - expense
     val incomeRatio = if (income + expense > 0) (income / (income + expense)).toFloat() else 0.5f
-    val netColor = if (net >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+    val netColor =
+        if (net >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
 
     ElevatedCard(
         modifier = modifier.fillMaxWidth(),
@@ -876,7 +1006,8 @@ fun BarChart(
                 .fillMaxSize()
                 .pointerInput(dataPoints) {
                     detectTapGestures { offset ->
-                        val index = (offset.x / (size.width / dataPoints.size)).toInt().coerceIn(0, dataPoints.size - 1)
+                        val index = (offset.x / (size.width / dataPoints.size)).toInt()
+                            .coerceIn(0, dataPoints.size - 1)
                         if (index != selectedIndex) {
                             selectedIndex = index
                             haptic.click()
@@ -888,7 +1019,8 @@ fun BarChart(
                         onDragEnd = { selectedIndex = -1 },
                         onDragCancel = { selectedIndex = -1 }
                     ) { change, _ ->
-                        val index = (change.position.x / size.width * dataPoints.size).toInt().coerceIn(0, dataPoints.size - 1)
+                        val index = (change.position.x / size.width * dataPoints.size).toInt()
+                            .coerceIn(0, dataPoints.size - 1)
                         if (index != selectedIndex) {
                             selectedIndex = index
                             haptic.click()
@@ -912,22 +1044,29 @@ fun BarChart(
                             .weight(1f)
                             .drawBehind {
                                 val barWidth = if (isSelected) 20.dp.toPx() else 16.dp.toPx()
-                                val barHeight = size.height * barHeightRatio * animatedProgress.value
+                                val barHeight =
+                                    size.height * barHeightRatio * animatedProgress.value
                                 drawRoundRect(
                                     color = if (isSelected) color else color.copy(alpha = 0.6f),
-                                    topLeft = Offset((size.width - barWidth) / 2, size.height - barHeight),
+                                    topLeft = Offset(
+                                        (size.width - barWidth) / 2,
+                                        size.height - barHeight
+                                    ),
                                     size = Size(barWidth, barHeight),
                                     cornerRadius = CornerRadius(6.dp.toPx())
                                 )
                             }
                     )
                     Spacer(modifier = Modifier.height(6.dp))
-                    val label = if (point.label.length > 6) point.label.take(3) + ".." else point.label
+                    val label =
+                        if (point.label.length > 6) point.label.take(3) + ".." else point.label
                     Text(
                         text = label,
                         style = MaterialTheme.typography.labelSmall,
                         maxLines = 1,
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                            alpha = 0.7f
+                        ),
                         overflow = TextOverflow.Ellipsis
                     )
                 }
@@ -946,9 +1085,20 @@ fun BarChart(
                 tonalElevation = 4.dp,
                 shadowElevation = 4.dp
             ) {
-                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(point.label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f))
-                    Text(formatCurrency(point.amount, currencyCode, isMasked, isCompact), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                Column(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        point.label,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        formatCurrency(point.amount, currencyCode, isMasked, isCompact),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -991,19 +1141,26 @@ fun PieChart(
                     detectTapGestures { offset ->
                         val centerX = size.width / 2
                         val centerY = size.height / 2
-                        val angle = Math.toDegrees(Math.atan2((offset.y - centerY).toDouble(), (offset.x - centerX).toDouble())).toFloat()
+                        val angle = Math.toDegrees(
+                            Math.atan2(
+                                (offset.y - centerY).toDouble(),
+                                (offset.x - centerX).toDouble()
+                            )
+                        ).toFloat()
                         val normalizedAngle = (angle + 90 + 360) % 360
-                        
+
                         var currentAngle = 0f
                         val found = breakdown.find { analysis ->
                             val sweepAngle = analysis.percentage * 360f
-                            val isWithin = normalizedAngle >= currentAngle && normalizedAngle < currentAngle + sweepAngle
+                            val isWithin =
+                                normalizedAngle >= currentAngle && normalizedAngle < currentAngle + sweepAngle
                             currentAngle += sweepAngle
                             isWithin
                         }
-                        
+
                         if (found != null) {
-                            selectedCategory = if (selectedCategory?.category?.id == found.category.id) null else found
+                            selectedCategory =
+                                if (selectedCategory?.category?.id == found.category.id) null else found
                             if (selectedCategory != null) haptic.click()
                         } else {
                             selectedCategory = null
@@ -1049,7 +1206,10 @@ fun PieChart(
                 shape = MaterialTheme.shapes.medium,
                 tonalElevation = 4.dp
             ) {
-                Column(modifier = Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    modifier = Modifier.padding(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text(analysis.category.name, style = MaterialTheme.typography.labelSmall)
                     Text("${(analysis.percentage * 100).toInt()}%", fontWeight = FontWeight.Bold)
                 }
@@ -1070,7 +1230,8 @@ fun LineChart(
     isMasked: Boolean = false,
     isCompact: Boolean = false
 ) {
-    val allPoints = (if (showExpense) expensePoints else emptyList()) + (if (showIncome) incomePoints else emptyList())
+    val allPoints =
+        (if (showExpense) expensePoints else emptyList()) + (if (showIncome) incomePoints else emptyList())
     if (allPoints.isEmpty() || (showExpense && expensePoints.size < 2 && !showIncome) || (showIncome && incomePoints.size < 2 && !showExpense)) {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
             com.prajwalpawar.fiscus.ui.utils.EmptyState(
@@ -1091,8 +1252,8 @@ fun LineChart(
         progress.animateTo(1f, if (animationsEnabled) tween(350) else snap())
     }
 
-    val maxAmount = remember(allPoints) { 
-        val m = allPoints.maxOfOrNull { it.amount } ?: 1.0 
+    val maxAmount = remember(allPoints) {
+        val m = allPoints.maxOfOrNull { it.amount } ?: 1.0
         if (m == 0.0) 1.0 else m
     }
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -1110,7 +1271,9 @@ fun LineChart(
                         onDragCancel = { selectedIndex = -1 }
                     ) { change, _ ->
                         val pointsToUse = if (showExpense) expensePoints else incomePoints
-                        val index = (change.position.x / size.width * (pointsToUse.size - 1)).toInt().coerceIn(0, pointsToUse.size - 1)
+                        val index =
+                            (change.position.x / size.width * (pointsToUse.size - 1)).toInt()
+                                .coerceIn(0, pointsToUse.size - 1)
                         if (index != selectedIndex) {
                             selectedIndex = index
                             haptic.click()
@@ -1120,7 +1283,8 @@ fun LineChart(
                 .pointerInput(expensePoints, incomePoints) {
                     detectTapGestures { offset ->
                         val pointsToUse = if (showExpense) expensePoints else incomePoints
-                        val index = (offset.x / size.width * (pointsToUse.size - 1)).toInt().coerceIn(0, pointsToUse.size - 1)
+                        val index = (offset.x / size.width * (pointsToUse.size - 1)).toInt()
+                            .coerceIn(0, pointsToUse.size - 1)
                         if (index != selectedIndex) {
                             selectedIndex = index
                             haptic.click()
@@ -1130,7 +1294,7 @@ fun LineChart(
         ) {
             val width = size.width
             val height = size.height
-            
+
             // Draw horizontal grid lines
             val gridLines = 4
             for (i in 0..gridLines) {
@@ -1148,30 +1312,44 @@ fun LineChart(
             }
 
             if (showIncome && incomePoints.size >= 2) {
-                drawTimeLine(incomePoints, maxAmount, incomeColor, progress.value, drawDots = !showExpense)
+                drawTimeLine(
+                    incomePoints,
+                    maxAmount,
+                    incomeColor,
+                    progress.value,
+                    drawDots = !showExpense
+                )
             }
 
             val strokeColor = primaryColor.copy(alpha = 0.4f)
             val indicatorColor = primaryColor
-            
+
             // Draw selection indicator
             if (selectedIndex != -1) {
                 val pointsToUse = if (showExpense) expensePoints else incomePoints
                 val spacing = width / (pointsToUse.size - 1)
                 val x = selectedIndex * spacing
-                
+
                 drawLine(
                     color = strokeColor,
                     start = Offset(x, 0f),
                     end = Offset(x, height),
                     strokeWidth = 1.dp.toPx(),
-                    pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f))
+                    pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(
+                        floatArrayOf(
+                            10f,
+                            10f
+                        )
+                    )
                 )
-                
+
                 drawCircle(
                     color = indicatorColor,
                     radius = 6.dp.toPx(),
-                    center = Offset(x, height - (pointsToUse[selectedIndex].amount / maxAmount).toFloat() * height * progress.value)
+                    center = Offset(
+                        x,
+                        height - (pointsToUse[selectedIndex].amount / maxAmount).toFloat() * height * progress.value
+                    )
                 )
             }
         }
@@ -1189,9 +1367,20 @@ fun LineChart(
                     shape = MaterialTheme.shapes.medium,
                     tonalElevation = 4.dp
                 ) {
-                    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(point.label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f))
-                        Text(formatCurrency(point.amount, currencyCode, isMasked, isCompact), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    Column(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            point.label,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        )
+                        Text(
+                            formatCurrency(point.amount, currencyCode, isMasked, isCompact),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -1209,14 +1398,14 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawTimeLine(
     val width = size.width
     val height = size.height
     val spacing = width / (points.size - 1)
-    
+
     val path = Path()
     val fillPath = Path()
-    
+
     points.forEachIndexed { index, point ->
         val x = index * spacing
         val y = height - (point.amount / maxAmount).toFloat() * height * progress
-        
+
         if (index == 0) {
             path.moveTo(x, y)
             fillPath.moveTo(x, height)
@@ -1225,12 +1414,12 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawTimeLine(
             path.lineTo(x, y)
             fillPath.lineTo(x, y)
         }
-        
+
         if (index == points.size - 1) {
             fillPath.lineTo(x, height)
             fillPath.close()
         }
-        
+
         if (drawDots) {
             drawCircle(
                 color = color,
@@ -1239,13 +1428,13 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawTimeLine(
             )
         }
     }
-    
+
     drawPath(
         path = path,
         color = color,
         style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
     )
-    
+
     drawPath(
         path = fillPath,
         brush = androidx.compose.ui.graphics.Brush.verticalGradient(
@@ -1264,13 +1453,14 @@ fun HeatMapChart(
 ) {
     val actualStart = startDate ?: java.time.LocalDate.now().minusWeeks(7)
     val actualEnd = endDate ?: java.time.LocalDate.now()
-    
+
     // We want a 7-row grid (Days of week).
     // Start from the beginning of the week of actualStart to keep it aligned
     val firstDayOfWeek = actualStart.minusDays(actualStart.dayOfWeek.value.toLong() - 1)
-    val totalDays = java.time.temporal.ChronoUnit.DAYS.between(firstDayOfWeek, actualEnd).toInt() + 1
+    val totalDays =
+        java.time.temporal.ChronoUnit.DAYS.between(firstDayOfWeek, actualEnd).toInt() + 1
     val columns = (totalDays + 6) / 7
-    
+
     val intensityMap = activityPoints.associate { it.date to it.intensity }
     var selectedDate by remember { mutableStateOf<java.time.LocalDate?>(null) }
     val haptic = rememberFiscusHaptic()
@@ -1281,9 +1471,13 @@ fun HeatMapChart(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         val rangeLabel = if (startDate != null && endDate != null) {
-            "${startDate.format(java.time.format.DateTimeFormatter.ofPattern("MMM dd"))} - ${endDate.format(java.time.format.DateTimeFormatter.ofPattern("MMM dd"))}"
+            "${startDate.format(java.time.format.DateTimeFormatter.ofPattern("MMM dd"))} - ${
+                endDate.format(
+                    java.time.format.DateTimeFormatter.ofPattern("MMM dd")
+                )
+            }"
         } else "Activity Map"
-        
+
         androidx.compose.animation.AnimatedContent(
             targetState = selectedDate,
             transitionSpec = {
@@ -1314,7 +1508,7 @@ fun HeatMapChart(
                 )
             }
         }
-        
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1328,16 +1522,33 @@ fun HeatMapChart(
                             repeat(7) { row ->
                                 val dayOffset = col * 7 + row
                                 val currentDay = firstDayOfWeek.plusDays(dayOffset.toLong())
-                                
-                                if (!currentDay.isAfter(actualEnd) && !currentDay.isBefore(firstDayOfWeek)) {
+
+                                if (!currentDay.isAfter(actualEnd) && !currentDay.isBefore(
+                                        firstDayOfWeek
+                                    )
+                                ) {
                                     val intensity = intensityMap[currentDay] ?: 0f
-                                    val isOutsideFilter = startDate != null && (currentDay.isBefore(startDate) || currentDay.isAfter(actualEnd))
-                                    
+                                    val isOutsideFilter =
+                                        startDate != null && (currentDay.isBefore(startDate) || currentDay.isAfter(
+                                            actualEnd
+                                        ))
+
                                     val baseColor = MaterialTheme.colorScheme.primary
                                     val cellColor = when {
-                                        isOutsideFilter -> MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.2f)
-                                        intensity > 0 -> baseColor.copy(alpha = (0.2f + (intensity * 0.8f)).coerceIn(0f, 1f))
-                                        else -> MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f)
+                                        isOutsideFilter -> MaterialTheme.colorScheme.surfaceContainerHighest.copy(
+                                            alpha = 0.2f
+                                        )
+
+                                        intensity > 0 -> baseColor.copy(
+                                            alpha = (0.2f + (intensity * 0.8f)).coerceIn(
+                                                0f,
+                                                1f
+                                            )
+                                        )
+
+                                        else -> MaterialTheme.colorScheme.surfaceContainerHighest.copy(
+                                            alpha = 0.5f
+                                        )
                                     }
 
                                     var scale by remember { mutableFloatStateOf(0f) }
@@ -1387,12 +1598,17 @@ fun HeatMapChart(
                                 val spacing = 4.dp.toPx()
                                 val totalCellSize = cellWidth + spacing
 
-                                val col = (offset.x / totalCellSize).toInt().coerceIn(0, columns - 1)
+                                val col =
+                                    (offset.x / totalCellSize).toInt().coerceIn(0, columns - 1)
                                 val row = (offset.y / totalCellSize).toInt().coerceIn(0, 6)
 
                                 val clickedDate = firstDayOfWeek.plusDays((col * 7 + row).toLong())
-                                if (!clickedDate.isAfter(actualEnd) && (startDate == null || !clickedDate.isBefore(startDate))) {
-                                    selectedDate = if (selectedDate == clickedDate) null else clickedDate
+                                if (!clickedDate.isAfter(actualEnd) && (startDate == null || !clickedDate.isBefore(
+                                        startDate
+                                    ))
+                                ) {
+                                    selectedDate =
+                                        if (selectedDate == clickedDate) null else clickedDate
                                     if (selectedDate != null) haptic.click()
                                 }
                             }
@@ -1402,7 +1618,7 @@ fun HeatMapChart(
         }
 
 
-        
+
         Row(
             modifier = Modifier.padding(top = 8.dp),
             verticalAlignment = Alignment.CenterVertically,

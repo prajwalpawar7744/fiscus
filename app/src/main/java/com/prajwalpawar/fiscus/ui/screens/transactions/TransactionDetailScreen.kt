@@ -46,13 +46,13 @@ fun TransactionDetailScreen(
     val dateFormatter = SimpleManagement.dateFormatter
 
     val amountColor = when (transaction.type) {
-        TransactionType.INCOME   -> MaterialTheme.colorScheme.primary
-        TransactionType.EXPENSE  -> MaterialTheme.colorScheme.error
+        TransactionType.INCOME -> MaterialTheme.colorScheme.primary
+        TransactionType.EXPENSE -> MaterialTheme.colorScheme.error
         TransactionType.TRANSFER -> MaterialTheme.colorScheme.secondary
     }
     val amountPrefix = when (transaction.type) {
-        TransactionType.INCOME   -> "+"
-        TransactionType.EXPENSE  -> "−"
+        TransactionType.INCOME -> "+"
+        TransactionType.EXPENSE -> "−"
         TransactionType.TRANSFER -> ""
     }
     val typeLabel = transaction.type.name.lowercase().replaceFirstChar { it.uppercase() }
@@ -271,7 +271,11 @@ fun TransactionDetailScreen(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        text = formatCurrency(item.amount, currencyCode, isCompact = isCompact),
+                                        text = formatCurrency(
+                                            item.amount,
+                                            currencyCode,
+                                            isCompact = isCompact
+                                        ),
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.primary
@@ -343,7 +347,7 @@ fun DetailRow(
                 null,
                 modifier = Modifier.size(18.dp),
                 tint = if (valueColor != MaterialTheme.colorScheme.onSurface) valueColor
-                       else MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.primary
             )
         }
         Column {

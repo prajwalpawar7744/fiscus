@@ -12,7 +12,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ReportManager @Inject constructor() {
-    
+
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
 
     fun generateCsvReport(
@@ -21,10 +21,10 @@ class ReportManager @Inject constructor() {
         accounts: Map<Long, Account>
     ): String {
         val builder = StringBuilder()
-        
+
         // CSV Header
         builder.append("Date,Title,Amount,Type,Category,Account,Note\n")
-        
+
         transactions.forEach { transaction ->
             val dateStr = dateFormatter.format(transaction.date)
             val title = escapeCsv(transaction.title)
@@ -33,10 +33,10 @@ class ReportManager @Inject constructor() {
             val category = escapeCsv(categories[transaction.categoryId]?.name ?: "Unknown")
             val account = escapeCsv(accounts[transaction.accountId]?.name ?: "Unknown")
             val note = escapeCsv(transaction.note)
-            
+
             builder.append("$dateStr,$title,$amount,$type,$category,$account,$note\n")
         }
-        
+
         return builder.toString()
     }
 

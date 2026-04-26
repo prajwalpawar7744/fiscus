@@ -46,7 +46,7 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val haptic = rememberFiscusHaptic()
-    
+
     val photoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -55,7 +55,7 @@ fun SettingsScreen(
 
     var showNameDialog by remember { mutableStateOf(false) }
     var tempName by remember { mutableStateOf("") }
-    
+
     var showCurrencyDialog by remember { mutableStateOf(false) }
     var showResetDialog by remember { mutableStateOf(false) }
     var showImportWarning by remember { mutableStateOf(false) }
@@ -76,7 +76,7 @@ fun SettingsScreen(
                         val success = context.contentResolver.openOutputStream(it)?.use { output ->
                             viewModel.exportDatabase(output)
                         } ?: false
-                        
+
                         if (success) {
                             snackbarHostState.showSnackbar("Database exported successfully")
                         } else {
@@ -99,11 +99,13 @@ fun SettingsScreen(
                         val success = context.contentResolver.openInputStream(it)?.use { input ->
                             viewModel.importDatabase(input)
                         } ?: false
-                        
+
                         if (success) {
-                            val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+                            val intent =
+                                context.packageManager.getLaunchIntentForPackage(context.packageName)
                             val componentName = intent?.component
-                            val mainIntent = android.content.Intent.makeRestartActivityTask(componentName)
+                            val mainIntent =
+                                android.content.Intent.makeRestartActivityTask(componentName)
                             context.startActivity(mainIntent)
                             Runtime.getRuntime().exit(0)
                         } else {
@@ -155,7 +157,8 @@ fun SettingsScreen(
             // Profile Section
             item {
                 ElevatedCard(
-                    modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(0, enabled = uiState.areAnimationsEnabled),
+                    modifier = Modifier.fillMaxWidth()
+                        .staggeredVerticalFadeIn(0, enabled = uiState.areAnimationsEnabled),
                     shape = MaterialTheme.shapes.extraLarge,
                     colors = CardDefaults.elevatedCardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
@@ -173,8 +176,15 @@ fun SettingsScreen(
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.surfaceContainerLowest)
                                 .border(2.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                                .fiscusScaleIn(enabled = uiState.areAnimationsEnabled, initialScale = 0.9f, delay = 200)
-                                .fiscusClickable(haptic = haptic, enabledAnimations = uiState.areAnimationsEnabled) {
+                                .fiscusScaleIn(
+                                    enabled = uiState.areAnimationsEnabled,
+                                    initialScale = 0.9f,
+                                    delay = 200
+                                )
+                                .fiscusClickable(
+                                    haptic = haptic,
+                                    enabledAnimations = uiState.areAnimationsEnabled
+                                ) {
                                     photoLauncher.launch("image/*")
                                 },
                             contentAlignment = Alignment.Center
@@ -195,20 +205,23 @@ fun SettingsScreen(
                                 )
                             }
                         }
-                        
+
                         // Scale name and click text
                         Spacer(modifier = Modifier.height(16.dp))
-                        
+
                         Text(
                             text = uiState.userName.ifBlank { "Add Name" },
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.fiscusClickable(haptic = haptic, enabledAnimations = uiState.areAnimationsEnabled) {
+                            modifier = Modifier.fiscusClickable(
+                                haptic = haptic,
+                                enabledAnimations = uiState.areAnimationsEnabled
+                            ) {
                                 tempName = uiState.userName
-                                showNameDialog = true 
+                                showNameDialog = true
                             }
                         )
-                        
+
                         Text(
                             text = "Tap to edit profile",
                             style = MaterialTheme.typography.labelMedium,
@@ -223,7 +236,10 @@ fun SettingsScreen(
             // Preferences
             item {
                 SettingsGroup(
-                    modifier = Modifier.staggeredVerticalFadeIn(1, enabled = uiState.areAnimationsEnabled),
+                    modifier = Modifier.staggeredVerticalFadeIn(
+                        1,
+                        enabled = uiState.areAnimationsEnabled
+                    ),
                     title = "Appearance"
                 ) {
                     SettingsItem(
@@ -248,9 +264,9 @@ fun SettingsScreen(
                             trailingContent = {
                                 Switch(
                                     checked = uiState.isDynamicColorEnabled,
-                                    onCheckedChange = { 
+                                    onCheckedChange = {
                                         haptic.click()
-                                        viewModel.updateDynamicColorEnabled(it) 
+                                        viewModel.updateDynamicColorEnabled(it)
                                     }
                                 )
                             },
@@ -267,7 +283,8 @@ fun SettingsScreen(
                         subtitle = if (uiState.topBarStyle == "standard") "Small (Default)" else "Large",
                         animationsEnabled = uiState.areAnimationsEnabled,
                         onClick = {
-                            val nextStyle = if (uiState.topBarStyle == "standard") "longtopbar" else "standard"
+                            val nextStyle =
+                                if (uiState.topBarStyle == "standard") "longtopbar" else "standard"
                             viewModel.updateTopBarStyle(nextStyle)
                         }
                     )
@@ -280,9 +297,9 @@ fun SettingsScreen(
                         trailingContent = {
                             Switch(
                                 checked = uiState.areAnimationsEnabled,
-                                onCheckedChange = { 
+                                onCheckedChange = {
                                     haptic.click()
-                                    viewModel.updateAnimationsEnabled(it) 
+                                    viewModel.updateAnimationsEnabled(it)
                                 }
                             )
                         },
@@ -300,7 +317,7 @@ fun SettingsScreen(
                     SettingsItem(
                         icon = Icons.AutoMirrored.Filled.Label,
                         title = "Navigation Labels",
-                        subtitle = when(uiState.navLabelMode) {
+                        subtitle = when (uiState.navLabelMode) {
                             "always" -> "Always show"
                             "selected" -> "Only when selected"
                             else -> "Never"
@@ -313,7 +330,10 @@ fun SettingsScreen(
 
             item {
                 SettingsGroup(
-                    modifier = Modifier.staggeredVerticalFadeIn(2, enabled = uiState.areAnimationsEnabled),
+                    modifier = Modifier.staggeredVerticalFadeIn(
+                        2,
+                        enabled = uiState.areAnimationsEnabled
+                    ),
                     title = "Security"
                 ) {
                     SettingsItem(
@@ -324,9 +344,9 @@ fun SettingsScreen(
                         trailingContent = {
                             Switch(
                                 checked = uiState.isBiometricEnabled,
-                                onCheckedChange = { 
+                                onCheckedChange = {
                                     haptic.click()
-                                    viewModel.updateBiometricEnabled(it) 
+                                    viewModel.updateBiometricEnabled(it)
                                 }
                             )
                         },
@@ -340,9 +360,9 @@ fun SettingsScreen(
                         trailingContent = {
                             Switch(
                                 checked = uiState.isPrivacyModeEnabled,
-                                onCheckedChange = { 
+                                onCheckedChange = {
                                     haptic.click()
-                                    viewModel.updatePrivacyModeEnabled(it) 
+                                    viewModel.updatePrivacyModeEnabled(it)
                                 }
                             )
                         },
@@ -353,7 +373,10 @@ fun SettingsScreen(
 
             item {
                 SettingsGroup(
-                    modifier = Modifier.staggeredVerticalFadeIn(3, enabled = uiState.areAnimationsEnabled),
+                    modifier = Modifier.staggeredVerticalFadeIn(
+                        3,
+                        enabled = uiState.areAnimationsEnabled
+                    ),
                     title = "Localization"
                 ) {
                     SettingsItem(
@@ -366,15 +389,15 @@ fun SettingsScreen(
                     SettingsItem(
                         icon = Icons.Default.FormatListNumbered,
                         title = "Compact Amount",
-                        subtitle = if (uiState.isCompactNumberFormatEnabled) 
-                            "Showing compact amounts (e.g., 1.5k, 2M)" 
-                            else "Showing full amounts (e.g., 1,500, 2,000,000)",
+                        subtitle = if (uiState.isCompactNumberFormatEnabled)
+                            "Showing compact amounts (e.g., 1.5k, 2M)"
+                        else "Showing full amounts (e.g., 1,500, 2,000,000)",
                         trailingContent = {
                             Switch(
                                 checked = uiState.isCompactNumberFormatEnabled,
-                                onCheckedChange = { 
+                                onCheckedChange = {
                                     haptic.click()
-                                    viewModel.updateCompactNumberFormatEnabled(it) 
+                                    viewModel.updateCompactNumberFormatEnabled(it)
                                 }
                             )
                         },
@@ -394,7 +417,10 @@ fun SettingsScreen(
             // Backup & Restore Section
             item {
                 SettingsGroup(
-                    modifier = Modifier.staggeredVerticalFadeIn(4, enabled = uiState.areAnimationsEnabled),
+                    modifier = Modifier.staggeredVerticalFadeIn(
+                        4,
+                        enabled = uiState.areAnimationsEnabled
+                    ),
                     title = "Backup & Restore"
                 ) {
                     SettingsItem(
@@ -416,7 +442,10 @@ fun SettingsScreen(
 
             item {
                 SettingsGroup(
-                    modifier = Modifier.staggeredVerticalFadeIn(5, enabled = uiState.areAnimationsEnabled),
+                    modifier = Modifier.staggeredVerticalFadeIn(
+                        5,
+                        enabled = uiState.areAnimationsEnabled
+                    ),
                     title = "Data Management"
                 ) {
                     SettingsItem(
@@ -433,7 +462,10 @@ fun SettingsScreen(
             // About Section
             item {
                 SettingsGroup(
-                    modifier = Modifier.staggeredVerticalFadeIn(6, enabled = uiState.areAnimationsEnabled),
+                    modifier = Modifier.staggeredVerticalFadeIn(
+                        6,
+                        enabled = uiState.areAnimationsEnabled
+                    ),
                     title = "About"
                 ) {
                     SettingsItem(
@@ -451,15 +483,17 @@ fun SettingsScreen(
                         subtitle = "Prajwal Pawar",
                         animationsEnabled = uiState.areAnimationsEnabled,
                         onClick = {
-                             haptic.click()
-                             val intent = Intent(Intent.ACTION_VIEW,
-                                 "https://github.com/prajwalpawar7744/fiscus".toUri())
-                             context.startActivity(intent)
+                            haptic.click()
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                "https://github.com/prajwalpawar7744/fiscus".toUri()
+                            )
+                            context.startActivity(intent)
                         }
                     )
                 }
             }
-            
+
             item { Spacer(modifier = Modifier.height(32.dp)) }
         }
     }
@@ -541,7 +575,12 @@ fun SettingsScreen(
                     currencies.forEach { (code, name) ->
                         ListItem(
                             headlineContent = { Text(code, fontWeight = FontWeight.SemiBold) },
-                            supportingContent = { Text(name, style = MaterialTheme.typography.bodySmall) },
+                            supportingContent = {
+                                Text(
+                                    name,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            },
                             leadingContent = {
                                 RadioButton(
                                     selected = uiState.currency == code,
@@ -550,7 +589,10 @@ fun SettingsScreen(
                             },
                             modifier = Modifier
                                 .clip(MaterialTheme.shapes.large)
-                                .fiscusClickable(haptic = haptic, enabledAnimations = uiState.areAnimationsEnabled) {
+                                .fiscusClickable(
+                                    haptic = haptic,
+                                    enabledAnimations = uiState.areAnimationsEnabled
+                                ) {
                                     viewModel.updateCurrency(code)
                                     showCurrencyDialog = false
                                 },
@@ -585,7 +627,11 @@ fun SettingsScreen(
                             .size(80.dp)
                             .clip(RoundedCornerShape(uiState.borderRadius.dp))
                             .background(MaterialTheme.colorScheme.primaryContainer)
-                            .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(uiState.borderRadius.dp))
+                            .border(
+                                2.dp,
+                                MaterialTheme.colorScheme.primary,
+                                RoundedCornerShape(uiState.borderRadius.dp)
+                            )
                     )
 
                     Text(
@@ -596,9 +642,9 @@ fun SettingsScreen(
 
                     Slider(
                         value = uiState.borderRadius.toFloat(),
-                        onValueChange = { 
+                        onValueChange = {
                             haptic.click()
-                            viewModel.updateBorderRadius(it.toInt()) 
+                            viewModel.updateBorderRadius(it.toInt())
                         },
                         valueRange = 0f..28f,
                         steps = 27
@@ -627,7 +673,7 @@ fun SettingsScreen(
                     modes.forEach { (mode, title, desc) ->
                         Row(
                             Modifier.fillMaxWidth()
-                                .fiscusClickable(haptic = haptic) { 
+                                .fiscusClickable(haptic = haptic) {
                                     viewModel.updateNavLabelMode(mode)
                                     showNavLabelDialog = false
                                 }
@@ -636,12 +682,16 @@ fun SettingsScreen(
                         ) {
                             RadioButton(
                                 selected = uiState.navLabelMode == mode,
-                                onClick = null 
+                                onClick = null
                             )
                             Spacer(Modifier.width(16.dp))
                             Column {
                                 Text(title, style = MaterialTheme.typography.bodyLarge)
-                                Text(desc, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    desc,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
                     }
@@ -658,7 +708,7 @@ fun SettingsScreen(
 
 @Composable
 fun SettingsGroup(
-    title: String, 
+    title: String,
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {

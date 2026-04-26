@@ -34,10 +34,10 @@ class ManageCategoriesViewModel @Inject constructor(
             areAnimationsEnabled = areAnimationsEnabled
         )
     }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ManageCategoriesUiState()
-        )
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = ManageCategoriesUiState()
+    )
 
     fun addCategory(name: String, icon: String, color: Int, type: TransactionType?) {
         viewModelScope.launch {

@@ -66,7 +66,6 @@ class PreferenceManager @Inject constructor(
     }
 
 
-
     val isPrivacyModeEnabled: Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[PreferencesKeys.PRIVACY_MODE_ENABLED] ?: false
     }
@@ -130,7 +129,6 @@ class PreferenceManager @Inject constructor(
             preferences[PreferencesKeys.ANIMATIONS_ENABLED] = enabled
         }
     }
-
 
 
     suspend fun updatePrivacyModeEnabled(enabled: Boolean) {

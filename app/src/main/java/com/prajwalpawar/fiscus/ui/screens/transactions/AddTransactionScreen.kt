@@ -81,7 +81,10 @@ fun AddTransactionScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                modifier = Modifier.staggeredVerticalFadeIn(0, enabled = uiState.areAnimationsEnabled),
+                modifier = Modifier.staggeredVerticalFadeIn(
+                    0,
+                    enabled = uiState.areAnimationsEnabled
+                ),
                 text = if (uiState.transactionId == null) "New Transaction" else "Edit Transaction",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
@@ -165,9 +168,11 @@ fun AddTransactionScreen(
                     viewModel.onTypeChange(TransactionType.EXPENSE)
                 },
                 shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
-                icon = { SegmentedButtonDefaults.Icon(active = uiState.type == TransactionType.EXPENSE) {
-                    Icon(Icons.Default.ArrowDownward, null)
-                } },
+                icon = {
+                    SegmentedButtonDefaults.Icon(active = uiState.type == TransactionType.EXPENSE) {
+                        Icon(Icons.Default.ArrowDownward, null)
+                    }
+                },
                 label = { Text("Expense") }
             )
             SegmentedButton(
@@ -177,9 +182,11 @@ fun AddTransactionScreen(
                     viewModel.onTypeChange(TransactionType.INCOME)
                 },
                 shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
-                icon = { SegmentedButtonDefaults.Icon(active = uiState.type == TransactionType.INCOME) {
-                    Icon(Icons.Default.ArrowUpward, null)
-                } },
+                icon = {
+                    SegmentedButtonDefaults.Icon(active = uiState.type == TransactionType.INCOME) {
+                        Icon(Icons.Default.ArrowUpward, null)
+                    }
+                },
                 label = { Text("Income") }
             )
             SegmentedButton(
@@ -189,16 +196,19 @@ fun AddTransactionScreen(
                     viewModel.onTypeChange(TransactionType.TRANSFER)
                 },
                 shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
-                icon = { SegmentedButtonDefaults.Icon(active = uiState.type == TransactionType.TRANSFER) {
-                    Icon(Icons.Default.SyncAlt, null)
-                } },
+                icon = {
+                    SegmentedButtonDefaults.Icon(active = uiState.type == TransactionType.TRANSFER) {
+                        Icon(Icons.Default.SyncAlt, null)
+                    }
+                },
                 label = { Text("Transfer") }
             )
         }
 
         // Details Card
         ElevatedCard(
-            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(2, enabled = uiState.areAnimationsEnabled),
+            modifier = Modifier.fillMaxWidth()
+                .staggeredVerticalFadeIn(2, enabled = uiState.areAnimationsEnabled),
             shape = MaterialTheme.shapes.extraLarge,
             colors = CardDefaults.elevatedCardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer
@@ -252,7 +262,8 @@ fun AddTransactionScreen(
                                 key = { it.id ?: it.hashCode() }
                             ) { account ->
                                 val isSelected = uiState.accountId == account.id
-                                val isOtherSelected = uiState.toAccountId == account.id && uiState.type == TransactionType.TRANSFER
+                                val isOtherSelected =
+                                    uiState.toAccountId == account.id && uiState.type == TransactionType.TRANSFER
                                 Surface(
                                     modifier = Modifier
                                         .clickable(enabled = !isOtherSelected) {
@@ -263,13 +274,22 @@ fun AddTransactionScreen(
                                     shape = MaterialTheme.shapes.medium,
                                     color = when {
                                         isSelected -> MaterialTheme.colorScheme.primaryContainer
-                                        isOtherSelected -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                                        isOtherSelected -> MaterialTheme.colorScheme.surfaceVariant.copy(
+                                            alpha = 0.2f
+                                        )
+
                                         else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                                     },
-                                    border = if (isSelected) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
+                                    border = if (isSelected) androidx.compose.foundation.BorderStroke(
+                                        1.dp,
+                                        MaterialTheme.colorScheme.primary
+                                    ) else null
                                 ) {
                                     Row(
-                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                        modifier = Modifier.padding(
+                                            horizontal = 12.dp,
+                                            vertical = 8.dp
+                                        ),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
@@ -320,13 +340,22 @@ fun AddTransactionScreen(
                                     shape = MaterialTheme.shapes.medium,
                                     color = when {
                                         isSelected -> MaterialTheme.colorScheme.secondaryContainer
-                                        isOtherSelected -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                                        isOtherSelected -> MaterialTheme.colorScheme.surfaceVariant.copy(
+                                            alpha = 0.2f
+                                        )
+
                                         else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                                     },
-                                    border = if (isSelected) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.secondary) else null
+                                    border = if (isSelected) androidx.compose.foundation.BorderStroke(
+                                        1.dp,
+                                        MaterialTheme.colorScheme.secondary
+                                    ) else null
                                 ) {
                                     Row(
-                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                        modifier = Modifier.padding(
+                                            horizontal = 12.dp,
+                                            vertical = 8.dp
+                                        ),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
@@ -373,11 +402,19 @@ fun AddTransactionScreen(
                                         category.id?.let { viewModel.onCategoryChange(it) }
                                     },
                                 shape = MaterialTheme.shapes.medium,
-                                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                border = if (isSelected) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
+                                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(
+                                    alpha = 0.5f
+                                ),
+                                border = if (isSelected) androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.primary
+                                ) else null
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                    modifier = Modifier.padding(
+                                        horizontal = 12.dp,
+                                        vertical = 8.dp
+                                    ),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
@@ -385,7 +422,9 @@ fun AddTransactionScreen(
                                         imageVector = getCategoryIcon(category.icon),
                                         contentDescription = null,
                                         modifier = Modifier.size(18.dp),
-                                        tint = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else Color(category.color)
+                                        tint = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else Color(
+                                            category.color
+                                        )
                                     )
                                     Text(
                                         text = category.name,
@@ -500,7 +539,12 @@ fun AddTransactionScreen(
                                 ) {
                                     OutlinedTextField(
                                         value = item.name,
-                                        onValueChange = { viewModel.onSubItemNameChange(index, it) },
+                                        onValueChange = {
+                                            viewModel.onSubItemNameChange(
+                                                index,
+                                                it
+                                            )
+                                        },
                                         label = { Text("Item") },
                                         placeholder = { Text("e.g. Oil") },
                                         modifier = Modifier.weight(1.5f),
@@ -513,7 +557,12 @@ fun AddTransactionScreen(
                                     )
                                     OutlinedTextField(
                                         value = if (item.amount == 0.0) "" else item.amount.toString(),
-                                        onValueChange = { viewModel.onSubItemAmountChange(index, it) },
+                                        onValueChange = {
+                                            viewModel.onSubItemAmountChange(
+                                                index,
+                                                it
+                                            )
+                                        },
                                         label = { Text("Price") },
                                         modifier = Modifier.weight(1f),
                                         shape = MaterialTheme.shapes.medium,
@@ -529,26 +578,29 @@ fun AddTransactionScreen(
                                         modifier = Modifier.size(48.dp)
                                     ) {
                                         Icon(
-                                            Icons.Default.DeleteOutline, 
-                                            null, 
+                                            Icons.Default.DeleteOutline,
+                                            null,
                                             tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
                                             modifier = Modifier.size(20.dp)
                                         )
                                     }
                                 }
                             }
-                            
+
                             OutlinedButton(
                                 onClick = { viewModel.addSubItem() },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = MaterialTheme.shapes.medium,
-                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                                border = androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                )
                             ) {
                                 Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text("Add Item")
                             }
-                            
+
                             if (uiState.subItems.isNotEmpty()) {
                                 Surface(
                                     modifier = Modifier.fillMaxWidth(),
@@ -591,6 +643,7 @@ fun AddTransactionScreen(
                         uiState.amount.isBlank() -> {
                             amountFocusRequester.requestFocus()
                         }
+
                         else -> {
                             viewModel.saveTransaction()
                         }
@@ -608,7 +661,11 @@ fun AddTransactionScreen(
 
                 Icon(icon, null, modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    text,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
             }
 
             if (uiState.transactionId != null) {

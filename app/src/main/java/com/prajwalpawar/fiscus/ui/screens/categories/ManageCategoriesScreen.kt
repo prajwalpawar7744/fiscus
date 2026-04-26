@@ -52,7 +52,7 @@ fun ManageCategoriesScreen(
     var showAddSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
-    
+
     var categoryToDelete by remember { mutableStateOf<Category?>(null) }
 
     val scrollBehavior = if (uiState.topBarStyle == "longtopbar") {
@@ -94,9 +94,9 @@ fun ManageCategoriesScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { 
+                onClick = {
                     haptic.click()
-                    showAddSheet = true 
+                    showAddSheet = true
                 },
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
                 text = { Text("New Category") },
@@ -114,7 +114,8 @@ fun ManageCategoriesScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             val incomeCategories = uiState.categories.filter { it.type == TransactionType.INCOME }
-            val expenseCategories = uiState.categories.filter { it.type == TransactionType.EXPENSE || it.type == null }
+            val expenseCategories =
+                uiState.categories.filter { it.type == TransactionType.EXPENSE || it.type == null }
 
             if (expenseCategories.isNotEmpty()) {
                 item {
@@ -128,9 +129,14 @@ fun ManageCategoriesScreen(
                             .staggeredVerticalFadeIn(0, enabled = uiState.areAnimationsEnabled)
                     )
                 }
-                itemsIndexed(expenseCategories, key = { _, it -> it.id ?: it.name }) { index, category ->
+                itemsIndexed(
+                    expenseCategories,
+                    key = { _, it -> it.id ?: it.name }) { index, category ->
                     CategoryItem(
-                        modifier = Modifier.staggeredVerticalFadeIn(index + 1, enabled = uiState.areAnimationsEnabled),
+                        modifier = Modifier.staggeredVerticalFadeIn(
+                            index + 1,
+                            enabled = uiState.areAnimationsEnabled
+                        ),
                         category = category,
                         onDelete = { categoryToDelete = it }
                     )
@@ -140,7 +146,8 @@ fun ManageCategoriesScreen(
             if (incomeCategories.isNotEmpty()) {
                 item {
                     Spacer(Modifier.height(16.dp))
-                    val expenseCount = if (expenseCategories.isNotEmpty()) expenseCategories.size + 1 else 0
+                    val expenseCount =
+                        if (expenseCategories.isNotEmpty()) expenseCategories.size + 1 else 0
                     Text(
                         "Income Categories",
                         style = MaterialTheme.typography.titleMedium,
@@ -148,13 +155,22 @@ fun ManageCategoriesScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .padding(vertical = 8.dp)
-                            .staggeredVerticalFadeIn(expenseCount, enabled = uiState.areAnimationsEnabled)
+                            .staggeredVerticalFadeIn(
+                                expenseCount,
+                                enabled = uiState.areAnimationsEnabled
+                            )
                     )
                 }
-                val startIdx = (if (expenseCategories.isNotEmpty()) expenseCategories.size + 1 else 0) + 1
-                itemsIndexed(incomeCategories, key = { _, it -> it.id ?: it.name }) { index, category ->
+                val startIdx =
+                    (if (expenseCategories.isNotEmpty()) expenseCategories.size + 1 else 0) + 1
+                itemsIndexed(
+                    incomeCategories,
+                    key = { _, it -> it.id ?: it.name }) { index, category ->
                     CategoryItem(
-                        modifier = Modifier.staggeredVerticalFadeIn(startIdx + index, enabled = uiState.areAnimationsEnabled),
+                        modifier = Modifier.staggeredVerticalFadeIn(
+                            startIdx + index,
+                            enabled = uiState.areAnimationsEnabled
+                        ),
                         category = category,
                         onDelete = { categoryToDelete = it }
                     )
@@ -211,12 +227,12 @@ fun CategoryItem(
         null -> "Expense"
     }
     val typeContainerColor = when (category.type) {
-        TransactionType.INCOME  -> MaterialTheme.colorScheme.primaryContainer
+        TransactionType.INCOME -> MaterialTheme.colorScheme.primaryContainer
         TransactionType.TRANSFER -> MaterialTheme.colorScheme.secondaryContainer
         else -> MaterialTheme.colorScheme.error
     }
     val typeContentColor = when (category.type) {
-        TransactionType.INCOME  -> MaterialTheme.colorScheme.onPrimaryContainer
+        TransactionType.INCOME -> MaterialTheme.colorScheme.onPrimaryContainer
         TransactionType.TRANSFER -> MaterialTheme.colorScheme.onSecondaryContainer
         else -> MaterialTheme.colorScheme.onError
     }
@@ -319,7 +335,7 @@ fun AddCategorySheet(
         MaterialTheme.colorScheme.surfaceVariant,
         MaterialTheme.colorScheme.outline
     )
-    
+
     var selectedColor by remember { mutableStateOf(colors[0]) }
     var selectedIcon by remember { mutableStateOf("ShoppingBag") }
     var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
@@ -371,13 +387,15 @@ fun AddCategorySheet(
                     text = name.ifBlank { "New Category" },
                     style = MaterialTheme.typography.labelMedium,
                     color = if (name.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant
-                            else selectedColor
+                    else selectedColor
                 )
             }
         }
 
         // Type Selector
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(1)) {
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(1)
+        ) {
             SegmentedButton(
                 selected = selectedType == TransactionType.EXPENSE,
                 onClick = { selectedType = TransactionType.EXPENSE },
@@ -428,7 +446,11 @@ fun AddCategorySheet(
                             .clip(CircleShape)
                             .background(color)
                             .then(
-                                if (isSelected) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
+                                if (isSelected) Modifier.border(
+                                    3.dp,
+                                    MaterialTheme.colorScheme.onSurface,
+                                    CircleShape
+                                )
                                 else Modifier
                             )
                             .fiscusClickable(haptic = haptic) { selectedColor = color },
@@ -474,7 +496,11 @@ fun AddCategorySheet(
                                 else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
                             )
                             .then(
-                                if (isSelected) Modifier.border(2.dp, selectedColor, MaterialTheme.shapes.medium)
+                                if (isSelected) Modifier.border(
+                                    2.dp,
+                                    selectedColor,
+                                    MaterialTheme.shapes.medium
+                                )
                                 else Modifier
                             )
                             .fiscusClickable(haptic = haptic) { selectedIcon = iconName },

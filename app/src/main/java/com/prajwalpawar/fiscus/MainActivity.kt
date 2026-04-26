@@ -73,22 +73,22 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-        
+
         var isSettingsLoaded = false
-        
+
         // Keep the splash screen on-screen until the settings are loaded.
         splashScreen.setKeepOnScreenCondition { !isSettingsLoaded }
 
         enableEdgeToEdge()
         setContent {
             val settingsState by settingsViewModel.uiState.collectAsStateWithLifecycle()
-            
+
             // Mark settings as loaded once we receive the first emission from DataStore
             // Since settingsState is a StateFlow with an initial state, we need to be careful.
             // However, hiltViewModel will trigger the first emission fairly quickly.
             // A more robust way is to check a specific 'isLoaded' flag in ViewModel,
             // but for now, we'll use a side effect.
-                LaunchedEffect(settingsState) {
+            LaunchedEffect(settingsState) {
                 isSettingsLoaded = true
             }
 
@@ -221,12 +221,17 @@ fun FiscusAppContent(
                         contentDescription = "Overview"
                     )
                 },
-                label = if (showLabels) { { 
-                    Text("Overview", fontWeight = if (isDashboard) FontWeight.SemiBold else FontWeight.Medium) 
-                } } else null,
+                label = if (showLabels) {
+                    {
+                        Text(
+                            "Overview",
+                            fontWeight = if (isDashboard) FontWeight.SemiBold else FontWeight.Medium
+                        )
+                    }
+                } else null,
                 alwaysShowLabel = alwaysShowLabel
             )
-            
+
             val isTransactions = currentDestination == "transactions"
             item(
                 selected = isTransactions,
@@ -243,12 +248,17 @@ fun FiscusAppContent(
                         contentDescription = "History"
                     )
                 },
-                label = if (showLabels) { { 
-                    Text("History", fontWeight = if (isTransactions) FontWeight.SemiBold else FontWeight.Medium) 
-                } } else null,
+                label = if (showLabels) {
+                    {
+                        Text(
+                            "History",
+                            fontWeight = if (isTransactions) FontWeight.SemiBold else FontWeight.Medium
+                        )
+                    }
+                } else null,
                 alwaysShowLabel = alwaysShowLabel
             )
-            
+
             val isAnalysis = currentDestination == "analysis"
             item(
                 selected = isAnalysis,
@@ -265,12 +275,17 @@ fun FiscusAppContent(
                         contentDescription = "Analysis"
                     )
                 },
-                label = if (showLabels) { { 
-                    Text("Analysis", fontWeight = if (isAnalysis) FontWeight.SemiBold else FontWeight.Medium) 
-                } } else null,
+                label = if (showLabels) {
+                    {
+                        Text(
+                            "Analysis",
+                            fontWeight = if (isAnalysis) FontWeight.SemiBold else FontWeight.Medium
+                        )
+                    }
+                } else null,
                 alwaysShowLabel = alwaysShowLabel
             )
-            
+
             val isSettings = currentDestination == "settings"
             item(
                 selected = isSettings,
@@ -287,9 +302,14 @@ fun FiscusAppContent(
                         contentDescription = "Settings"
                     )
                 },
-                label = if (showLabels) { { 
-                    Text("Settings", fontWeight = if (isSettings) FontWeight.SemiBold else FontWeight.Medium) 
-                } } else null,
+                label = if (showLabels) {
+                    {
+                        Text(
+                            "Settings",
+                            fontWeight = if (isSettings) FontWeight.SemiBold else FontWeight.Medium
+                        )
+                    }
+                } else null,
                 alwaysShowLabel = alwaysShowLabel
             )
         }

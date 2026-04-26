@@ -30,7 +30,7 @@ object FiscusAnimation {
         dampingRatio = Spring.DampingRatioLowBouncy,
         stiffness = Spring.StiffnessLow
     )
-    
+
     val SpringMediumBouncy: AnimationSpec<Float> = spring(
         dampingRatio = Spring.DampingRatioMediumBouncy,
         stiffness = Spring.StiffnessLow
@@ -40,7 +40,7 @@ object FiscusAnimation {
         durationMillis = 400,
         easing = FastOutSlowInEasing
     )
-    
+
     val QuickTween: AnimationSpec<Float> = tween(
         durationMillis = 200,
         easing = LinearOutSlowInEasing
@@ -97,10 +97,11 @@ fun Modifier.staggeredVerticalFadeIn(
  */
 fun Modifier.scaleOnPress(enabled: Boolean = true): Modifier = composed {
     if (!enabled) return@composed this
-    
-    val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+
+    val interactionSource =
+        remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    
+
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 0.96f else 1f,
         animationSpec = spring(
@@ -125,7 +126,7 @@ fun Modifier.fiscusScaleIn(
     delay: Int = 0
 ): Modifier = composed {
     if (!enabled) return@composed this
-    
+
     var visible by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
         targetValue = if (visible) 1f else initialScale,
@@ -163,8 +164,9 @@ fun Modifier.pulsate(
     duration: Int = 1200
 ): Modifier = composed {
     if (!enabled) return@composed this
-    
-    val infiniteTransition = androidx.compose.animation.core.rememberInfiniteTransition(label = "pulsate")
+
+    val infiniteTransition =
+        androidx.compose.animation.core.rememberInfiniteTransition(label = "pulsate")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = minScale,
@@ -189,9 +191,10 @@ fun Modifier.fiscusClickable(
     enabledAnimations: Boolean = true,
     onClick: () -> Unit
 ): Modifier = composed {
-    val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val interactionSource =
+        remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    
+
     val scale by animateFloatAsState(
         targetValue = if (isPressed && enabledAnimations) 0.96f else 1f,
         animationSpec = FiscusAnimation.SpringLowBouncy,
@@ -199,9 +202,9 @@ fun Modifier.fiscusClickable(
     )
 
     this.graphicsLayer {
-            scaleX = scale
-            scaleY = scale
-        }
+        scaleX = scale
+        scaleY = scale
+    }
         .clickable(
             interactionSource = interactionSource,
             indication = androidx.compose.material3.ripple(),
@@ -225,11 +228,11 @@ class FiscusHaptic(private val haptic: HapticFeedback) {
     fun click() {
         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
     }
-    
+
     fun longClick() {
         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
     }
-    
+
     fun success() {
         // Double tap for success
         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -269,7 +272,7 @@ fun AnimatedAmount(
     }
 
     var animateTrigger by remember { mutableFloatStateOf(0f) }
-    
+
     LaunchedEffect(Unit) {
         animateTrigger = 1f
     }

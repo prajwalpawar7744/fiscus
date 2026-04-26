@@ -133,7 +133,10 @@ fun AccountsScreen(
                     key = { _, acc -> acc.id ?: acc.hashCode() }
                 ) { index, account ->
                     AccountListItem(
-                        modifier = Modifier.staggeredVerticalFadeIn(index, enabled = uiState.areAnimationsEnabled),
+                        modifier = Modifier.staggeredVerticalFadeIn(
+                            index,
+                            enabled = uiState.areAnimationsEnabled
+                        ),
                         account = account,
                         currencyCode = uiState.currency,
                         isCompact = uiState.isCompactNumberFormatEnabled,
@@ -177,7 +180,13 @@ fun AccountsScreen(
     if (accountToDelete != null) {
         AlertDialog(
             onDismissRequest = { accountToDelete = null },
-            icon = { Icon(Icons.Default.DeleteForever, null, tint = MaterialTheme.colorScheme.error) },
+            icon = {
+                Icon(
+                    Icons.Default.DeleteForever,
+                    null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
             title = { Text("Delete Account?") },
             text = { Text("Are you sure you want to delete '${accountToDelete?.name}'? This cannot be undone.") },
             confirmButton = {
@@ -227,7 +236,8 @@ private fun AccountFormSheet(
             onValueChange = viewModel::onNameChange,
             label = { Text("Account Name") },
             placeholder = { Text("e.g. HDFC Savings") },
-            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(1, enabled = uiState.areAnimationsEnabled),
+            modifier = Modifier.fillMaxWidth()
+                .staggeredVerticalFadeIn(1, enabled = uiState.areAnimationsEnabled),
             shape = MaterialTheme.shapes.large,
             singleLine = true,
             leadingIcon = { Icon(Icons.AutoMirrored.Filled.Label, null) }
@@ -237,7 +247,8 @@ private fun AccountFormSheet(
             value = uiState.balance,
             onValueChange = viewModel::onBalanceChange,
             label = { Text("Initial Balance") },
-            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(2, enabled = uiState.areAnimationsEnabled),
+            modifier = Modifier.fillMaxWidth()
+                .staggeredVerticalFadeIn(2, enabled = uiState.areAnimationsEnabled),
             shape = MaterialTheme.shapes.large,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,
@@ -262,7 +273,7 @@ private fun AccountFormSheet(
                             .fiscusClickable(haptic = haptic) { viewModel.onIconChange(iconName) },
                         shape = MaterialTheme.shapes.medium,
                         color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                               else MaterialTheme.colorScheme.surfaceVariant,
+                        else MaterialTheme.colorScheme.surfaceVariant,
                         border = if (isSelected) androidx.compose.foundation.BorderStroke(
                             2.dp, MaterialTheme.colorScheme.primary
                         ) else null
@@ -273,7 +284,7 @@ private fun AccountFormSheet(
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
                                 tint = if (isSelected) MaterialTheme.colorScheme.primary
-                                      else MaterialTheme.colorScheme.onSurfaceVariant
+                                else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -282,7 +293,8 @@ private fun AccountFormSheet(
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(4, enabled = uiState.areAnimationsEnabled),
+            modifier = Modifier.fillMaxWidth()
+                .staggeredVerticalFadeIn(4, enabled = uiState.areAnimationsEnabled),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OutlinedButton(
@@ -353,7 +365,13 @@ fun AccountListItem(
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = "Balance: ${formatCurrency(account.balance, currencyCode, isCompact = isCompact)}",
+                    text = "Balance: ${
+                        formatCurrency(
+                            account.balance,
+                            currencyCode,
+                            isCompact = isCompact
+                        )
+                    }",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -366,7 +384,11 @@ fun AccountListItem(
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             ) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(18.dp))
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    modifier = Modifier.size(18.dp)
+                )
             }
 
             FilledTonalIconButton(
@@ -376,7 +398,11 @@ fun AccountListItem(
                     contentColor = MaterialTheme.colorScheme.onError
                 )
             ) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete", modifier = Modifier.size(18.dp))
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    modifier = Modifier.size(18.dp)
+                )
             }
         }
     }

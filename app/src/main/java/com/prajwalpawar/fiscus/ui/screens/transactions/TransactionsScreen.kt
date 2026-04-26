@@ -238,7 +238,10 @@ fun TransactionsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .fiscusScaleIn(enabled = uiState.areAnimationsEnabled, initialScale = 0.95f),
+                        .fiscusScaleIn(
+                            enabled = uiState.areAnimationsEnabled,
+                            initialScale = 0.95f
+                        ),
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
                     shape = MaterialTheme.shapes.extraLarge,
                     tonalElevation = 2.dp
@@ -279,9 +282,9 @@ fun TransactionsScreen(
                             trailingIcon = {
                                 if (uiState.searchText.isNotEmpty()) {
                                     IconButton(onClick = {
-                                    haptic.click()
-                                    viewModel.onSearchTextChanged("")
-                                }) {
+                                        haptic.click()
+                                        viewModel.onSearchTextChanged("")
+                                    }) {
                                         Icon(Icons.Default.Close, contentDescription = "Clear")
                                     }
                                 }
@@ -305,8 +308,9 @@ fun TransactionsScreen(
                         ) {
                             // Category Filter Chip
                             var categoryExpanded by remember { mutableStateOf(false) }
-                            val selectedCategory = uiState.allCategories.find { it.id == uiState.selectedCategoryId }
-                            
+                            val selectedCategory =
+                                uiState.allCategories.find { it.id == uiState.selectedCategoryId }
+
                             Box {
                                 FilterChip(
                                     selected = selectedCategory != null,
@@ -317,13 +321,20 @@ fun TransactionsScreen(
                                             Box(
                                                 modifier = Modifier
                                                     .size(12.dp)
-                                                    .background(Color(selectedCategory.color), CircleShape)
+                                                    .background(
+                                                        Color(selectedCategory.color),
+                                                        CircleShape
+                                                    )
                                             )
                                         } else {
                                             Icon(Icons.Default.Category, null, Modifier.size(18.dp))
                                         }
                                     },
-                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                                    trailingIcon = {
+                                        ExposedDropdownMenuDefaults.TrailingIcon(
+                                            expanded = categoryExpanded
+                                        )
+                                    },
                                     shape = CircleShape
                                 )
                                 DropdownMenu(
@@ -350,7 +361,10 @@ fun TransactionsScreen(
                                                 Box(
                                                     modifier = Modifier
                                                         .size(12.dp)
-                                                        .background(Color(category.color), CircleShape)
+                                                        .background(
+                                                            Color(category.color),
+                                                            CircleShape
+                                                        )
                                                 )
                                             }
                                         )
@@ -360,8 +374,9 @@ fun TransactionsScreen(
 
                             // Wallet Filter Chip
                             var accountExpanded by remember { mutableStateOf(false) }
-                            val selectedAccount = uiState.allAccounts.find { it.id == uiState.selectedAccountId }
-                            
+                            val selectedAccount =
+                                uiState.allAccounts.find { it.id == uiState.selectedAccountId }
+
                             Box {
                                 FilterChip(
                                     selected = selectedAccount != null,
@@ -369,12 +384,18 @@ fun TransactionsScreen(
                                     label = { Text(selectedAccount?.name ?: "All Wallets") },
                                     leadingIcon = {
                                         Icon(
-                                            if (selectedAccount != null) getCategoryIcon(selectedAccount.icon) else Icons.Default.AccountBalanceWallet,
+                                            if (selectedAccount != null) getCategoryIcon(
+                                                selectedAccount.icon
+                                            ) else Icons.Default.AccountBalanceWallet,
                                             null,
                                             Modifier.size(18.dp)
                                         )
                                     },
-                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = accountExpanded) },
+                                    trailingIcon = {
+                                        ExposedDropdownMenuDefaults.TrailingIcon(
+                                            expanded = accountExpanded
+                                        )
+                                    },
                                     shape = CircleShape
                                 )
                                 DropdownMenu(
@@ -387,7 +408,12 @@ fun TransactionsScreen(
                                             viewModel.onAccountSelected(null)
                                             accountExpanded = false
                                         },
-                                        leadingIcon = { Icon(Icons.Default.AccountBalanceWallet, null) }
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Default.AccountBalanceWallet,
+                                                null
+                                            )
+                                        }
                                     )
                                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                                     uiState.allAccounts.forEach { account ->
@@ -417,6 +443,7 @@ fun TransactionsScreen(
                                 TimeRange.CUSTOM -> if (uiState.startDate != null && uiState.endDate != null) {
                                     "${uiState.startDate} - ${uiState.endDate}"
                                 } else "Custom Range"
+
                                 else -> uiState.selectedTimeRange.name.lowercase()
                                     .replaceFirstChar { it.uppercase() }.replace("_", " ")
                             }
@@ -437,7 +464,11 @@ fun TransactionsScreen(
                                         }
                                         Icon(icon, null, Modifier.size(18.dp))
                                     },
-                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = timeExpanded) },
+                                    trailingIcon = {
+                                        ExposedDropdownMenuDefaults.TrailingIcon(
+                                            expanded = timeExpanded
+                                        )
+                                    },
                                     shape = CircleShape
                                 )
                                 DropdownMenu(
@@ -447,7 +478,11 @@ fun TransactionsScreen(
                                     TimeRange.entries.forEach { range ->
                                         DropdownMenuItem(
                                             text = {
-                                                Text(range.name.lowercase().replaceFirstChar { it.uppercase() }.replace("_", " "))
+                                                Text(
+                                                    range.name.lowercase()
+                                                        .replaceFirstChar { it.uppercase() }
+                                                        .replace("_", " ")
+                                                )
                                             },
                                             onClick = {
                                                 viewModel.onTimeRangeSelected(range)
@@ -478,24 +513,37 @@ fun TransactionsScreen(
                                     onDismissRequest = { showDatePicker = false },
                                     confirmButton = {
                                         TextButton(onClick = {
-                                            val start = dateRangePickerState.selectedStartDateMillis?.let {
-                                                Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
-                                            }
-                                            val end = dateRangePickerState.selectedEndDateMillis?.let {
-                                                Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
-                                            }
+                                            val start =
+                                                dateRangePickerState.selectedStartDateMillis?.let {
+                                                    Instant.ofEpochMilli(it)
+                                                        .atZone(ZoneId.systemDefault())
+                                                        .toLocalDate()
+                                                }
+                                            val end =
+                                                dateRangePickerState.selectedEndDateMillis?.let {
+                                                    Instant.ofEpochMilli(it)
+                                                        .atZone(ZoneId.systemDefault())
+                                                        .toLocalDate()
+                                                }
                                             viewModel.onDateRangeSelected(start, end)
                                             showDatePicker = false
                                         }) { Text("Confirm") }
                                     },
                                     dismissButton = {
-                                        TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                                        TextButton(onClick = {
+                                            showDatePicker = false
+                                        }) { Text("Cancel") }
                                     }
                                 ) {
                                     DateRangePicker(
                                         state = dateRangePickerState,
                                         modifier = Modifier.fillMaxWidth().height(450.dp),
-                                        title = { Text("Select Date Range", modifier = Modifier.padding(16.dp)) }
+                                        title = {
+                                            Text(
+                                                "Select Date Range",
+                                                modifier = Modifier.padding(16.dp)
+                                            )
+                                        }
                                     )
                                 }
                             }
@@ -548,7 +596,11 @@ fun TransactionsScreen(
                             }
                         }
                     ) { index, item ->
-                        val itemModifier = Modifier.staggeredVerticalFadeIn(index, enabled = uiState.areAnimationsEnabled, initialDelay = 150)
+                        val itemModifier = Modifier.staggeredVerticalFadeIn(
+                            index,
+                            enabled = uiState.areAnimationsEnabled,
+                            initialDelay = 150
+                        )
 
                         Box(modifier = itemModifier) {
                             when (item) {
