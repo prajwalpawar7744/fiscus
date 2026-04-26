@@ -9,7 +9,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,6 +26,7 @@ import com.prajwalpawar.fiscus.ui.utils.getCategoryIcon
 import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
 import com.prajwalpawar.fiscus.ui.utils.staggeredVerticalFadeIn
 import com.prajwalpawar.fiscus.ui.utils.fiscusClickable
+import com.prajwalpawar.fiscus.ui.utils.formatCurrency
 import com.prajwalpawar.fiscus.ui.utils.EmptyState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -134,6 +135,8 @@ fun AccountsScreen(
                     AccountListItem(
                         modifier = Modifier.staggeredVerticalFadeIn(index),
                         account = account,
+                        currencyCode = uiState.currency,
+                        isCompact = uiState.isCompactNumberFormatEnabled,
                         onEdit = {
                             viewModel.selectAccountForEdit(account)
                             showFormSheet = true
@@ -227,7 +230,7 @@ private fun AccountFormSheet(
             modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(1),
             shape = MaterialTheme.shapes.large,
             singleLine = true,
-            leadingIcon = { Icon(Icons.Default.Label, null) }
+            leadingIcon = { Icon(Icons.AutoMirrored.Filled.Label, null) }
         )
 
         OutlinedTextField(
@@ -305,7 +308,9 @@ private fun AccountFormSheet(
 @Composable
 fun AccountListItem(
     account: Account,
+    currencyCode: String,
     modifier: Modifier = Modifier,
+    isCompact: Boolean = false,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -348,7 +353,7 @@ fun AccountListItem(
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = "Balance: ${account.balance}",
+                    text = "Balance: ${formatCurrency(account.balance, currencyCode, isCompact = isCompact)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

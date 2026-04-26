@@ -13,7 +13,7 @@ private val Context.dataStore by preferencesDataStore(name = "settings")
 
 @Singleton
 class PreferenceManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     private val dataStore = context.dataStore
 
@@ -30,6 +30,7 @@ class PreferenceManager @Inject constructor(
         val PRIVACY_MODE_ENABLED = booleanPreferencesKey("privacy_mode_enabled")
         val BORDER_RADIUS = intPreferencesKey("border_radius")
         val NAV_LABEL_MODE = stringPreferencesKey("nav_label_mode")
+        val COMPACT_NUMBER_FORMAT = booleanPreferencesKey("compact_number_format")
     }
 
     val userName: Flow<String> = dataStore.data.map { preferences ->
@@ -76,6 +77,10 @@ class PreferenceManager @Inject constructor(
 
     val navLabelMode: Flow<String> = dataStore.data.map { preferences ->
         preferences[PreferencesKeys.NAV_LABEL_MODE] ?: "always"
+    }
+
+    val isCompactNumberFormatEnabled: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.COMPACT_NUMBER_FORMAT] ?: false
     }
 
     suspend fun updateUserName(name: String) {
@@ -143,6 +148,12 @@ class PreferenceManager @Inject constructor(
     suspend fun updateNavLabelMode(mode: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.NAV_LABEL_MODE] = mode
+        }
+    }
+
+    suspend fun updateCompactNumberFormatEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.COMPACT_NUMBER_FORMAT] = enabled
         }
     }
 }

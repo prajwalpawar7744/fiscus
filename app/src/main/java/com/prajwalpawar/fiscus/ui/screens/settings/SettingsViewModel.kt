@@ -29,7 +29,8 @@ data class SettingsUiState(
     val areAnimationsEnabled: Boolean = true,
     val isPrivacyModeEnabled: Boolean = false,
     val borderRadius: Int = 12,
-    val navLabelMode: String = "always"
+    val navLabelMode: String = "always",
+    val isCompactNumberFormatEnabled: Boolean = false
 )
 
 @HiltViewModel
@@ -37,7 +38,7 @@ class SettingsViewModel @Inject constructor(
     private val preferenceManager: PreferenceManager,
     private val repository: FiscusRepository,
     private val backupManager: BackupManager,
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     val uiState: StateFlow<SettingsUiState> = combine<Any?, SettingsUiState>(
@@ -51,7 +52,8 @@ class SettingsViewModel @Inject constructor(
         preferenceManager.areAnimationsEnabled,
         preferenceManager.isPrivacyModeEnabled,
         preferenceManager.borderRadius,
-        preferenceManager.navLabelMode
+        preferenceManager.navLabelMode,
+        preferenceManager.isCompactNumberFormatEnabled
     ) { args ->
         SettingsUiState(
             userName = args[0] as String,
@@ -64,7 +66,8 @@ class SettingsViewModel @Inject constructor(
             areAnimationsEnabled = args[7] as Boolean,
             isPrivacyModeEnabled = args[8] as Boolean,
             borderRadius = args[9] as Int,
-            navLabelMode = args[10] as String
+            navLabelMode = args[10] as String,
+            isCompactNumberFormatEnabled = args[11] as Boolean
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUiState())
 
@@ -160,6 +163,12 @@ class SettingsViewModel @Inject constructor(
     fun updateNavLabelMode(mode: String) {
         viewModelScope.launch {
             preferenceManager.updateNavLabelMode(mode)
+        }
+    }
+
+    fun updateCompactNumberFormatEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            preferenceManager.updateCompactNumberFormatEnabled(enabled)
         }
     }
 

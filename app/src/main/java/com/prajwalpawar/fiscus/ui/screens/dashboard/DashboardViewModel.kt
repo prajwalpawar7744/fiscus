@@ -25,7 +25,8 @@ data class DashboardUiState(
     val accounts: List<AccountWithBalance> = emptyList(),
     val selectedTransactionDetail: Transaction? = null,
     val isLoading: Boolean = true,
-    val isPrivacyModeEnabled: Boolean = false
+    val isPrivacyModeEnabled: Boolean = false,
+    val isCompactNumberFormatEnabled: Boolean = false
 )
 
 @HiltViewModel
@@ -43,7 +44,8 @@ class DashboardViewModel @Inject constructor(
         preferenceManager.userPhotoUri,
         preferenceManager.topBarStyle,
         preferenceManager.areAnimationsEnabled,
-        preferenceManager.isPrivacyModeEnabled
+        preferenceManager.isPrivacyModeEnabled,
+        preferenceManager.isCompactNumberFormatEnabled
     ) { args ->
         DashboardUserPrefs(
             currency = args[0] as String,
@@ -51,7 +53,8 @@ class DashboardViewModel @Inject constructor(
             userPhotoUri = args[2] as? String,
             topBarStyle = args[3] as String,
             areAnimationsEnabled = args[4] as Boolean,
-            isPrivacyModeEnabled = args[5] as Boolean
+            isPrivacyModeEnabled = args[5] as Boolean,
+            isCompactNumberFormatEnabled = args[6] as Boolean
         )
     }
 
@@ -61,7 +64,8 @@ class DashboardViewModel @Inject constructor(
         val userPhotoUri: String?,
         val topBarStyle: String,
         val areAnimationsEnabled: Boolean,
-        val isPrivacyModeEnabled: Boolean
+        val isPrivacyModeEnabled: Boolean,
+        val isCompactNumberFormatEnabled: Boolean
     )
 
     data class DashboardData(
@@ -114,7 +118,8 @@ class DashboardViewModel @Inject constructor(
             areAnimationsEnabled = prefs.areAnimationsEnabled,
             accounts = accountsWithBalance,
             isLoading = false,
-            isPrivacyModeEnabled = prefs.isPrivacyModeEnabled
+            isPrivacyModeEnabled = prefs.isPrivacyModeEnabled,
+            isCompactNumberFormatEnabled = prefs.isCompactNumberFormatEnabled
         )
     }.flowOn(Dispatchers.Default)
     .stateIn(

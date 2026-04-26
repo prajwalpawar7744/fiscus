@@ -17,7 +17,9 @@ data class AccountsUiState(
     val icon: String = "account_balance",
     val isEditing: Boolean = false,
     val selectedAccountId: Long? = null,
-    val topBarStyle: String = "standard"
+    val topBarStyle: String = "standard",
+    val currency: String = "USD",
+    val isCompactNumberFormatEnabled: Boolean = false
 )
 
 @HiltViewModel
@@ -29,9 +31,15 @@ class AccountsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AccountsUiState())
     val uiState: StateFlow<AccountsUiState> = combine(
         _uiState,
-        preferenceManager.topBarStyle
-    ) { state, topBarStyle ->
-        state.copy(topBarStyle = topBarStyle)
+        preferenceManager.topBarStyle,
+        preferenceManager.currency,
+        preferenceManager.isCompactNumberFormatEnabled
+    ) { state, topBarStyle, currency, isCompact ->
+        state.copy(
+            topBarStyle = topBarStyle,
+            currency = currency,
+            isCompactNumberFormatEnabled = isCompact
+        )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

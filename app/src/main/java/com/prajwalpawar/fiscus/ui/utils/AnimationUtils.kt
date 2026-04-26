@@ -90,7 +90,7 @@ fun Modifier.staggeredVerticalFadeIn(
         ),
         label = "staggerProgress"
     )
-    val delay = remember(index, initialDelay) { (initialDelay + (index.coerceAtMost(8) * 45)).toLong() }
+    val delay = remember(index, initialDelay) { (initialDelay + (index.coerceAtMost(8) * 45)) }
 
     LaunchedEffect(Unit) {
         kotlinx.coroutines.delay(delay)
@@ -197,11 +197,12 @@ fun AnimatedAmount(
     maxLines: Int = 1,
     overflow: TextOverflow = TextOverflow.Clip,
     enabled: Boolean = true,
-    isMasked: Boolean = false
+    isMasked: Boolean = false,
+    isCompact: Boolean = false
 ) {
     if (!enabled || isMasked) {
         Text(
-            text = formatCurrency(targetAmount, currencyCode, isMasked),
+            text = formatCurrency(targetAmount, currencyCode, isMasked, isCompact),
             style = style,
             fontWeight = fontWeight,
             color = color,
@@ -226,7 +227,7 @@ fun AnimatedAmount(
     )
 
     Text(
-        text = formatCurrency(animatedAmount.toDouble(), currencyCode),
+        text = formatCurrency(animatedAmount.toDouble(), currencyCode, isCompact = isCompact),
         style = style,
         fontWeight = fontWeight,
         color = color,

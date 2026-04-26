@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -65,7 +66,7 @@ fun ManageCategoriesScreen(
             val titleContent = @Composable { Text("Categories", fontWeight = FontWeight.Bold) }
             val navigationIconContent = @Composable {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
             }
             val appBarsColors = TopAppBarDefaults.topAppBarColors(
@@ -399,7 +400,7 @@ fun AddCategorySheet(
             modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(2),
             singleLine = true,
             shape = MaterialTheme.shapes.large,
-            leadingIcon = { Icon(Icons.Default.Label, null) }
+            leadingIcon = { Icon(Icons.AutoMirrored.Filled.Label, null) }
         )
 
         Column(

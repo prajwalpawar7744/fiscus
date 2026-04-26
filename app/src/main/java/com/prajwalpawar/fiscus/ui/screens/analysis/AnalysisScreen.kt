@@ -458,7 +458,8 @@ fun AnalysisScreen(
                                     else MaterialTheme.colorScheme.secondary,
                                     currencyCode = uiState.currency,
                                     animationsEnabled = uiState.areAnimationsEnabled,
-                                    isMasked = uiState.isPrivacyModeEnabled
+                                    isMasked = uiState.isPrivacyModeEnabled,
+                                    isCompact = uiState.isCompactNumberFormatEnabled
                                 )
                             }
 
@@ -471,7 +472,8 @@ fun AnalysisScreen(
                                     modifier = chartModifier,
                                     currencyCode = uiState.currency,
                                     animationsEnabled = uiState.areAnimationsEnabled,
-                                    isMasked = uiState.isPrivacyModeEnabled
+                                    isMasked = uiState.isPrivacyModeEnabled,
+                                    isCompact = uiState.isCompactNumberFormatEnabled
                                 )
                             }
 
@@ -505,6 +507,7 @@ fun AnalysisScreen(
                     currencyCode = uiState.currency,
                     animationsEnabled = uiState.areAnimationsEnabled,
                     isMasked = uiState.isPrivacyModeEnabled,
+                    isCompact = uiState.isCompactNumberFormatEnabled,
                     modifier = Modifier.staggeredVerticalFadeIn(0, enabled = uiState.areAnimationsEnabled)
                 )
             }
@@ -541,7 +544,8 @@ fun AnalysisScreen(
                         modifier = Modifier.staggeredVerticalFadeIn(index, enabled = uiState.areAnimationsEnabled, initialDelay = 150),
                         analysis = analysis,
                         currencyCode = uiState.currency,
-                        animationsEnabled = uiState.areAnimationsEnabled
+                        animationsEnabled = uiState.areAnimationsEnabled,
+                        isCompact = uiState.isCompactNumberFormatEnabled
                     )
                 }
             }
@@ -556,6 +560,7 @@ fun AnalysisSummaryCard(
     currencyCode: String,
     animationsEnabled: Boolean = true,
     isMasked: Boolean = false,
+    isCompact: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val net = income - expense
@@ -621,7 +626,8 @@ fun AnalysisSummaryCard(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             enabled = animationsEnabled,
-                            isMasked = isMasked
+                            isMasked = isMasked,
+                            isCompact = isCompact
                         )
                     }
                 }
@@ -659,7 +665,8 @@ fun AnalysisSummaryCard(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onError,
                             enabled = animationsEnabled,
-                            isMasked = isMasked
+                            isMasked = isMasked,
+                            isCompact = isCompact
                         )
                     }
                 }
@@ -723,7 +730,8 @@ fun AnalysisSummaryCard(
                     fontWeight = FontWeight.Bold,
                     color = netColor,
                     enabled = animationsEnabled,
-                    isMasked = isMasked
+                    isMasked = isMasked,
+                    isCompact = isCompact
                 )
             }
         }
@@ -736,7 +744,8 @@ fun CategoryAnalysisItem(
     currencyCode: String,
     modifier: Modifier = Modifier,
     animationsEnabled: Boolean = true,
-    isMasked: Boolean = false
+    isMasked: Boolean = false,
+    isCompact: Boolean = false
 ) {
     val haptic = rememberFiscusHaptic()
     val categoryColor = Color(analysis.category.color)
@@ -793,7 +802,7 @@ fun CategoryAnalysisItem(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = formatCurrency(analysis.amount, currencyCode, isMasked),
+                        text = formatCurrency(analysis.amount, currencyCode, isMasked, isCompact),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = categoryColor
@@ -842,7 +851,8 @@ fun BarChart(
     color: Color = MaterialTheme.colorScheme.primary,
     currencyCode: String,
     animationsEnabled: Boolean = true,
-    isMasked: Boolean = false
+    isMasked: Boolean = false,
+    isCompact: Boolean = false
 ) {
     val animatedProgress = remember { Animatable(0f) }
     var selectedIndex by remember { mutableIntStateOf(-1) }
@@ -946,7 +956,7 @@ fun BarChart(
             ) {
                 Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(point.label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f))
-                    Text(formatCurrency(point.amount, currencyCode, isMasked), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    Text(formatCurrency(point.amount, currencyCode, isMasked, isCompact), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -1065,7 +1075,8 @@ fun LineChart(
     modifier: Modifier = Modifier,
     currencyCode: String,
     animationsEnabled: Boolean = true,
-    isMasked: Boolean = false
+    isMasked: Boolean = false,
+    isCompact: Boolean = false
 ) {
     val allPoints = (if (showExpense) expensePoints else emptyList()) + (if (showIncome) incomePoints else emptyList())
     if (allPoints.isEmpty() || (showExpense && expensePoints.size < 2 && !showIncome) || (showIncome && incomePoints.size < 2 && !showExpense)) {
@@ -1188,7 +1199,7 @@ fun LineChart(
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(point.label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f))
-                        Text(formatCurrency(point.amount, currencyCode, isMasked), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                        Text(formatCurrency(point.amount, currencyCode, isMasked, isCompact), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                     }
                 }
             }

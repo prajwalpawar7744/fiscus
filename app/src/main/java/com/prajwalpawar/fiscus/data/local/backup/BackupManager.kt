@@ -14,7 +14,7 @@ import javax.inject.Singleton
 @Singleton
 class BackupManager @Inject constructor(
     private val database: FiscusDatabase,
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     suspend fun exportDatabase(outputStream: OutputStream): Boolean {
         return withContext(Dispatchers.IO) {

@@ -56,7 +56,8 @@ data class AnalysisUiState(
     val activityPoints: List<ActivityPoint> = emptyList(),
     val effectiveStartDate: LocalDate? = null,
     val effectiveEndDate: LocalDate? = null,
-    val isPrivacyModeEnabled: Boolean = false
+    val isPrivacyModeEnabled: Boolean = false,
+    val isCompactNumberFormatEnabled: Boolean = false
 )
 
 data class ActivityPoint(
@@ -135,16 +136,21 @@ class AnalysisViewModel @Inject constructor(
         _filters,
         preferenceManager.areAnimationsEnabled,
         preferenceManager.topBarStyle,
-        preferenceManager.isPrivacyModeEnabled
+        preferenceManager.isPrivacyModeEnabled,
+        preferenceManager.isCompactNumberFormatEnabled
     ) { args ->
+        @Suppress("UNCHECKED_CAST")
         val transactions = args[0] as List<Transaction>
+        @Suppress("UNCHECKED_CAST")
         val categories = args[1] as List<Category>
+        @Suppress("UNCHECKED_CAST")
         val accounts = args[2] as List<com.prajwalpawar.fiscus.domain.model.Account>
         val currency = args[3] as String
         val filters = args[4] as FilterParams
         val animationsEnabled = args[5] as Boolean
         val topBarStyle = args[6] as String
         val privacyEnabled = args[7] as Boolean
+        val compactEnabled = args[8] as Boolean
         
         val timeFilteredTransactions = transactions.filter { transaction ->
             val transactionDate = transaction.date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
@@ -253,7 +259,8 @@ class AnalysisViewModel @Inject constructor(
             activityPoints = activityPoints,
             effectiveStartDate = effectiveStart,
             effectiveEndDate = effectiveEnd,
-            isPrivacyModeEnabled = privacyEnabled
+            isPrivacyModeEnabled = privacyEnabled,
+            isCompactNumberFormatEnabled = compactEnabled
         )
     }.flowOn(Dispatchers.Default)
     .stateIn(

@@ -1,6 +1,7 @@
 package com.prajwalpawar.fiscus.ui.utils
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -29,10 +30,10 @@ fun getCategoryIcon(name: String): ImageVector {
         "payments", "money" -> Icons.Default.Payments
         "monetizationon", "cash" -> Icons.Default.MonetizationOn
         "swaphoriz", "transfer", "sync" -> Icons.Default.SwapHoriz
-        "receiptlong", "bill", "invoice" -> Icons.Default.ReceiptLong
+        "receiptlong", "bill", "invoice" -> Icons.AutoMirrored.Filled.ReceiptLong
         "work", "business" -> Icons.Default.Work
         "redeem", "gift" -> Icons.Default.Redeem
-        "trendingup", "invest", "chart" -> Icons.Default.TrendingUp
+        "trendingup", "invest", "chart" -> Icons.AutoMirrored.Filled.TrendingUp
         "category", "other" -> Icons.Default.Category
         else -> Icons.Default.Category
     }

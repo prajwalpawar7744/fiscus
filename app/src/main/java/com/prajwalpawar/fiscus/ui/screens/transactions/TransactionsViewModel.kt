@@ -36,9 +36,11 @@ data class TransactionsUiState(
     val areAnimationsEnabled: Boolean = true,
     val topBarStyle: String = "standard",
     val selectedTransactionDetail: Transaction? = null,
-    val isPrivacyModeEnabled: Boolean = false
+    val isPrivacyModeEnabled: Boolean = false,
+    val isCompactNumberFormatEnabled: Boolean = false
 )
 
+@OptIn(kotlinx.coroutines.FlowPreview::class)
 @HiltViewModel
 class TransactionsViewModel @Inject constructor(
     private val repository: FiscusRepository,
@@ -67,6 +69,7 @@ class TransactionsViewModel @Inject constructor(
         _startDate,
         _endDate
     ) { args ->
+        @Suppress("UNCHECKED_CAST")
         FilterParams(
             search = args[0] as String,
             categoryId = args[1] as Long?,
@@ -99,9 +102,12 @@ class TransactionsViewModel @Inject constructor(
         preferenceManager.areAnimationsEnabled,
         preferenceManager.topBarStyle,
         _searchText,
-        preferenceManager.isPrivacyModeEnabled
+        preferenceManager.isPrivacyModeEnabled,
+        preferenceManager.isCompactNumberFormatEnabled
     ) { args ->
+        @Suppress("UNCHECKED_CAST")
         val transactions = args[0] as List<Transaction>
+        @Suppress("UNCHECKED_CAST")
         val categories = args[1] as List<Category>
         @Suppress("UNCHECKED_CAST")
         val accounts = args[2] as List<Account>
@@ -111,6 +117,7 @@ class TransactionsViewModel @Inject constructor(
         val topBarStyle = args[6] as String
         val rawSearchText = args[7] as String
         val privacyEnabled = args[8] as Boolean
+        val compactEnabled = args[9] as Boolean
         
         val (search, categoryId, accountId, timeRange, start, end) = filters
         
@@ -166,7 +173,8 @@ class TransactionsViewModel @Inject constructor(
             allAccounts = accounts,
             areAnimationsEnabled = animationsEnabled,
             topBarStyle = topBarStyle,
-            isPrivacyModeEnabled = privacyEnabled
+            isPrivacyModeEnabled = privacyEnabled,
+            isCompactNumberFormatEnabled = compactEnabled
         )
     }
 .flowOn(Dispatchers.Default)

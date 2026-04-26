@@ -40,7 +40,8 @@ fun TransactionDetailScreen(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onDismiss: () -> Unit,
-    animationsEnabled: Boolean = true
+    animationsEnabled: Boolean = true,
+    isCompact: Boolean = false
 ) {
     val dateFormatter = SimpleManagement.dateFormatter
 
@@ -100,6 +101,7 @@ fun TransactionDetailScreen(
                 fontWeight = FontWeight.ExtraBold,
                 color = amountColor,
                 enabled = animationsEnabled,
+                isCompact = isCompact
             )
 
             Surface(
@@ -269,7 +271,7 @@ fun TransactionDetailScreen(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        text = formatCurrency(item.amount, currencyCode),
+                                        text = formatCurrency(item.amount, currencyCode, isCompact = isCompact),
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.primary

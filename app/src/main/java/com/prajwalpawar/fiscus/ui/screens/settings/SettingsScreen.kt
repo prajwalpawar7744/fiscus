@@ -362,6 +362,24 @@ fun SettingsScreen(
                         onClick = { showCurrencyDialog = true }
                     )
                     SettingsItem(
+                        icon = Icons.Default.FormatListNumbered,
+                        title = "Compact Amount",
+                        subtitle = if (uiState.isCompactNumberFormatEnabled) 
+                            "Showing compact amounts (e.g., 1.5k, 2M)" 
+                            else "Showing full amounts (e.g., 1,500, 2,000,000)",
+                        trailingContent = {
+                            Switch(
+                                checked = uiState.isCompactNumberFormatEnabled,
+                                onCheckedChange = { 
+                                    haptic.click()
+                                    viewModel.updateCompactNumberFormatEnabled(it) 
+                                }
+                            )
+                        },
+                        animationsEnabled = uiState.areAnimationsEnabled,
+                        onClick = { viewModel.updateCompactNumberFormatEnabled(!uiState.isCompactNumberFormatEnabled) }
+                    )
+                    SettingsItem(
                         icon = Icons.Default.Category,
                         title = "Manage Categories",
                         subtitle = "Add or edit custom categories",

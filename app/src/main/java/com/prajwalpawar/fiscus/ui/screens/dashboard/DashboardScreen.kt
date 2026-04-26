@@ -340,6 +340,7 @@ fun DashboardScreen(
                             currencyCode = uiState.currency,
                             animationsEnabled = uiState.areAnimationsEnabled,
                             isMasked = uiState.isPrivacyModeEnabled,
+                            isCompact = uiState.isCompactNumberFormatEnabled,
                             modifier = Modifier.staggeredVerticalFadeIn(0, uiState.areAnimationsEnabled)
                         )
                     }
@@ -415,7 +416,8 @@ fun DashboardScreen(
                                         accountWithBalance = accountWithBalance,
                                         currencyCode = uiState.currency,
                                         animationsEnabled = uiState.areAnimationsEnabled,
-                                        isMasked = uiState.isPrivacyModeEnabled
+                                        isMasked = uiState.isPrivacyModeEnabled,
+                                        isCompact = uiState.isCompactNumberFormatEnabled
                                     )
                                 }
                             }
@@ -461,6 +463,7 @@ fun DashboardScreen(
                             toAccount = transaction.toAccountId?.let { uiState.accountsMap[it] },
                             currencyCode = uiState.currency,
                             isMasked = uiState.isPrivacyModeEnabled,
+                            isCompact = uiState.isCompactNumberFormatEnabled,
                             onClick = {
                                 viewModel.onTransactionClick(transaction)
                                 showDetailSheet = true
@@ -490,6 +493,7 @@ fun BalanceCard(
     currencyCode: String,
     animationsEnabled: Boolean = true,
     isMasked: Boolean = false,
+    isCompact: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     var progress by remember { mutableFloatStateOf(0f) }
@@ -537,7 +541,8 @@ fun BalanceCard(
                 maxLines = 1,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 enabled = animationsEnabled,
-                isMasked = isMasked
+                isMasked = isMasked,
+                isCompact = isCompact
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -555,7 +560,8 @@ fun BalanceCard(
                     currencyCode = currencyCode,
                     modifier = Modifier.weight(1f),
                     animationsEnabled = animationsEnabled,
-                    isMasked = isMasked
+                    isMasked = isMasked,
+                    isCompact = isCompact
                 )
 
                 SummaryCard(
@@ -566,7 +572,8 @@ fun BalanceCard(
                     currencyCode = currencyCode,
                     modifier = Modifier.weight(1f),
                     animationsEnabled = animationsEnabled,
-                    isMasked = isMasked
+                    isMasked = isMasked,
+                    isCompact = isCompact
                 )
             }
         }
@@ -582,7 +589,8 @@ fun SummaryCard(
     currencyCode: String,
     modifier: Modifier = Modifier,
     animationsEnabled: Boolean = true,
-    isMasked: Boolean = false
+    isMasked: Boolean = false,
+    isCompact: Boolean = false
 ) {
     Surface(
         modifier = modifier
@@ -628,7 +636,8 @@ fun SummaryCard(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
                 enabled = animationsEnabled,
-                isMasked = isMasked
+                isMasked = isMasked,
+                isCompact = isCompact
             )
         }
     }
@@ -644,6 +653,7 @@ fun TransactionItem(
     isMasked: Boolean = false,
     account: Account? = null,
     toAccount: Account? = null,
+    isCompact: Boolean = false,
     onClick: () -> Unit = {}
 ) {
     val amountColor = when (transaction.type) {
@@ -786,7 +796,7 @@ fun TransactionItem(
                     )
                 }
                 Text(
-                    text = formatCurrency(transaction.amount, currencyCode, isMasked),
+                    text = formatCurrency(transaction.amount, currencyCode, isMasked, isCompact),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = amountColor
@@ -811,6 +821,7 @@ fun AccountCard(
     currencyCode: String,
     animationsEnabled: Boolean,
     isMasked: Boolean = false,
+    isCompact: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     ElevatedCard(
@@ -859,7 +870,8 @@ fun AccountCard(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 enabled = animationsEnabled,
-                isMasked = isMasked
+                isMasked = isMasked,
+                isCompact = isCompact
             )
         }
     }
