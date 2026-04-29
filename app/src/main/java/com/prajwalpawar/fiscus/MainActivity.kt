@@ -337,6 +337,15 @@ fun FiscusAppContent(
                     },
                     onManageAccounts = {
                         navController.navigate("accounts")
+                    },
+                    onProfileClick = {
+                        navController.navigate("settings") {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 )
             }

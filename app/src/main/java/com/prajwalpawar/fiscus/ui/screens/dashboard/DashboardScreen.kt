@@ -102,7 +102,8 @@ import java.util.Calendar
 fun DashboardScreen(
     viewModel: DashboardViewModel,
     onSeeAllTransactions: () -> Unit,
-    onManageAccounts: () -> Unit
+    onManageAccounts: () -> Unit,
+    onProfileClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val addTransactionViewModel: AddTransactionViewModel = hiltViewModel()
@@ -222,7 +223,8 @@ fun DashboardScreen(
                         when (hour) {
                             in 0..11 -> "Good Morning"
                             in 12..16 -> "Good Afternoon"
-                            else -> "Good Evening"
+                            in 17..20 -> "Good Evening"
+                            else -> "Good Night"
                         }
                     }
                     Text(
@@ -244,7 +246,13 @@ fun DashboardScreen(
                         .padding(end = 16.dp)
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .fiscusClickable(
+                            haptic = haptic,
+                            enabledAnimations = uiState.areAnimationsEnabled
+                        ) {
+                            onProfileClick()
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     if (uiState.userPhotoUri != null) {
