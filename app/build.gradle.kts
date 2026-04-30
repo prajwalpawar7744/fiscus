@@ -10,6 +10,10 @@ plugins {
     alias(libs.plugins.baselineprofile)
 }
 
+hilt {
+    enableExperimentalClasspathAggregation = true
+}
+
 android {
     namespace = "com.prajwalpawar.fiscus"
     compileSdk = 37 // Standardizing to a stable version if 36 is too new/experimental for tools
@@ -18,7 +22,7 @@ android {
         applicationId = "com.prajwalpawar.fiscus"
         minSdk = 26
         versionCode = 1
-        versionName = "1.4.5"
+        versionName = "1.4.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -62,8 +66,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     buildFeatures {
