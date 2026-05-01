@@ -24,7 +24,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
+import android.net.Uri
 import com.prajwalpawar.fiscus.ui.components.ConfirmationDialog
+import com.prajwalpawar.fiscus.ui.components.ImageCropperDialog
 import com.prajwalpawar.fiscus.ui.utils.fiscusClickable
 import com.prajwalpawar.fiscus.ui.utils.fiscusScaleIn
 import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
@@ -47,10 +49,12 @@ fun SettingsScreen(
     val context = LocalContext.current
     val haptic = rememberFiscusHaptic()
 
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
     val photoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
-        uri?.let { viewModel.updateUserPhotoUri(it.toString()) }
+        uri?.let { selectedImageUri = it }
     }
 
     var showNameDialog by remember { mutableStateOf(false) }
@@ -699,6 +703,17 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showNavLabelDialog = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    selectedImageUri?.let { uri ->
+        ImageCropperDialog(
+            uri = uri,
+            onDismiss = { selectedImageUri = null },
+            onCropped = { bitmap ->
+                viewModel.updateUserPhoto(bitmap)
+                selectedImageUri = null
             }
         )
     }

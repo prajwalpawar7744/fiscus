@@ -1,22 +1,24 @@
 package com.prajwalpawar.fiscus.ui.screens.settings
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prajwalpawar.fiscus.data.local.pref.PreferenceManager
 import com.prajwalpawar.fiscus.domain.repository.FiscusRepository
 import com.prajwalpawar.fiscus.data.local.backup.BackupManager
-import java.io.InputStream
-import java.io.OutputStream
-import android.content.Context
-import android.net.Uri
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 import javax.inject.Inject
-import androidx.core.net.toUri
 
 data class SettingsUiState(
     val userName: String = "",
@@ -77,20 +79,19 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun updateUserPhotoUri(uriString: String) {
+    fun updateUserPhoto(bitmap: Bitmap) {
         viewModelScope.launch {
-            val uri = uriString.toUri()
-            val localPath = saveImageToInternalStorage(uri)
+            val localPath = withContext(Dispatchers.IO) {
+                saveBitmapToInternalStorage(bitmap)
+            }
             if (localPath != null) {
                 preferenceManager.updateUserPhotoUri(localPath)
             }
         }
     }
 
-    private fun saveImageToInternalStorage(uri: Uri): String? {
+    private fun saveBitmapToInternalStorage(bitmap: Bitmap): String? {
         return try {
-            val inputStream = context.contentResolver.openInputStream(uri)
-
             // Delete old profile photos to prevent storage bloat
             context.filesDir.listFiles { _, name -> name.startsWith("profile_photo_") }
                 ?.forEach { it.delete() }
@@ -99,11 +100,10 @@ class SettingsViewModel @Inject constructor(
             val file = File(context.filesDir, filename)
             val outputStream = FileOutputStream(file)
 
-            inputStream?.use { input ->
-                outputStream.use { output ->
-                    input.copyTo(output)
-                }
-            }
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+            outputStream.flush()
+            outputStream.close()
+            
             file.absolutePath
         } catch (e: Exception) {
             e.printStackTrace()
