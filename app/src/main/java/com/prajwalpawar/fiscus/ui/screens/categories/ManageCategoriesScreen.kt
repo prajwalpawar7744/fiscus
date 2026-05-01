@@ -1,45 +1,83 @@
 package com.prajwalpawar.fiscus.ui.screens.categories
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.*
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Label
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.prajwalpawar.fiscus.domain.model.Category
 import com.prajwalpawar.fiscus.domain.model.TransactionType
+import com.prajwalpawar.fiscus.ui.components.ConfirmationDialog
 import com.prajwalpawar.fiscus.ui.utils.fiscusClickable
 import com.prajwalpawar.fiscus.ui.utils.fiscusScaleIn
+import com.prajwalpawar.fiscus.ui.utils.getCategoryIcon
 import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
 import com.prajwalpawar.fiscus.ui.utils.staggeredVerticalFadeIn
-import com.prajwalpawar.fiscus.ui.utils.getCategoryIcon
-import com.prajwalpawar.fiscus.ui.components.ConfirmationDialog
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +89,7 @@ fun ManageCategoriesScreen(
     val haptic = rememberFiscusHaptic()
     var showAddSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
+    rememberCoroutineScope()
 
     var categoryToDelete by remember { mutableStateOf<Category?>(null) }
 
@@ -357,7 +395,9 @@ fun AddCategorySheet(
     ) {
         // Header row with live preview
         Row(
-            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(0),
+            modifier = Modifier
+                .fillMaxWidth()
+                .staggeredVerticalFadeIn(0),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -394,7 +434,9 @@ fun AddCategorySheet(
 
         // Type Selector
         SingleChoiceSegmentedButtonRow(
-            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(1)
+            modifier = Modifier
+                .fillMaxWidth()
+                .staggeredVerticalFadeIn(1)
         ) {
             SegmentedButton(
                 selected = selectedType == TransactionType.EXPENSE,
@@ -417,7 +459,9 @@ fun AddCategorySheet(
             onValueChange = { name = it },
             label = { Text("Category Name") },
             placeholder = { Text("e.g. Subscriptions") },
-            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(2),
+            modifier = Modifier
+                .fillMaxWidth()
+                .staggeredVerticalFadeIn(2),
             singleLine = true,
             shape = MaterialTheme.shapes.large,
             leadingIcon = { Icon(Icons.AutoMirrored.Filled.Label, null) }
@@ -518,7 +562,9 @@ fun AddCategorySheet(
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth().staggeredVerticalFadeIn(5),
+            modifier = Modifier
+                .fillMaxWidth()
+                .staggeredVerticalFadeIn(5),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OutlinedButton(

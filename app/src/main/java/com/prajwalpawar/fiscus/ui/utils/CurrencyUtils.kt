@@ -2,7 +2,8 @@ package com.prajwalpawar.fiscus.ui.utils
 
 import android.annotation.SuppressLint
 import java.text.NumberFormat
-import java.util.*
+import java.util.Currency
+import java.util.Locale
 
 @SuppressLint("DefaultLocale")
 fun formatCurrency(

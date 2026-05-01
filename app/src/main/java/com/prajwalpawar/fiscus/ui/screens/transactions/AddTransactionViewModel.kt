@@ -2,20 +2,23 @@ package com.prajwalpawar.fiscus.ui.screens.transactions
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.prajwalpawar.fiscus.data.local.pref.PreferenceManager
+import com.prajwalpawar.fiscus.domain.model.Account
+import com.prajwalpawar.fiscus.domain.model.Category
 import com.prajwalpawar.fiscus.domain.model.Transaction
+import com.prajwalpawar.fiscus.domain.model.TransactionSubItem
 import com.prajwalpawar.fiscus.domain.model.TransactionType
 import com.prajwalpawar.fiscus.domain.repository.FiscusRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.prajwalpawar.fiscus.domain.model.Category
-import kotlinx.coroutines.flow.*
-import com.prajwalpawar.fiscus.data.local.pref.PreferenceManager
 import java.util.Date
 import javax.inject.Inject
-import com.prajwalpawar.fiscus.domain.model.Account
-import com.prajwalpawar.fiscus.domain.model.TransactionSubItem
 
 data class AddTransactionUiState(
     val title: String = "",

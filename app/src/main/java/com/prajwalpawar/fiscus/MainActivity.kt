@@ -18,7 +18,6 @@ import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
@@ -43,20 +43,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.prajwalpawar.fiscus.ui.utils.FiscusAnimation
+import com.prajwalpawar.fiscus.ui.screens.accounts.AccountsScreen
+import com.prajwalpawar.fiscus.ui.screens.accounts.AccountsViewModel
 import com.prajwalpawar.fiscus.ui.screens.analysis.AnalysisScreen
 import com.prajwalpawar.fiscus.ui.screens.analysis.AnalysisViewModel
+import com.prajwalpawar.fiscus.ui.screens.categories.ManageCategoriesScreen
+import com.prajwalpawar.fiscus.ui.screens.categories.ManageCategoriesViewModel
 import com.prajwalpawar.fiscus.ui.screens.dashboard.DashboardScreen
 import com.prajwalpawar.fiscus.ui.screens.dashboard.DashboardViewModel
 import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
 import com.prajwalpawar.fiscus.ui.screens.settings.SettingsViewModel
 import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionsScreen
 import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionsViewModel
-import com.prajwalpawar.fiscus.ui.screens.accounts.AccountsScreen
-import com.prajwalpawar.fiscus.ui.screens.accounts.AccountsViewModel
-import com.prajwalpawar.fiscus.ui.screens.categories.ManageCategoriesScreen
-import com.prajwalpawar.fiscus.ui.screens.categories.ManageCategoriesViewModel
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
+import com.prajwalpawar.fiscus.ui.utils.FiscusAnimation
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.concurrent.Executor
 

@@ -2,13 +2,18 @@ package com.prajwalpawar.fiscus.ui.screens.accounts
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.prajwalpawar.fiscus.data.local.pref.PreferenceManager
 import com.prajwalpawar.fiscus.domain.model.Account
 import com.prajwalpawar.fiscus.domain.repository.FiscusRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.prajwalpawar.fiscus.data.local.pref.PreferenceManager
 
 data class AccountsUiState(
     val accounts: List<Account> = emptyList(),

@@ -1,7 +1,16 @@
 package com.prajwalpawar.fiscus.ui.screens.transactions
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -9,8 +18,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.automirrored.filled.Notes
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Title
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,7 +73,7 @@ fun TransactionDetailScreen(
         TransactionType.EXPENSE -> MaterialTheme.colorScheme.error
         TransactionType.TRANSFER -> MaterialTheme.colorScheme.secondary
     }
-    val amountPrefix = when (transaction.type) {
+    when (transaction.type) {
         TransactionType.INCOME -> "+"
         TransactionType.EXPENSE -> "−"
         TransactionType.TRANSFER -> ""
@@ -219,7 +242,9 @@ fun TransactionDetailScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.Notes,
                             null,
-                            modifier = Modifier.size(20.dp).padding(top = 2.dp),
+                            modifier = Modifier
+                                .size(20.dp)
+                                .padding(top = 2.dp),
                             tint = MaterialTheme.colorScheme.primary
                         )
                         Column {
@@ -251,7 +276,9 @@ fun TransactionDetailScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.FormatListBulleted,
                             null,
-                            modifier = Modifier.size(20.dp).padding(top = 2.dp),
+                            modifier = Modifier
+                                .size(20.dp)
+                                .padding(top = 2.dp),
                             tint = MaterialTheme.colorScheme.primary
                         )
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -297,7 +324,9 @@ fun TransactionDetailScreen(
         ) {
             OutlinedButton(
                 onClick = onDelete,
-                modifier = Modifier.weight(1f).height(52.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(52.dp),
                 shape = MaterialTheme.shapes.extraLarge,
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = MaterialTheme.colorScheme.error
@@ -313,7 +342,9 @@ fun TransactionDetailScreen(
 
             Button(
                 onClick = onEdit,
-                modifier = Modifier.weight(1f).height(52.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(52.dp),
                 shape = MaterialTheme.shapes.extraLarge
             ) {
                 Icon(Icons.Default.Edit, null, modifier = Modifier.size(18.dp))

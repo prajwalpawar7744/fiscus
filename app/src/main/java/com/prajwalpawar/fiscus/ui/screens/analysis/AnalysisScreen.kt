@@ -12,17 +12,77 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ShowChart
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.CalendarViewMonth
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.EditCalendar
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.HorizontalRule
+import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Savings
+import androidx.compose.material.icons.filled.Today
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDateRangePickerState
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,28 +95,26 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.prajwalpawar.fiscus.domain.model.TransactionType
 import com.prajwalpawar.fiscus.ui.utils.EmptyState
+import com.prajwalpawar.fiscus.ui.utils.fiscusClickable
+import com.prajwalpawar.fiscus.ui.utils.fiscusScaleIn
 import com.prajwalpawar.fiscus.ui.utils.formatCurrency
 import com.prajwalpawar.fiscus.ui.utils.getCategoryIcon
 import com.prajwalpawar.fiscus.ui.utils.rememberFiscusHaptic
 import com.prajwalpawar.fiscus.ui.utils.staggeredVerticalFadeIn
-import com.prajwalpawar.fiscus.domain.model.TransactionType
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.IntSize
-import com.prajwalpawar.fiscus.ui.utils.fiscusClickable
-import com.prajwalpawar.fiscus.ui.utils.fiscusScaleIn
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -268,10 +326,12 @@ fun AnalysisScreen(
                                         leadingIcon = {
                                             if (selectedCategory != null) {
                                                 Box(
-                                                    Modifier.size(12.dp).background(
-                                                        Color(selectedCategory.color),
-                                                        CircleShape
-                                                    )
+                                                    Modifier
+                                                        .size(12.dp)
+                                                        .background(
+                                                            Color(selectedCategory.color),
+                                                            CircleShape
+                                                        )
                                                 )
                                             } else {
                                                 Icon(
@@ -310,10 +370,12 @@ fun AnalysisScreen(
                                                 },
                                                 leadingIcon = {
                                                     Box(
-                                                        Modifier.size(12.dp).background(
-                                                            Color(category.color),
-                                                            CircleShape
-                                                        )
+                                                        Modifier
+                                                            .size(12.dp)
+                                                            .background(
+                                                                Color(category.color),
+                                                                CircleShape
+                                                            )
                                                     )
                                                 }
                                             )
@@ -483,7 +545,9 @@ fun AnalysisScreen(
                                         ) {
                                             DateRangePicker(
                                                 state = dateRangePickerState,
-                                                modifier = Modifier.fillMaxWidth().height(450.dp),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(450.dp),
                                                 title = {
                                                     Text(
                                                         "Select Date Range",
@@ -990,7 +1054,7 @@ fun BarChart(
 
     if (dataPoints.isEmpty()) {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
-            com.prajwalpawar.fiscus.ui.utils.EmptyState(
+            EmptyState(
                 message = "Not enough data",
                 icon = Icons.Default.BarChart
             )
@@ -1123,7 +1187,7 @@ fun PieChart(
 
     if (breakdown.isEmpty()) {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
-            com.prajwalpawar.fiscus.ui.utils.EmptyState(
+            EmptyState(
                 message = "No data for pie chart",
                 icon = Icons.Default.PieChart
             )
@@ -1234,7 +1298,7 @@ fun LineChart(
         (if (showExpense) expensePoints else emptyList()) + (if (showIncome) incomePoints else emptyList())
     if (allPoints.isEmpty() || (showExpense && expensePoints.size < 2 && !showIncome) || (showIncome && incomePoints.size < 2 && !showExpense)) {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
-            com.prajwalpawar.fiscus.ui.utils.EmptyState(
+            EmptyState(
                 message = "Not enough trend data",
                 icon = Icons.AutoMirrored.Filled.ShowChart
             )
@@ -1471,18 +1535,18 @@ fun HeatMapChart(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         val rangeLabel = if (startDate != null && endDate != null) {
-            "${startDate.format(java.time.format.DateTimeFormatter.ofPattern("MMM dd"))} - ${
+            "${startDate.format(DateTimeFormatter.ofPattern("MMM dd"))} - ${
                 endDate.format(
-                    java.time.format.DateTimeFormatter.ofPattern("MMM dd")
+                    DateTimeFormatter.ofPattern("MMM dd")
                 )
             }"
         } else "Activity Map"
 
-        androidx.compose.animation.AnimatedContent(
+        AnimatedContent(
             targetState = selectedDate,
             transitionSpec = {
-                (androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn())
-                    .togetherWith(androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut())
+                (fadeIn() + scaleIn())
+                    .togetherWith(fadeOut() + androidx.compose.animation.scaleOut())
             },
             label = "titleTransition"
         ) { date ->
@@ -1493,7 +1557,7 @@ fun HeatMapChart(
                     shape = MaterialTheme.shapes.extraSmall,
                 ) {
                     Text(
-                        text = "${date.format(java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy"))}: ${(intensity * 100).toInt()}% Activity",
+                        text = "${date.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))}: ${(intensity * 100).toInt()}% Activity",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onTertiaryContainer,
@@ -1561,7 +1625,7 @@ fun HeatMapChart(
                                         }
                                     }
 
-                                    val animatedScale by androidx.compose.animation.core.animateFloatAsState(
+                                    val animatedScale by animateFloatAsState(
                                         targetValue = scale,
                                         animationSpec = androidx.compose.animation.core.spring(
                                             dampingRatio = androidx.compose.animation.core.Spring.DampingRatioLowBouncy

@@ -3,9 +3,7 @@ package com.prajwalpawar.fiscus.data.report
 import com.prajwalpawar.fiscus.domain.model.Account
 import com.prajwalpawar.fiscus.domain.model.Category
 import com.prajwalpawar.fiscus.domain.model.Transaction
-import com.prajwalpawar.fiscus.domain.model.TransactionType
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton

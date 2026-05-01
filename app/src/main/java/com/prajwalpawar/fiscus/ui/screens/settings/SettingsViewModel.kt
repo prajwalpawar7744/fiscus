@@ -2,16 +2,18 @@ package com.prajwalpawar.fiscus.ui.screens.settings
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.prajwalpawar.fiscus.data.local.backup.BackupManager
 import com.prajwalpawar.fiscus.data.local.pref.PreferenceManager
 import com.prajwalpawar.fiscus.domain.repository.FiscusRepository
-import com.prajwalpawar.fiscus.data.local.backup.BackupManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -103,7 +105,7 @@ class SettingsViewModel @Inject constructor(
             bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
             outputStream.flush()
             outputStream.close()
-            
+
             file.absolutePath
         } catch (e: Exception) {
             e.printStackTrace()

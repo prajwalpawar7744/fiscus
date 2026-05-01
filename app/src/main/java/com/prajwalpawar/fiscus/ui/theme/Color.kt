@@ -1,9 +1,8 @@
 package com.prajwalpawar.fiscus.ui.theme
 
-import androidx.compose.ui.graphics.Color
-
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.graphics.Color
 
 // --- MONOCHROME ---
 val MonochromeLightColorScheme = lightColorScheme(
