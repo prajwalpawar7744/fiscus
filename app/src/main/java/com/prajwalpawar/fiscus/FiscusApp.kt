@@ -3,10 +3,6 @@ package com.prajwalpawar.fiscus
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +12,9 @@ import androidx.compose.ui.Modifier
 import com.prajwalpawar.fiscus.navigation.FiscusDestination
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import com.prajwalpawar.fiscus.navigation.AppBarType
+import com.prajwalpawar.fiscus.ui.components.FiscusNavigationBar
+import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
 
 @Composable
 fun FiscusApp() {
@@ -36,31 +35,20 @@ fun FiscusApp() {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        topBar = {
+            FiscusTopAppBar(
+                title = selectedDestination.label,
+                appBarType = AppBarType.LARGE
+            )
+        },
         bottomBar = {
-            NavigationBar {
-                destinations.forEach { destination ->
-                    NavigationBarItem(
-                        selected = destination == selectedDestination,
-                        onClick = {
-                            selectedDestination = destination
-                        },
-                        icon = {
-                            Icon(
-                                imageVector =
-                                    if (destination == selectedDestination) {
-                                        destination.selectedIcon
-                                    } else {
-                                        destination.unSelectedIcon
-                                    },
-                                contentDescription = destination.label
-                            )
-                        },
-                        label = {
-                            Text(destination.label)
-                        }
-                    )
+            FiscusNavigationBar(
+                destinations = destinations,
+                selectedDestination = selectedDestination,
+                onDestinationSelected = {
+                    selectedDestination = it
                 }
-            }
+            )
         }
     ) { innerPadding ->
         Box(
