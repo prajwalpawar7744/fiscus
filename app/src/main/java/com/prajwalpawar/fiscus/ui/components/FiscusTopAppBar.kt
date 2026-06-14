@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontWeight
 import com.prajwalpawar.fiscus.navigation.AppBarType
@@ -14,7 +15,8 @@ import com.prajwalpawar.fiscus.navigation.AppBarType
 @Composable
 fun FiscusTopAppBar (
     title: String,
-    appBarType: AppBarType
+    appBarType: AppBarType,
+    scrollBehavior: TopAppBarScrollBehavior ?= null
 ) {
     when (appBarType) {
         AppBarType.SMALL -> {
@@ -37,7 +39,8 @@ fun FiscusTopAppBar (
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         }
 
@@ -49,7 +52,8 @@ fun FiscusTopAppBar (
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         }
     }

@@ -9,4 +9,6 @@ object FiscusSpacing {
     val Large = 24.dp
     val ExtraLarge = 32.dp
     val Huge = 48.dp
+    val xxl = 72.dp
+    val xxxl = 96.dp
 }
