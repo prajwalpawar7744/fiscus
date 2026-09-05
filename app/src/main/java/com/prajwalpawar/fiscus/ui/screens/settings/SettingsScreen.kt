@@ -10,12 +10,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.CheckableDropdownMenuItem
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -174,33 +178,48 @@ private fun <T> SettingsItem(
             }
         )
 
-        DropdownMenu(
+        DropdownMenuPopup(
             expanded = expanded,
             onDismissRequest = {
                 expanded = false
             }
         ) {
-            values.forEach { (value, text) ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = text,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    },
-                    leadingIcon = {
-                        if (value == selectedValue) {
+            DropdownMenuGroup(
+                shapes = MenuDefaults.groupShape(
+                    index = 0,
+                    count = 1
+                )
+            ) {
+                val groupItemCount = values.size
+
+                values.forEachIndexed { itemIndex, (value, text) ->
+                    CheckableDropdownMenuItem(
+                        text = {
+                            Text(
+                                text = text,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        },
+                        shapes = MenuDefaults.itemShape(
+                            index = itemIndex,
+                            count = groupItemCount
+                        ),
+                        colors = MenuDefaults.selectableItemColors(),
+                        checked = value == selectedValue,
+                        checkedLeadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = null
                             )
+                        },
+                        onCheckedChange = {
+                            if (it) {
+                                onValueSelected(value)
+                                expanded = false
+                            }
                         }
-                    },
-                    onClick = {
-                        onValueSelected(value)
-                        expanded = false
-                    }
-                )
+                    )
+                }
             }
         }
     }
