@@ -13,7 +13,13 @@ import androidx.navigation.compose.rememberNavController
 import com.prajwalpawar.fiscus.ui.navigation.FiscusDestination
 import com.prajwalpawar.fiscus.ui.navigation.FiscusNavigationBar
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.prajwalpawar.fiscus.data.local.SettingsDataStore
+import com.prajwalpawar.fiscus.data.model.AppSettings
 import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
+import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
 
 @Composable
 fun FiscusApp () {
@@ -21,6 +27,13 @@ fun FiscusApp () {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+
+    val context = LocalContext.current
+    val settingsDataStore = SettingsDataStore(context.applicationContext)
+    val settings by settingsDataStore.settings.collectAsStateWithLifecycle(
+        initialValue = AppSettings(),
+        lifecycle = LocalLifecycleOwner.current.lifecycle
+    )
 
     Scaffold(
         topBar = {
@@ -51,13 +64,15 @@ fun FiscusApp () {
                     } else -> {
                         "Fiscus"
                     }
-                }
+                },
+                preference = settings.appBar
             )
         },
         bottomBar = {
             FiscusNavigationBar(
                 navController = navController,
-                currentDestination = currentDestination
+                currentDestination = currentDestination,
+                preference = settings.bottomBar
             )
         }
     ) { innerPadding ->
@@ -79,7 +94,7 @@ fun FiscusApp () {
             }
 
             composable(FiscusDestination.Settings.route) {
-                Text("Settings")
+                SettingsScreen()
             }
         }
     }

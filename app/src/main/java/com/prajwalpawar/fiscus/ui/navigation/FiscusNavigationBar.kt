@@ -8,11 +8,13 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.compose.material3.Icon
+import com.prajwalpawar.fiscus.data.model.BottomBarPreference
 
 @Composable
 fun FiscusNavigationBar (
     navController: NavController,
-    currentDestination: NavDestination?
+    currentDestination: NavDestination?,
+    preference: BottomBarPreference
 ) {
     val destinations = listOf(
         FiscusDestination.Home,
@@ -48,8 +50,26 @@ fun FiscusNavigationBar (
                         contentDescription = destination.label
                     )
                 },
-                label = {
-                    Text(destination.label)
+                label = when (preference) {
+                    BottomBarPreference.SHOW_LABELS -> {
+                        {
+                            Text(destination.label)
+                        }
+                    }
+
+                    BottomBarPreference.ICONS_ONLY -> {
+                        null
+                    }
+
+                    BottomBarPreference.SHOW_LABELS_WHEN_SELECTED -> {
+                        if (selected) {
+                            {
+                                Text(destination.label)
+                            }
+                        } else {
+                            null
+                        }
+                    }
                 }
             )
         }
