@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.prajwalpawar.fiscus.data.model.AppBarPreference
+import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.AppSettings
 import com.prajwalpawar.fiscus.data.model.BottomBarPreference
 import com.prajwalpawar.fiscus.data.model.ThemePreference
@@ -23,6 +24,7 @@ class SettingsDataStore (
         val theme = stringPreferencesKey("theme")
         val appBar = stringPreferencesKey("app_bar")
         val bottomBar = stringPreferencesKey("bottom_bar")
+        val appBarScroll = stringPreferencesKey("app_bar_scroll")
     }
 
     val settings: Flow<AppSettings> = context.settingsDataStore.data.map { preferences ->
@@ -49,7 +51,15 @@ class SettingsDataStore (
                         BottomBarPreference.valueOf(value)
                     }.getOrNull()
                 }
-                ?: BottomBarPreference.SHOW_LABELS
+                ?: BottomBarPreference.SHOW_LABELS,
+
+            appBarScroll = preferences[Keys.appBarScroll]
+                ?.let { value ->
+                    runCatching {
+                        AppBarScrollPreference.valueOf(value)
+                    }.getOrNull()
+                }
+                ?: AppBarScrollPreference.EXIT_UNTIL_COLLAPSED,
         )
     }
 
@@ -68,6 +78,12 @@ class SettingsDataStore (
     suspend fun setBottomBar(bottomBar: BottomBarPreference) {
         context.settingsDataStore.edit { preferences ->
             preferences[Keys.bottomBar] = bottomBar.name
+        }
+    }
+
+    suspend fun setAppBarScroll(appBarScroll: AppBarScrollPreference) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[Keys.appBarScroll] = appBarScroll.name
         }
     }
 }

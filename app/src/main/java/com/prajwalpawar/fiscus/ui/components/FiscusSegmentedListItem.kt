@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 fun FiscusSegmentedListItem(
     index: Int,
     count: Int,
-    selected: Boolean,
-    onClick: () -> Unit,
+    selected: Boolean = false,
+    onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     shapes: ListItemShapes = ListItemDefaults.segmentedShapes(
         index = index,
@@ -35,7 +35,7 @@ fun FiscusSegmentedListItem(
         shapes = shapes,
         colors = colors,
         selected = selected,
-        onClick = onClick,
+        onClick = onClick ?: {},
         content = content,
         supportingContent = supportingContent,
         overlineContent = overlineContent,

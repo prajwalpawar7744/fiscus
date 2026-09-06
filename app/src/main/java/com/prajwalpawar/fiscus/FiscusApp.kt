@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.prajwalpawar.fiscus.data.local.SettingsDataStore
+import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.AppSettings
 import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
 import com.prajwalpawar.fiscus.ui.screens.home.HomeScreen
@@ -38,7 +39,16 @@ fun FiscusApp () {
         lifecycle = LocalLifecycleOwner.current.lifecycle
     )
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val scrollBehavior = when (settings.appBarScroll) {
+       AppBarScrollPreference.PINNED ->
+            TopAppBarDefaults.pinnedScrollBehavior()
+
+        AppBarScrollPreference.ENTER_ALWAYS ->
+            TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+        AppBarScrollPreference.EXIT_UNTIL_COLLAPSED ->
+            TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(

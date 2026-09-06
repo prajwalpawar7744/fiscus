@@ -1,5 +1,7 @@
 package com.prajwalpawar.fiscus.ui.screens.settings
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,8 +10,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material.icons.filled.ViewAgenda
 import androidx.compose.material3.CheckableDropdownMenuItem
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuGroup
@@ -29,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalCursorBlinkEnabled
 import androidx.compose.ui.unit.DpOffset
@@ -36,12 +44,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.prajwalpawar.fiscus.data.model.AppBarPreference
+import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.BottomBarPreference
 import com.prajwalpawar.fiscus.data.model.ThemePreference
 import com.prajwalpawar.fiscus.ui.components.FiscusDropdownMenu
 import com.prajwalpawar.fiscus.ui.components.FiscusSegmentedListItem
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 import kotlin.math.exp
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,6 +64,7 @@ fun SettingsScreen(
     )
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     LazyColumn(
         modifier = modifier
@@ -61,20 +72,15 @@ fun SettingsScreen(
             .padding(horizontal = FiscusSpacing.md),
         verticalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
     ) {
+        // Appearance
         item {
-            Text(
-                text = "Appearance",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(
-                    top = FiscusSpacing.md,
-                    bottom = FiscusSpacing.xs
-                )
-            )
+            SettingsSectionTitle("Appearance")
         }
 
         item {
-            SettingsItem(
+            SettingsSelectionItem(
                 label = "Theme",
+                icon = Icons.Default.Palette,
                 selectedValue = settings.theme,
                 values = listOf(
                     ThemePreference.SYSTEM to "System",
@@ -82,14 +88,15 @@ fun SettingsScreen(
                     ThemePreference.DARK to "Dark"
                 ),
                 index = 0,
-                count = 3,
+                count = 4,
                 onValueSelected = viewModel::setTheme
             )
         }
 
         item {
-            SettingsItem(
+            SettingsSelectionItem(
                 label = "App bar",
+                icon = Icons.Default.ViewAgenda,
                 selectedValue = settings.appBar,
                 values = listOf(
                     AppBarPreference.SMALL to "Small",
@@ -97,14 +104,15 @@ fun SettingsScreen(
                     AppBarPreference.LARGE to "Large"
                 ),
                 index = 1,
-                count = 3,
+                count = 4,
                 onValueSelected = viewModel::setAppBar
             )
         }
 
         item {
-            SettingsItem(
+            SettingsSelectionItem(
                 label = "Bottom bar",
+                icon = Icons.Default.ViewAgenda,
                 selectedValue = settings.bottomBar,
                 values = listOf(
                     BottomBarPreference.SHOW_LABELS to "Show labels",
@@ -112,8 +120,92 @@ fun SettingsScreen(
                     BottomBarPreference.SHOW_LABELS_WHEN_SELECTED to "Show labels when selected"
                 ),
                 index = 2,
-                count = 3,
+                count = 4,
                 onValueSelected = viewModel::setBottomBar
+            )
+        }
+
+        item {
+            SettingsSelectionItem(
+                label = "App bar scroll",
+                icon = Icons.Default.SwapVert,
+                selectedValue = settings.appBarScroll,
+                values = listOf(
+                    AppBarScrollPreference.PINNED to "Pinned",
+                    AppBarScrollPreference.ENTER_ALWAYS to "Always returns",
+                    AppBarScrollPreference.EXIT_UNTIL_COLLAPSED to "Collapse"
+                ),
+                index = 3,
+                count = 4,
+                onValueSelected = viewModel::setAppBarScroll
+            )
+        }
+
+        // About
+        item {
+            SettingsSectionTitle("About")
+        }
+
+        item {
+            FiscusSegmentedListItem(
+                index = 0,
+                count = 2,
+                selected = false,
+                onClick = {},
+                leadingContent = {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null
+                    )
+                },
+                content = {
+                    Text(
+                        text = "Developer",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                },
+                supportingContent = {
+                    Text(
+                        text = "Prajwal Pawar",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            )
+        }
+
+        item {
+            FiscusSegmentedListItem(
+                index = 1,
+                count = 2,
+                selected = false,
+                leadingContent = {
+                    Icon(
+                        imageVector = Icons.Default.Code,
+                        contentDescription = null
+                    )
+                },
+                onClick = {
+                    context.startActivity(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            "https://github.com/prajwalpawar7744/fiscus".toUri()
+                        )
+                    )
+                },
+                content = {
+                    Text(
+                        text = "GitHub",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                },
+                supportingContent = {
+                    Text(
+                        text = "View source code",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             )
         }
     }
@@ -121,8 +213,9 @@ fun SettingsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun <T> SettingsItem(
+private fun <T> SettingsSelectionItem(
     label: String,
+    icon: ImageVector,
     selectedValue: T,
     values: List<Pair<T, String>>,
     index: Int,
@@ -154,6 +247,12 @@ private fun <T> SettingsItem(
                    style = MaterialTheme.typography.bodyLarge
                )
            },
+            leadingContent = {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null
+                )
+            },
             supportingContent = {
                 Text(
                     text = selectedText,
@@ -175,7 +274,7 @@ private fun <T> SettingsItem(
                     },
                 )
             }
-        )v
+        )
 
         FiscusDropdownMenu(
             expanded = expanded,
@@ -200,4 +299,18 @@ private fun <T> SettingsItem(
             )
         )
     }
+}
+
+@Composable
+private fun SettingsSectionTitle(
+    title: String
+) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(
+            top = FiscusSpacing.md,
+            bottom = FiscusSpacing.xs
+        )
+    )
 }

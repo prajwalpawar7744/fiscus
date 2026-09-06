@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prajwalpawar.fiscus.data.local.SettingsDataStore
 import com.prajwalpawar.fiscus.data.model.AppBarPreference
+import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.BottomBarPreference
 import com.prajwalpawar.fiscus.data.model.ThemePreference
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,6 +37,12 @@ class SettingsViewModel(
     fun setBottomBar(bottomBar: BottomBarPreference) {
         viewModelScope.launch {
             settingsDataStore.setBottomBar(bottomBar)
+        }
+    }
+
+    fun setAppBarScroll(appBarScroll: AppBarScrollPreference) {
+        viewModelScope.launch {
+            settingsDataStore.setAppBarScroll(appBarScroll)
         }
     }
 }
