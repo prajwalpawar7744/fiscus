@@ -7,6 +7,7 @@ import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
@@ -18,9 +19,13 @@ import com.prajwalpawar.fiscus.data.model.AppBarPreference
 fun FiscusTopAppBar (
     title: String,
     modifier: Modifier = Modifier,
-    preference: AppBarPreference
+    preference: AppBarPreference,
+    scrollBehavior: TopAppBarScrollBehavior
 ) {
-    val colors = TopAppBarDefaults.topAppBarColors()
+    val colors = TopAppBarDefaults.topAppBarColors(
+        containerColor = MaterialTheme.colorScheme.surface,
+        scrolledContainerColor = MaterialTheme.colorScheme.surface
+    )
 
     when (preference) {
         AppBarPreference.SMALL -> {
@@ -32,7 +37,8 @@ fun FiscusTopAppBar (
                     )
                 },
                 modifier = modifier,
-                colors = colors
+                colors = colors,
+                scrollBehavior = scrollBehavior
             )
         }
 
@@ -45,7 +51,8 @@ fun FiscusTopAppBar (
                     )
                 },
                 modifier = modifier,
-                colors = colors
+                colors = colors,
+                scrollBehavior = scrollBehavior
             )
         }
 
@@ -58,7 +65,8 @@ fun FiscusTopAppBar (
                     )
                 },
                 modifier = modifier,
-                colors = colors
+                colors = colors,
+                scrollBehavior = scrollBehavior
             )
         }
     }

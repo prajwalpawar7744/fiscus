@@ -175,7 +175,7 @@ private fun <T> SettingsItem(
                     },
                 )
             }
-        )
+        )v
 
         FiscusDropdownMenu(
             expanded = expanded,

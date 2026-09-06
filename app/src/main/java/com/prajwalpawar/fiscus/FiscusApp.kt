@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
@@ -13,12 +14,14 @@ import androidx.navigation.compose.rememberNavController
 import com.prajwalpawar.fiscus.ui.navigation.FiscusDestination
 import com.prajwalpawar.fiscus.ui.navigation.FiscusNavigationBar
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.prajwalpawar.fiscus.data.local.SettingsDataStore
 import com.prajwalpawar.fiscus.data.model.AppSettings
 import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
+import com.prajwalpawar.fiscus.ui.screens.home.HomeScreen
 import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
 
 @Composable
@@ -35,7 +38,12 @@ fun FiscusApp () {
         lifecycle = LocalLifecycleOwner.current.lifecycle
     )
 
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(
+          scrollBehavior.nestedScrollConnection
+        ),
         topBar = {
             FiscusTopAppBar(
                 title = when {
@@ -65,7 +73,8 @@ fun FiscusApp () {
                         "Fiscus"
                     }
                 },
-                preference = settings.appBar
+                preference = settings.appBar,
+                scrollBehavior = scrollBehavior
             )
         },
         bottomBar = {
@@ -82,7 +91,11 @@ fun FiscusApp () {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(FiscusDestination.Home.route) {
-                Text("Home")
+                HomeScreen(
+                    onAddTransactionClick = {
+                        // Add Transaction navigation will go here later.
+                    }
+                )
             }
 
             composable(FiscusDestination.Transactions.route) {
