@@ -1,6 +1,7 @@
 package com.prajwalpawar.fiscus
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -14,6 +15,8 @@ import androidx.navigation.compose.rememberNavController
 import com.prajwalpawar.fiscus.ui.navigation.FiscusDestination
 import com.prajwalpawar.fiscus.ui.navigation.FiscusNavigationBar
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -24,7 +27,10 @@ import com.prajwalpawar.fiscus.data.model.AppSettings
 import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
 import com.prajwalpawar.fiscus.ui.screens.home.HomeScreen
 import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
+import androidx.compose.runtime.*
+import com.prajwalpawar.fiscus.ui.screens.transaction.AddTransactionSheet
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FiscusApp () {
     val navController = rememberNavController()
@@ -48,6 +54,10 @@ fun FiscusApp () {
 
         AppBarScrollPreference.EXIT_UNTIL_COLLAPSED ->
             TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    }
+
+    var showAddTransactionSheet by rememberSaveable {
+        mutableStateOf(false)
     }
 
     Scaffold(
@@ -103,9 +113,17 @@ fun FiscusApp () {
             composable(FiscusDestination.Home.route) {
                 HomeScreen(
                     onAddTransactionClick = {
-                        // Add Transaction navigation will go here later.
+                        showAddTransactionSheet = true
                     }
                 )
+
+                if (showAddTransactionSheet) {
+                    AddTransactionSheet(
+                        onDismissRequest = {
+                            showAddTransactionSheet = false
+                        }
+                    )
+                }
             }
 
             composable(FiscusDestination.Transactions.route) {
