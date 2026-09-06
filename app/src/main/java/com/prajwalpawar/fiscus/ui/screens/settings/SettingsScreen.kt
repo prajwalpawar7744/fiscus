@@ -31,11 +31,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalCursorBlinkEnabled
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.prajwalpawar.fiscus.data.model.AppBarPreference
 import com.prajwalpawar.fiscus.data.model.BottomBarPreference
 import com.prajwalpawar.fiscus.data.model.ThemePreference
+import com.prajwalpawar.fiscus.ui.components.FiscusDropdownMenu
+import com.prajwalpawar.fiscus.ui.components.FiscusSegmentedListItem
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 import kotlin.math.exp
 
@@ -137,14 +141,9 @@ private fun <T> SettingsItem(
         .orEmpty()
 
     Column {
-        SegmentedListItem(
-            shapes = ListItemDefaults.segmentedShapes(
-                index = index,
-                count = count
-            ),
-            colors = ListItemDefaults.colors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer
-            ),
+        FiscusSegmentedListItem(
+            index = index,
+            count = count,
             selected = expanded,
             onClick = {
                 expanded = !expanded
@@ -178,49 +177,27 @@ private fun <T> SettingsItem(
             }
         )
 
-        DropdownMenuPopup(
+        FiscusDropdownMenu(
             expanded = expanded,
             onDismissRequest = {
                 expanded = false
-            }
-        ) {
-            DropdownMenuGroup(
-                shapes = MenuDefaults.groupShape(
-                    index = 0,
-                    count = 1
+            },
+            items = values,
+            selectedItem = values.first { it.first == selectedValue },
+            onItemSelected = { selectedPair ->
+                onValueSelected(selectedPair.first)
+                expanded = false
+            },
+            itemLabel = { pair ->
+                Text(
+                    text = pair.second,
+                    style = MaterialTheme.typography.bodyLarge
                 )
-            ) {
-                val groupItemCount = values.size
-
-                values.forEachIndexed { itemIndex, (value, text) ->
-                    CheckableDropdownMenuItem(
-                        text = {
-                            Text(
-                                text = text,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        },
-                        shapes = MenuDefaults.itemShape(
-                            index = itemIndex,
-                            count = groupItemCount
-                        ),
-                        colors = MenuDefaults.selectableItemColors(),
-                        checked = value == selectedValue,
-                        checkedLeadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null
-                            )
-                        },
-                        onCheckedChange = {
-                            if (it) {
-                                onValueSelected(value)
-                                expanded = false
-                            }
-                        }
-                    )
-                }
-            }
-        }
+            },
+            offset = DpOffset(
+                x = 0.dp,
+                y = FiscusSpacing.xs
+            )
+        )
     }
 }
