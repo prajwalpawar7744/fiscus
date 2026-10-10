@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
+import kotlinx.serialization.descriptors.PrimitiveKind
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -54,6 +55,10 @@ fun DockedDatePicker(
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
 
+    val popupGap = with(LocalDensity.current) {
+        FiscusSpacing.xs.roundToPx()
+    }
+
     Box(
         modifier = modifier.fillMaxWidth()
     ) {
@@ -67,9 +72,6 @@ fun DockedDatePicker(
             placeholder = {
                 Text(placeholder)
             },
-            supportingText = {
-                Text("EEE, MMM d, yyyy")
-            },
             readOnly = true,
             singleLine = true,
             enabled = enabled,
@@ -80,7 +82,7 @@ fun DockedDatePicker(
                 ) {
                     Icon(
                         imageVector = Icons.Default.DateRange,
-                        contentDescription = "Select date"
+                        contentDescription = "Select $label"
                     )
                 }
             }
@@ -94,7 +96,7 @@ fun DockedDatePicker(
 
 
                 Popup(
-                    popupPositionProvider = DockedDatePickerPositionProvider,
+                    popupPositionProvider = DockedDatePickerPositionProvider(popupGap),
                     onDismissRequest = {
                         showDatePicker = false
                     }
@@ -117,7 +119,7 @@ fun DockedDatePicker(
                                 modifier = Modifier.fillMaxWidth(),
                                 // to get rid of the headline
                                 title = null,
-                                headline = {},
+                                headline = null,
                             )
 
                             Row(
@@ -162,7 +164,9 @@ private fun formatDate(millis: Long): String {
 }
 
 // To position the date picker above or below depending on the space
-private object DockedDatePickerPositionProvider : PopupPositionProvider {
+private class DockedDatePickerPositionProvider (
+    private val gapInPx: Int
+): PopupPositionProvider {
     override fun calculatePosition(
         anchorBounds: IntRect,
         windowSize: IntSize,
@@ -173,12 +177,13 @@ private object DockedDatePickerPositionProvider : PopupPositionProvider {
         val spaceAbove = anchorBounds.top
 
         val openAbove =
-            spaceBelow < popupContentSize.height && spaceAbove > spaceBelow
+            spaceBelow < popupContentSize.height + gapInPx &&
+                    spaceAbove > spaceBelow
 
         val y = if (openAbove) {
-            anchorBounds.top - popupContentSize.height
+            anchorBounds.top - popupContentSize.height - gapInPx
         } else {
-            anchorBounds.bottom
+            anchorBounds.bottom + gapInPx
         }
 
         val x = when (layoutDirection) {

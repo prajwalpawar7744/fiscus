@@ -13,5 +13,5 @@ object FiscusSpacing {
     val xxxl: Dp = 64.dp
     val uxl: Dp = 120.dp
     val uxxl: Dp = 240.dp
-    val uxxxl: Dp = 360.dp
+    val uxxxl: Dp = 380.dp
 }
