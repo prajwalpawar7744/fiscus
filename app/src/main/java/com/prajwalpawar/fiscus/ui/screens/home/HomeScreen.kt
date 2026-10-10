@@ -1,8 +1,10 @@
 package com.prajwalpawar.fiscus.ui.screens.home
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
@@ -30,6 +32,10 @@ fun HomeScreen (
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = "Add Transaction"
+            )
+
+            Spacer(
+                modifier = Modifier.width(FiscusSpacing.sm)
             )
 
             Text("Add transaction")

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -103,8 +104,7 @@ fun DockedDatePicker(
                 ) {
                     Surface(
                         modifier = Modifier
-                            .widthIn(max = FiscusSpacing.uxxxl)
-                            .shadow(elevation = FiscusSpacing.xs),
+                            .widthIn(max = FiscusSpacing.uxxxl),
                         shape = MaterialTheme.shapes.extraLarge,
                         color = MaterialTheme.colorScheme.surface,
                         tonalElevation = FiscusSpacing.xs
