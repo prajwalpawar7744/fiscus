@@ -28,7 +28,14 @@ import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
 import com.prajwalpawar.fiscus.ui.screens.home.HomeScreen
 import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
 import androidx.compose.runtime.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.prajwalpawar.fiscus.data.local.FiscusDatabaseProvider
+import com.prajwalpawar.fiscus.data.repository.AccountRepository
+import com.prajwalpawar.fiscus.data.repository.CategoryRepository
 import com.prajwalpawar.fiscus.ui.screens.transaction.AddTransactionSheet
+import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionViewModel
+import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,6 +65,28 @@ fun FiscusApp () {
 
     var showAddTransactionSheet by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    val database = remember(context) {
+        FiscusDatabaseProvider.getDatabase(context)
+    }
+
+    val accountRepository = remember(database) {
+        AccountRepository(database.accountDao())
+    }
+
+    val categoryRepository = remember(database) {
+        CategoryRepository(database.categoryDao())
+    }
+
+    val transactionViewModelFactory = remember(
+        accountRepository,
+        categoryRepository
+    ) {
+        TransactionViewModelFactory(
+            accountRepository = accountRepository,
+            categoryRepository = categoryRepository
+        )
     }
 
     Scaffold(
@@ -111,6 +140,10 @@ fun FiscusApp () {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(FiscusDestination.Home.route) {
+                val transactionViewModel: TransactionViewModel = viewModel(
+                    factory = transactionViewModelFactory
+                )
+
                 HomeScreen(
                     onAddTransactionClick = {
                         showAddTransactionSheet = true
@@ -119,6 +152,7 @@ fun FiscusApp () {
 
                 if (showAddTransactionSheet) {
                     AddTransactionSheet(
+                        viewModel = transactionViewModel,
                         onDismissRequest = {
                             showAddTransactionSheet = false
                         }

@@ -28,17 +28,11 @@ interface TransactionDao {
     suspend fun getTransaction(id: Long): TransactionEntity?
 
     @Insert
-    suspend fun insertTransaction(
-        transaction: TransactionEntity
-    ): Long
+    suspend fun insertTransaction(transaction: TransactionEntity): Long
 
     @Update
-    suspend fun updateTransaction(
-        transaction: TransactionEntity
-    )
+    suspend fun updateTransaction(transaction: TransactionEntity)
 
     @Delete
-    suspend fun deleteTransaction(
-        transaction: TransactionEntity
-    )
+    suspend fun deleteTransaction(transaction: TransactionEntity)
 }

@@ -46,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selectableGroup
@@ -53,28 +54,56 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.window.Popup
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.prajwalpawar.fiscus.data.model.Account
+import com.prajwalpawar.fiscus.data.model.Category
 import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.DockedDatePicker
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Savings
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.filled.TrendingUp
+import com.prajwalpawar.fiscus.data.model.AccountType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTransactionSheet(
+    viewModel: TransactionViewModel,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     sheetState: SheetState = rememberBottomSheetState(
         initialValue = SheetValue.Hidden
     )
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
         modifier = modifier
     ) {
         AddTransactionContent(
+            categories = uiState.categories,
+            accounts = uiState.accounts,
+            transactionType = uiState.transactionType,
+            onTransactionTypeChange = viewModel::setTransactionType,
             onDismissRequest = onDismissRequest
         )
     }
@@ -83,35 +112,18 @@ fun AddTransactionSheet(
 @Composable
 private fun AddTransactionContent(
     onDismissRequest: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    categories: List<Category>,
+    accounts: List<Account>,
+    transactionType: TransactionType,
+    onTransactionTypeChange: (TransactionType) -> Unit
 ) {
-    val categories = listOf(
-        "Food",
-        "Transport",
-        "Shopping",
-        "Bills",
-        "Entertainment",
-        "Health",
-        "Education"
-    )
-
-    val accounts = listOf(
-        "Cash",
-        "HDFC Bank",
-        "Credit Card",
-        "Savings"
-    )
-
-    var selectedCategory by remember {
-        mutableStateOf<String?>(null)
+    var selectedCategoryId by remember {
+        mutableStateOf<Long?>(null)
     }
 
-    var selectedAccount by remember {
-        mutableStateOf<String?>(null)
-    }
-
-    var transactionType by remember {
-        mutableStateOf(TransactionType.EXPENSE)
+    var selectedAccountId by remember {
+        mutableStateOf<Long?>(null)
     }
 
     var amount by remember {
@@ -132,9 +144,15 @@ private fun AddTransactionContent(
         it > java.math.BigDecimal.ZERO
     } ?: false
 
-    val formIsValid = amountIsValid &&
-            selectedCategory != null &&
-            selectedAccount != null
+    val formIsValid = amountIsValid && when (transactionType) {
+        TransactionType.EXPENSE,
+        TransactionType.INCOME -> {
+            selectedCategoryId != null &&
+                    selectedAccountId != null
+        }
+
+        TransactionType.TRANSFER -> false
+    }
 
     Column(
         modifier = modifier
@@ -209,7 +227,7 @@ private fun AddTransactionContent(
                 ToggleButton(
                     checked = transactionType == type,
                     onCheckedChange = {
-                        transactionType = type
+                        onTransactionTypeChange(type)
                     },
                     shapes = when (index) {
                         0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
@@ -238,6 +256,7 @@ private fun AddTransactionContent(
             }
         }
 
+        if (transactionType != TransactionType.TRANSFER) {
         Column(
             verticalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
         ) {
@@ -249,16 +268,25 @@ private fun AddTransactionContent(
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
             ) {
-                items(categories) { category ->
-                    val selected = selectedCategory == category
+                items(
+                    items = categories,
+                    key = { it.id }
+                ) { category ->
+                    val selected = selectedCategoryId == category.id
 
                     FilterChip(
                         selected = selected,
                         onClick = {
-                            selectedCategory = category
+                            selectedCategoryId = category.id
                         },
                         label = {
-                            Text(text = category)
+                            Text(text = category.name)
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = categoryIcon(category.iconKey),
+                                contentDescription = null
+                            )
                         },
                         trailingIcon = if (selected) {
                             {
@@ -274,6 +302,7 @@ private fun AddTransactionContent(
                 }
             }
         }
+        }
 
         Column(
             verticalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
@@ -287,15 +316,21 @@ private fun AddTransactionContent(
                 horizontalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
             ) {
                 items(accounts) { account ->
-                    val selected = selectedAccount == account
+                    val selected = selectedAccountId == account.id
 
                     FilterChip(
                         selected = selected,
                         onClick = {
-                            selectedAccount = account
+                            selectedAccountId = account.id
                         },
                         label = {
-                            Text(text = account)
+                            Text(text = account.name)
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = accountIcon(account.type),
+                                contentDescription = null
+                            )
                         },
                         trailingIcon = if (selected) {
                             {
@@ -389,4 +424,33 @@ private fun todayAsUtcMillis(): Long {
             today.get(java.util.Calendar.DAY_OF_MONTH)
         )
     }.timeInMillis
+}
+
+private fun categoryIcon(iconKey: String): ImageVector {
+    return when (iconKey) {
+        "restaurant" -> Icons.Filled.Restaurant
+        "directions_car" -> Icons.Filled.DirectionsCar
+        "shopping_bag" -> Icons.Filled.ShoppingBag
+        "receipt" -> Icons.Filled.Receipt
+        "health" -> Icons.Filled.Favorite
+        "school" -> Icons.Filled.School
+        "movie" -> Icons.Filled.Movie
+        "home" -> Icons.Filled.Home
+        "payments" -> Icons.Filled.Payments
+        "business" -> Icons.Filled.Business
+        "trending_up" -> Icons.Filled.TrendingUp
+        "card_giftcard" -> Icons.Filled.CardGiftcard
+        "category" -> Icons.Filled.Category
+        else -> Icons.Filled.Category
+    }
+}
+
+private fun accountIcon(type: AccountType): ImageVector {
+    return when (type) {
+        AccountType.CASH -> Icons.Filled.Payments
+        AccountType.BANK -> Icons.Filled.AccountBalance
+        AccountType.CREDIT_CARD -> Icons.Filled.CreditCard
+        AccountType.E_WALLET -> Icons.Filled.AccountBalanceWallet
+        AccountType.OTHER -> Icons.Filled.Savings
+    }
 }
