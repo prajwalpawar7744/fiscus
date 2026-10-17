@@ -24,7 +24,10 @@ class AccountRepository (
                     id = row.id,
                     name = row.name,
                     type = AccountType.valueOf(row.type),
-                    balance = row.balance
+                    isDefault = row.isDefault,
+                    isArchived = row.isArchived,
+                    balance = row.balance,
+                    usageCount = row.usageCount
                 )
             }
         }
@@ -49,7 +52,30 @@ class AccountRepository (
         accountDao.updateAccount(account.toEntity())
     }
 
-    suspend fun archiveAccount(id: Long) {
-        accountDao.archiveAccount(id)
+    suspend fun usageCount(id: Long): Int {
+        return accountDao.countUsage(id)
+    }
+
+    suspend fun activeCount(): Int {
+        return accountDao.countActive()
+    }
+
+    suspend fun setArchived(id: Long, archived: Boolean) {
+        accountDao.setArchived(id, archived)
+    }
+
+    // Only unused, non-default accounts can be deleted; anything else is archived instead.
+    suspend fun deleteAccount(id: Long) {
+        val account = requireNotNull(accountDao.getAccount(id)) {
+            "Account $id doesn't exist."
+        }
+        require(!account.isDefault) {
+            "The default account can't be deleted."
+        }
+        require(accountDao.countUsage(id) == 0) {
+            "An account used by transactions can't be deleted."
+        }
+
+        accountDao.deleteAccount(id)
     }
 }

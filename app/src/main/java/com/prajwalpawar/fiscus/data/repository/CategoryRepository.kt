@@ -4,6 +4,7 @@ import com.prajwalpawar.fiscus.data.local.dao.CategoryDao
 import com.prajwalpawar.fiscus.data.local.entity.toCategory
 import com.prajwalpawar.fiscus.data.local.entity.toEntity
 import com.prajwalpawar.fiscus.data.model.Category
+import com.prajwalpawar.fiscus.data.model.CategoryWithUsage
 import com.prajwalpawar.fiscus.data.model.CategoryType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -37,7 +38,35 @@ class CategoryRepository (
         categoryDao.updateCategory(category.toEntity())
     }
 
-    suspend fun archiveCategory(id: Long) {
-        categoryDao.archiveCategory(id)
+    val categoriesWithUsage: Flow<List<CategoryWithUsage>> =
+        categoryDao.observeCategoriesWithUsage().map { rows ->
+            rows.map { CategoryWithUsage(it.category.toCategory(), it.usageCount) }
+        }
+
+    suspend fun usageCount(id: Long): Int {
+        return categoryDao.countUsage(id)
+    }
+
+    suspend fun activeCount(type: CategoryType): Int {
+        return categoryDao.countActive(type.name)
+    }
+
+    suspend fun setArchived(id: Long, archived: Boolean) {
+        categoryDao.setArchived(id, archived)
+    }
+
+    // Only unused, non-default categories can be deleted; anything else is archived instead.
+    suspend fun deleteCategory(id: Long) {
+        val category = requireNotNull(categoryDao.getCategory(id)) {
+            "Category $id doesn't exist."
+        }
+        require(!category.isDefault) {
+            "Default categories can't be deleted."
+        }
+        require(categoryDao.countUsage(id) == 0) {
+            "A category used by transactions can't be deleted."
+        }
+
+        categoryDao.deleteCategory(id)
     }
 }

@@ -12,7 +12,9 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.CallToAction
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Interests
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Code
@@ -61,6 +63,8 @@ private typealias SettingsRow = @Composable (shapes: ListItemShapes) -> Unit
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    onCategoriesClick: () -> Unit,
+    onAccountsClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = viewModel(
         factory = SettingsViewModelFactory(
@@ -200,6 +204,27 @@ fun SettingsScreen(
         }
     )
 
+    val manageRows = listOf<SettingsRow>(
+        { shapes ->
+            SettingsInfoItem(
+                label = "Categories",
+                description = "Rename, archive or delete",
+                icon = Icons.Default.Category,
+                shapes = shapes,
+                onClick = onCategoriesClick
+            )
+        },
+        { shapes ->
+            SettingsInfoItem(
+                label = "Accounts",
+                description = "Rename, archive or delete",
+                icon = Icons.Default.AccountBalanceWallet,
+                shapes = shapes,
+                onClick = onAccountsClick
+            )
+        }
+    )
+
     val aboutRows = listOf<SettingsRow>(
         { shapes ->
             SettingsInfoItem(
@@ -237,6 +262,7 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
     ) {
         settingsSection("Appearance", appearanceRows)
+        settingsSection("Manage", manageRows)
         settingsSection("About", aboutRows)
     }
 }

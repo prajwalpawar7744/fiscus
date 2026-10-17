@@ -26,7 +26,8 @@ fun <T> FiscusConnectedToggleGroup(
     selectedOption: T,
     onOptionSelected: (T) -> Unit,
     optionLabel: (T) -> String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     val interactionSources = remember(options.size) {
         List(options.size) { MutableInteractionSource() }
@@ -62,6 +63,7 @@ fun <T> FiscusConnectedToggleGroup(
                             else ->
                                 ButtonGroupDefaults.connectedMiddleButtonShapes()
                         },
+                        enabled = enabled,
                         interactionSource = interactionSources[index],
                         modifier = Modifier
                             .weight(1f)

@@ -5,18 +5,20 @@ import androidx.lifecycle.ViewModelProvider
 import com.prajwalpawar.fiscus.data.model.CategoryType
 import com.prajwalpawar.fiscus.data.repository.CategoryRepository
 
-class NewCategoryViewModelFactory (
+class CategoryEditorViewModelFactory (
     private val categoryRepository: CategoryRepository,
-    private val initialType: CategoryType
+    private val initialType: CategoryType,
+    private val editingId: Long? = null
 ): ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(
         modelClass: Class<T>
     ): T {
-        if (modelClass.isAssignableFrom(NewCategoryViewModel::class.java)) {
-            return NewCategoryViewModel(
+        if (modelClass.isAssignableFrom(CategoryEditorViewModel::class.java)) {
+            return CategoryEditorViewModel(
                 categoryRepository = categoryRepository,
-                initialType = initialType
+                initialType = initialType,
+                editingId = editingId
             ) as T
         }
 

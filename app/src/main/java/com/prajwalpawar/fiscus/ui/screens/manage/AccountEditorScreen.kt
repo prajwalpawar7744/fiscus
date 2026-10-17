@@ -1,19 +1,23 @@
 package com.prajwalpawar.fiscus.ui.screens.manage
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -30,28 +34,48 @@ import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun NewAccountScreen(
-    viewModel: NewAccountViewModel,
+fun AccountEditorScreen(
+    viewModel: AccountEditorViewModel,
     onSaved: (id: Long) -> Unit,
+    // After archiving, restoring or deleting, the editor closes.
+    onDone: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    if (!uiState.isLoaded) {
+        Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            LoadingIndicator()
+        }
+        return
+    }
+
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
-    // Typing a name is the one required step, so start there.
+    // A new account starts at the name; an existing one opens without the keyboard.
     LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+        if (!uiState.isEditing) focusRequester.requestFocus()
     }
 
-    NewItemLayout(
+    ItemEditorLayout(
         previewIcon = accountIcon(uiState.type),
         previewName = uiState.name.trim(),
         namePlaceholder = "New account",
-        saveLabel = "Add account",
+        saveLabel = if (uiState.isEditing) "Save changes" else "Add account",
         canSave = uiState.canSave,
         onSave = { viewModel.save(onSaved) },
-        modifier = modifier
+        modifier = modifier,
+        actions = {
+            uiState.manage?.let { manage ->
+                ItemManageActions(
+                    state = manage,
+                    itemNoun = "account",
+                    onArchiveToggle = { viewModel.toggleArchived(onDone) },
+                    onDelete = { viewModel.delete(onDone) }
+                )
+            }
+        }
     ) {
         OutlinedTextField(
             value = uiState.name,

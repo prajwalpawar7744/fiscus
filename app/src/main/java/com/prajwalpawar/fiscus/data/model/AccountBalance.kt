@@ -5,5 +5,9 @@ data class AccountBalance(
     val id: Long,
     val name: String,
     val type: AccountType,
-    val balance: Long
+    val isDefault: Boolean,
+    val isArchived: Boolean,
+    val balance: Long,
+    // How many transactions use this account.
+    val usageCount: Int
 )

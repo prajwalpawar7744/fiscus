@@ -53,7 +53,8 @@ class HomeViewModel(
             HomeUiState(
                 isLoading = false,
                 month = month,
-                accounts = accounts,
+                // Archived accounts stay out of the dashboard and its total.
+                accounts = accounts.filterNot { it.isArchived },
                 monthTotals = totals,
                 recent = recent
             )

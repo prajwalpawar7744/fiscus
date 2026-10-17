@@ -33,11 +33,11 @@ import com.prajwalpawar.fiscus.ui.theme.FiscusShapes
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 
-// Shared layout for "new item" pages: a live preview of the item on an Expressive
+// Shared layout for the category and account editors: a live preview of the item on an Expressive
 // shape, the form fields, then the save button.
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun NewItemLayout(
+fun ItemEditorLayout(
     previewIcon: ImageVector,
     previewName: String,
     namePlaceholder: String,
@@ -45,6 +45,8 @@ fun NewItemLayout(
     canSave: Boolean,
     onSave: () -> Unit,
     modifier: Modifier = Modifier,
+    // Archive/delete controls, shown under the save button when editing.
+    actions: @Composable ColumnScope.() -> Unit = {},
     fields: @Composable ColumnScope.() -> Unit
 ) {
     val motionScheme = MaterialTheme.motionScheme
@@ -112,5 +114,7 @@ fun NewItemLayout(
             enabled = canSave,
             onClick = onSave
         )
+
+        actions()
     }
 }

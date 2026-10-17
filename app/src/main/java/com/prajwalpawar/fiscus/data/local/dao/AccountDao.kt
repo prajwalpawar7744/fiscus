@@ -11,7 +11,10 @@ data class AccountBalanceRow(
     val id: Long,
     val name: String,
     val type: String,
-    val balance: Long
+    val isDefault: Boolean,
+    val isArchived: Boolean,
+    val balance: Long,
+    val usageCount: Int
 )
 
 @Dao
@@ -26,7 +29,8 @@ interface AccountDao {
     )
     fun observeAccounts(): Flow<List<AccountEntity>>
 
-    // Opening balance, plus income, minus expenses, plus transfers in, minus transfers out.
+    // Every account (archived last) with its balance: opening balance, plus income,
+    // minus expenses, plus transfers in, minus transfers out.
     // A credit card spent on goes negative, which is how it counts as debt in totals.
     @Query(
         """
@@ -34,6 +38,15 @@ interface AccountDao {
             a.id,
             a.name,
             a.type,
+            a.isDefault,
+            a.isArchived,
+            (
+                SELECT COUNT(*)
+                FROM transactions AS u
+                WHERE u.accountId = a.id
+                   OR u.sourceAccountId = a.id
+                   OR u.destinationAccountId = a.id
+            ) AS usageCount,
             a.openingBalance + COALESCE((
                 SELECT SUM(
                     CASE
@@ -50,8 +63,7 @@ interface AccountDao {
                    OR t.destinationAccountId = a.id
             ), 0) AS balance
         FROM accounts AS a
-        WHERE a.isArchived = 0
-        ORDER BY a.isDefault DESC, a.name COLLATE NOCASE ASC
+        ORDER BY a.isArchived ASC, a.isDefault DESC, a.name COLLATE NOCASE ASC
         """
     )
     fun observeAccountBalances(): Flow<List<AccountBalanceRow>>
@@ -65,6 +77,21 @@ interface AccountDao {
     @Update
     suspend fun updateAccount(account: AccountEntity)
 
-    @Query("UPDATE accounts SET isArchived = 1 WHERE id = :id")
-    suspend fun archiveAccount(id: Long)
+    @Query(
+        """
+        SELECT COUNT(*)
+        FROM transactions
+        WHERE accountId = :id OR sourceAccountId = :id OR destinationAccountId = :id
+        """
+    )
+    suspend fun countUsage(id: Long): Int
+
+    @Query("SELECT COUNT(*) FROM accounts WHERE isArchived = 0")
+    suspend fun countActive(): Int
+
+    @Query("UPDATE accounts SET isArchived = :archived WHERE id = :id")
+    suspend fun setArchived(id: Long, archived: Boolean)
+
+    @Query("DELETE FROM accounts WHERE id = :id")
+    suspend fun deleteAccount(id: Long)
 }

@@ -68,6 +68,7 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onSeeAllClick: () -> Unit,
     onAddAccountClick: () -> Unit,
+    onAccountClick: (id: Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -110,7 +111,8 @@ fun HomeScreen(
         item(key = "accounts") {
             AccountsCarousel(
                 accounts = uiState.accounts,
-                onAddAccountClick = onAddAccountClick
+                onAddAccountClick = onAddAccountClick,
+                onAccountClick = onAccountClick
             )
         }
 
@@ -278,7 +280,8 @@ private fun SummaryTile(
 @Composable
 private fun AccountsCarousel(
     accounts: List<AccountBalance>,
-    onAddAccountClick: () -> Unit
+    onAddAccountClick: () -> Unit,
+    onAccountClick: (id: Long) -> Unit
 ) {
     Column(
         modifier = Modifier.padding(top = FiscusSpacing.lg),
@@ -309,6 +312,7 @@ private fun AccountsCarousel(
             if (account != null) {
                 AccountCard(
                     account = account,
+                    onClick = { onAccountClick(account.id) },
                     modifier = cardModifier
                 )
             } else {
@@ -324,11 +328,17 @@ private fun AccountsCarousel(
 @Composable
 private fun AccountCard(
     account: AccountBalance,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .clickable(
+                onClickLabel = "Edit ${account.name}",
+                role = Role.Button,
+                onClick = onClick
+            )
             .padding(FiscusSpacing.md),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
