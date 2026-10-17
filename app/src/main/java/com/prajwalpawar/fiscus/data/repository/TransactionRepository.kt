@@ -5,8 +5,11 @@ import com.prajwalpawar.fiscus.data.local.FiscusDatabase
 import com.prajwalpawar.fiscus.data.local.dao.TransactionDao
 import com.prajwalpawar.fiscus.data.local.entity.toEntity
 import com.prajwalpawar.fiscus.data.local.entity.toTransaction
+import com.prajwalpawar.fiscus.data.model.PeriodTotals
 import com.prajwalpawar.fiscus.data.model.Transaction
+import com.prajwalpawar.fiscus.data.model.TransactionDetails
 import com.prajwalpawar.fiscus.data.model.TransactionType
+import com.prajwalpawar.fiscus.util.DateRange
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -18,6 +21,31 @@ class TransactionRepository (
         transactionDao.observeTransactions().map { transaction ->
             transaction.map { it.toTransaction() }
         }
+
+    fun observeRecentTransactions(limit: Int): Flow<List<TransactionDetails>> {
+        return transactionDao.observeRecentTransactions(limit).map { rows ->
+            rows.map { row ->
+                TransactionDetails(
+                    id = row.id,
+                    type = TransactionType.valueOf(row.type),
+                    amount = row.amount,
+                    title = row.title,
+                    date = row.date,
+                    categoryName = row.categoryName,
+                    categoryIconKey = row.categoryIconKey,
+                    accountName = row.accountName,
+                    sourceAccountName = row.sourceAccountName,
+                    destinationAccountName = row.destinationAccountName
+                )
+            }
+        }
+    }
+
+    fun observePeriodTotals(range: DateRange): Flow<PeriodTotals> {
+        return transactionDao.observePeriodTotals(range.startMillis, range.endMillis).map {
+            PeriodTotals(income = it.income, expense = it.expense)
+        }
+    }
 
     suspend fun getTransaction(id: Long): Transaction? {
         return transactionDao.getTransaction(id)?.toTransaction()

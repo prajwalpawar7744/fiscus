@@ -24,6 +24,7 @@ fun FiscusTopAppBar (
     modifier: Modifier = Modifier,
     preference: AppBarPreference,
     scrollBehavior: TopAppBarScrollBehavior,
+    subtitle: String? = null,
     // Shows a back arrow on pages below the top-level tabs.
     onNavigateUp: (() -> Unit)? = null
 ) {
@@ -51,20 +52,36 @@ fun FiscusTopAppBar (
         )
     }
 
+    val subtitleContent: (@Composable () -> Unit)? = subtitle?.let {
+        { Text(text = it) }
+    }
+
     when (preference) {
         AppBarPreference.SMALL -> {
-            TopAppBar(
-                title = titleContent,
-                modifier = modifier,
-                navigationIcon = navigationIcon,
-                colors = colors,
-                scrollBehavior = scrollBehavior
-            )
+            if (subtitleContent != null) {
+                TopAppBar(
+                    title = titleContent,
+                    subtitle = subtitleContent,
+                    modifier = modifier,
+                    navigationIcon = navigationIcon,
+                    colors = colors,
+                    scrollBehavior = scrollBehavior
+                )
+            } else {
+                TopAppBar(
+                    title = titleContent,
+                    modifier = modifier,
+                    navigationIcon = navigationIcon,
+                    colors = colors,
+                    scrollBehavior = scrollBehavior
+                )
+            }
         }
 
         AppBarPreference.MEDIUM -> {
             MediumFlexibleTopAppBar(
                 title = titleContent,
+                subtitle = subtitleContent,
                 modifier = modifier,
                 navigationIcon = navigationIcon,
                 colors = colors,
@@ -75,6 +92,7 @@ fun FiscusTopAppBar (
         AppBarPreference.LARGE -> {
             LargeFlexibleTopAppBar(
                 title = titleContent,
+                subtitle = subtitleContent,
                 modifier = modifier,
                 navigationIcon = navigationIcon,
                 colors = colors,

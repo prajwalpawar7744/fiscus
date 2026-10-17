@@ -84,9 +84,8 @@ import com.prajwalpawar.fiscus.ui.components.FiscusSubmitButton
 import com.prajwalpawar.fiscus.ui.components.accountIcon
 import com.prajwalpawar.fiscus.ui.components.categoryIcon
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
-import java.util.Currency
+import com.prajwalpawar.fiscus.util.currencySymbol
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -337,7 +336,7 @@ private fun AmountField(
     val mutedColor = MaterialTheme.colorScheme.onSurfaceVariant
     val transformation = remember(mutedColor) {
         CurrencyAmountTransformation(
-            symbol = localCurrencySymbol(),
+            symbol = currencySymbol(),
             mutedColor = mutedColor
         )
     }
@@ -483,9 +482,3 @@ private fun ChipSection(
     }
 }
 
-// Locales without a country (e.g. plain "en") have no currency, so fall back to the generic sign.
-private fun localCurrencySymbol(): String {
-    return runCatching {
-        Currency.getInstance(Locale.getDefault()).symbol
-    }.getOrDefault("¤")
-}

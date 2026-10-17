@@ -44,18 +44,23 @@ import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
 import com.prajwalpawar.fiscus.ui.navigation.FiscusDestination
 import com.prajwalpawar.fiscus.ui.navigation.FiscusNavigationBar
 import com.prajwalpawar.fiscus.ui.navigation.FiscusRoutes
+import com.prajwalpawar.fiscus.ui.navigation.navigateToTab
 import com.prajwalpawar.fiscus.ui.screens.manage.NewAccountScreen
 import com.prajwalpawar.fiscus.ui.screens.manage.NewAccountViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.manage.NewCategoryScreen
 import com.prajwalpawar.fiscus.ui.screens.manage.NewCategoryViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.analysis.AnalysisScreen
 import com.prajwalpawar.fiscus.ui.screens.home.HomeScreen
+import com.prajwalpawar.fiscus.ui.screens.home.HomeViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
 import com.prajwalpawar.fiscus.ui.screens.transaction.AddTransactionSheet
 import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionViewModel
 import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionsScreen
 import com.prajwalpawar.fiscus.ui.theme.FiscusMotion
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -154,6 +159,10 @@ fun FiscusApp (
 
     val motionScheme = MaterialTheme.motionScheme
 
+    val currentMonthLabel = remember {
+        YearMonth.now().format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.getDefault()))
+    }
+
     Scaffold(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection)
@@ -195,6 +204,8 @@ fun FiscusApp (
                 },
                 preference = settings.appBar,
                 scrollBehavior = scrollBehavior,
+                // Home's figures are for this month, so say which one.
+                subtitle = if (onHome) currentMonthLabel else null,
                 onNavigateUp = if (isTopLevel) {
                     null
                 } else {
@@ -249,7 +260,17 @@ fun FiscusApp (
             }
         ) {
             composable(FiscusDestination.Home.route) {
-                HomeScreen()
+                HomeScreen(
+                    viewModel = viewModel(
+                        factory = HomeViewModelFactory(accountRepository, transactionRepository)
+                    ),
+                    onSeeAllClick = {
+                        navController.navigateToTab(FiscusDestination.Transactions)
+                    },
+                    onAddAccountClick = {
+                        navController.navigate(FiscusRoutes.NEW_ACCOUNT)
+                    }
+                )
             }
 
             composable(FiscusDestination.Transactions.route) {
