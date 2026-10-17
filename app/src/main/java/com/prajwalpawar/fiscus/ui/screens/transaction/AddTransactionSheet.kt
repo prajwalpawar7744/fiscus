@@ -1,72 +1,29 @@
 package com.prajwalpawar.fiscus.ui.screens.transaction
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SheetState
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.rememberBottomSheetState
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selectableGroup
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.window.Popup
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.prajwalpawar.fiscus.data.model.Account
-import com.prajwalpawar.fiscus.data.model.Category
-import com.prajwalpawar.fiscus.data.model.TransactionType
-import com.prajwalpawar.fiscus.ui.components.DockedDatePicker
-import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.DirectionsCar
@@ -80,7 +37,50 @@ import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selectableGroup
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.prajwalpawar.fiscus.data.model.Account
 import com.prajwalpawar.fiscus.data.model.AccountType
+import com.prajwalpawar.fiscus.data.model.Category
+import com.prajwalpawar.fiscus.data.model.TransactionType
+import com.prajwalpawar.fiscus.ui.components.DockedDatePicker
+import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,8 +88,9 @@ fun AddTransactionSheet(
     viewModel: TransactionViewModel,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
-    sheetState: SheetState = rememberBottomSheetState(
-        initialValue = SheetValue.Hidden
+    // A form has no useful half-open state, so open straight to full height.
+    sheetState: SheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
     )
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -109,6 +110,7 @@ fun AddTransactionSheet(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun AddTransactionContent(
     onDismissRequest: () -> Unit,
@@ -154,66 +156,26 @@ private fun AddTransactionContent(
         TransactionType.TRANSFER -> false
     }
 
+    // The sheet already pads for the navigation bar and keyboard.
     Column(
         modifier = modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
-            .navigationBarsPadding()
-            .imePadding()
-            .padding(
-                horizontal = FiscusSpacing.md,
-                vertical = FiscusSpacing.sm
-            ),
+            .padding(vertical = FiscusSpacing.sm),
         verticalArrangement = Arrangement.spacedBy(FiscusSpacing.md)
     ) {
+        // Chip rows scroll edge to edge, so everything else adds the side padding itself.
+        val inset = Modifier.padding(horizontal = FiscusSpacing.md)
+
         Text(
             text = "Add transaction",
-            style = MaterialTheme.typography.headlineLargeEmphasized
+            style = MaterialTheme.typography.headlineLargeEmphasized,
+            modifier = inset
         )
 
-        Column(
-            verticalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
-        ) {
-            Text(
-                text = "Amount",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            OutlinedTextField(
-                value = amount,
-                onValueChange = { value ->
-                    val filtered = value.filter { character ->
-                        character.isDigit() || character == '.'
-                    }
-
-                    if (filtered.count { it == '.' } <= 1) {
-                        amount = filtered
-                    }
-                },
-                isError = amount.isNotBlank() && !amountIsValid,
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                prefix = {
-                    Text(
-                        text = "$"
-                    )
-                },
-                placeholder = {
-                    Text(
-                        text = "0.00"
-                    )
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Decimal
-                ),
-                textStyle = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.SemiBold
-                )
-            )
-        }
-
+        // Type comes first because it changes which fields follow.
         FlowRow(
-            modifier = Modifier
+            modifier = inset
                 .fillMaxWidth()
                 .semantics {
                     selectableGroup()
@@ -249,25 +211,28 @@ private fun AddTransactionContent(
                             TransactionType.EXPENSE -> "Expense"
                             TransactionType.INCOME -> "Income"
                             TransactionType.TRANSFER -> "Transfer"
-
                         }
                     )
                 }
             }
         }
 
-        if (transactionType != TransactionType.TRANSFER) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
-        ) {
-            Text(
-                text = "Category",
-                style = MaterialTheme.typography.titleMedium
-            )
+        AmountField(
+            modifier = inset,
+            amount = amount,
+            onAmountChange = { value ->
+                val filtered = value.filter { character ->
+                    character.isDigit() || character == '.'
+                }
 
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
-            ) {
+                if (filtered.count { it == '.' } <= 1) {
+                    amount = filtered
+                }
+            }
+        )
+
+        if (transactionType != TransactionType.TRANSFER) {
+            ChipSection(title = "Category", titleModifier = inset) {
                 items(
                     items = categories,
                     key = { it.id }
@@ -284,93 +249,63 @@ private fun AddTransactionContent(
                         },
                         leadingIcon = {
                             Icon(
-                                imageVector = categoryIcon(category.iconKey),
+                                imageVector = if (selected) {
+                                    Icons.Filled.Check
+                                } else {
+                                    categoryIcon(category.iconKey)
+                                },
                                 contentDescription = null
                             )
-                        },
-                        trailingIcon = if (selected) {
-                            {
-                                Icon(
-                                    imageVector = Icons.Filled.Check,
-                                    contentDescription = "Selected"
-                                )
-                            }
-                        } else {
-                            null
-                        }
-                    )
-                }
-            }
-        }
-        }
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
-        ) {
-            Text(
-                text = "Account",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
-            ) {
-                items(accounts) { account ->
-                    val selected = selectedAccountId == account.id
-
-                    FilterChip(
-                        selected = selected,
-                        onClick = {
-                            selectedAccountId = account.id
-                        },
-                        label = {
-                            Text(text = account.name)
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = accountIcon(account.type),
-                                contentDescription = null
-                            )
-                        },
-                        trailingIcon = if (selected) {
-                            {
-                                Icon(
-                                    imageVector = Icons.Filled.Check,
-                                    contentDescription = "Selected"
-                                )
-                            }
-                        } else {
-                            null
                         }
                     )
                 }
             }
         }
 
-        Column(
-            verticalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
-        ) {
-            Text(
-                text = "Date",
-                style = MaterialTheme.typography.titleMedium
-            )
+        ChipSection(title = "Account", titleModifier = inset) {
+            items(
+                items = accounts,
+                key = { it.id }
+            ) { account ->
+                val selected = selectedAccountId == account.id
 
-            DockedDatePicker(
-                selectedDateMillis = selectedDateMillis,
-                onDateSelected = {
-                    selectedDateMillis = it
-                },
-                label = "Transaction date",
-                placeholder = "Choose transaction date"
-            )
+                FilterChip(
+                    selected = selected,
+                    onClick = {
+                        selectedAccountId = account.id
+                    },
+                    label = {
+                        Text(text = account.name)
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = if (selected) {
+                                Icons.Filled.Check
+                            } else {
+                                accountIcon(account.type)
+                            },
+                            contentDescription = null
+                        )
+                    }
+                )
+            }
         }
+
+        DockedDatePicker(
+            modifier = inset,
+            selectedDateMillis = selectedDateMillis,
+            onDateSelected = {
+                selectedDateMillis = it
+            },
+            label = "Date"
+        )
 
         OutlinedTextField(
             value = note,
             onValueChange = {
                 note = it
             },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = inset.fillMaxWidth(),
             label = {
                 Text("Note")
             },
@@ -381,10 +316,7 @@ private fun AddTransactionContent(
             maxLines = 4
         )
 
-        // todo
-        // get real account and categories table
-        // redesign add transaction sheet to my3e
-        // get date picker
+        val buttonHeight = ButtonDefaults.MediumContainerHeight
 
         Button(
             onClick = {
@@ -392,22 +324,123 @@ private fun AddTransactionContent(
                 // for now dismiss only
                 onDismissRequest()
             },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = formIsValid
+            modifier = inset
+                .fillMaxWidth()
+                .heightIn(min = buttonHeight),
+            enabled = formIsValid,
+            shapes = ButtonDefaults.shapes(),
+            contentPadding = ButtonDefaults.contentPaddingFor(
+                buttonHeight = buttonHeight,
+                hasStartIcon = true
+            )
         ) {
             Icon(
                 imageVector = Icons.Filled.Add,
-                contentDescription = null
+                contentDescription = null,
+                modifier = Modifier.size(ButtonDefaults.iconSizeFor(buttonHeight))
             )
 
             Spacer(
-                modifier = Modifier.width(FiscusSpacing.sm)
+                modifier = Modifier.width(ButtonDefaults.iconSpacingFor(buttonHeight))
             )
 
             Text(
-                text = "Add transaction"
+                text = "Add transaction",
+                style = ButtonDefaults.textStyleFor(buttonHeight)
             )
         }
+    }
+}
+
+@Composable
+private fun AmountField(
+    amount: String,
+    onAmountChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val mutedColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val transformation = remember(mutedColor) {
+        CurrencyAmountTransformation(
+            symbol = "$",
+            mutedColor = mutedColor
+        )
+    }
+
+    BasicTextField(
+        value = amount,
+        onValueChange = onAmountChange,
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics {
+                contentDescription = "Amount"
+            },
+        textStyle = MaterialTheme.typography.displayLargeEmphasized.copy(
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center
+        ),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Decimal
+        ),
+        visualTransformation = transformation,
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary)
+    )
+}
+
+// Draws the currency symbol and the "0" placeholder inside the field's own text,
+// so they stay centred together with what the user types.
+private class CurrencyAmountTransformation(
+    private val symbol: String,
+    private val mutedColor: Color
+) : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val transformed = buildAnnotatedString {
+            withStyle(SpanStyle(color = mutedColor)) {
+                append(symbol)
+            }
+
+            if (text.isEmpty()) {
+                withStyle(SpanStyle(color = mutedColor)) {
+                    append("0")
+                }
+            } else {
+                append(text)
+            }
+        }
+
+        val offsetMapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int =
+                offset + symbol.length
+
+            override fun transformedToOriginal(offset: Int): Int =
+                (offset - symbol.length).coerceIn(0, text.length)
+        }
+
+        return TransformedText(transformed, offsetMapping)
+    }
+}
+
+@Composable
+private fun ChipSection(
+    title: String,
+    titleModifier: Modifier,
+    chips: LazyListScope.() -> Unit
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = titleModifier
+        )
+
+        // One scrolling row; the padding sits inside the list so chips scroll to the sheet edge.
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = FiscusSpacing.md),
+            horizontalArrangement = Arrangement.spacedBy(FiscusSpacing.sm),
+            content = chips
+        )
     }
 }
 
