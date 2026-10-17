@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.prajwalpawar.fiscus.data.repository.AccountRepository
 import com.prajwalpawar.fiscus.data.repository.CategoryRepository
+import com.prajwalpawar.fiscus.data.repository.TransactionRepository
 
 class TransactionViewModelFactory (
     private val accountRepository: AccountRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    private val transactionRepository: TransactionRepository
 ): ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(
@@ -20,7 +22,8 @@ class TransactionViewModelFactory (
         ) {
             return TransactionViewModel(
                 accountRepository = accountRepository,
-                categoryRepository = categoryRepository
+                categoryRepository = categoryRepository,
+                transactionRepository = transactionRepository
             ) as T
         }
 

@@ -35,6 +35,7 @@ import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.AppSettings
 import com.prajwalpawar.fiscus.data.repository.AccountRepository
 import com.prajwalpawar.fiscus.data.repository.CategoryRepository
+import com.prajwalpawar.fiscus.data.repository.TransactionRepository
 import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
 import com.prajwalpawar.fiscus.ui.navigation.FiscusDestination
 import com.prajwalpawar.fiscus.ui.navigation.FiscusNavigationBar
@@ -104,13 +105,19 @@ fun FiscusApp (
         CategoryRepository(database.categoryDao())
     }
 
+    val transactionRepository = remember(database) {
+        TransactionRepository(database, database.transactionDao())
+    }
+
     val transactionViewModelFactory = remember(
         accountRepository,
-        categoryRepository
+        categoryRepository,
+        transactionRepository
     ) {
         TransactionViewModelFactory(
             accountRepository = accountRepository,
-            categoryRepository = categoryRepository
+            categoryRepository = categoryRepository,
+            transactionRepository = transactionRepository
         )
     }
 

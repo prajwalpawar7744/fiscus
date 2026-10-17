@@ -7,17 +7,16 @@ import com.prajwalpawar.fiscus.data.local.dao.CategoryDao
 import com.prajwalpawar.fiscus.data.local.dao.TransactionDao
 import com.prajwalpawar.fiscus.data.local.entity.AccountEntity
 import com.prajwalpawar.fiscus.data.local.entity.CategoryEntity
-import com.prajwalpawar.fiscus.data.local.entity.SeedMetadataEntity
 import com.prajwalpawar.fiscus.data.local.entity.TransactionEntity
 
 @Database(
     entities = [
         TransactionEntity::class,
         CategoryEntity::class,
-        AccountEntity::class,
-        SeedMetadataEntity::class
+        AccountEntity::class
                ],
-    version = 2,
+    // Reset to 1 before release: the old v1 schema never reached users.
+    version = 1,
     exportSchema = true
 )
 abstract class FiscusDatabase: RoomDatabase() {

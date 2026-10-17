@@ -51,6 +51,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -67,6 +68,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.prajwalpawar.fiscus.data.model.Account
 import com.prajwalpawar.fiscus.data.model.AccountType
 import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.DockedDatePicker
@@ -74,6 +76,7 @@ import com.prajwalpawar.fiscus.ui.components.FiscusConnectedToggleGroup
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 import java.util.Currency
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,6 +91,7 @@ fun AddTransactionSheet(
     )
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -100,11 +104,16 @@ fun AddTransactionSheet(
             onAmountChange = viewModel::setAmount,
             onCategorySelected = viewModel::selectCategory,
             onAccountSelected = viewModel::selectAccount,
+            onToAccountSelected = viewModel::selectToAccount,
             onDateSelected = viewModel::setDate,
             onNoteChange = viewModel::setNote,
             onSubmit = {
-                // Saving is connected in F1; until then the draft is kept.
-                onDismissRequest()
+                viewModel.saveTransaction {
+                    // Slide the sheet away before removing it.
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        onDismissRequest()
+                    }
+                }
             }
         )
     }
@@ -118,6 +127,7 @@ private fun AddTransactionContent(
     onAmountChange: (String) -> Unit,
     onCategorySelected: (Long) -> Unit,
     onAccountSelected: (Long) -> Unit,
+    onToAccountSelected: (Long) -> Unit,
     onDateSelected: (Long) -> Unit,
     onNoteChange: (String) -> Unit,
     onSubmit: () -> Unit,
@@ -194,33 +204,24 @@ private fun AddTransactionContent(
             }
         }
 
-        ChipSection(title = "Account", titleModifier = inset) {
-            items(
-                items = uiState.accounts,
-                key = { it.id }
-            ) { account ->
-                val selected = uiState.selectedAccountId == account.id
+        val isTransfer = form.type == TransactionType.TRANSFER
 
-                FilterChip(
-                    selected = selected,
-                    onClick = {
-                        onAccountSelected(account.id)
-                    },
-                    label = {
-                        Text(text = account.name)
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = if (selected) {
-                                Icons.Filled.Check
-                            } else {
-                                accountIcon(account.type)
-                            },
-                            contentDescription = null
-                        )
-                    }
-                )
-            }
+        AccountChipSection(
+            title = if (isTransfer) "From" else "Account",
+            titleModifier = inset,
+            accounts = uiState.accounts,
+            selectedAccountId = uiState.selectedAccountId,
+            onAccountSelected = onAccountSelected
+        )
+
+        if (isTransfer && uiState.toAccounts.isNotEmpty()) {
+            AccountChipSection(
+                title = "To",
+                titleModifier = inset,
+                accounts = uiState.toAccounts,
+                selectedAccountId = uiState.selectedToAccountId,
+                onAccountSelected = onToAccountSelected
+            )
         }
 
         DockedDatePicker(
@@ -251,7 +252,7 @@ private fun AddTransactionContent(
             modifier = inset
                 .fillMaxWidth()
                 .heightIn(min = buttonHeight),
-            enabled = uiState.isValid,
+            enabled = uiState.canSubmit,
             shapes = ButtonDefaults.shapes(),
             contentPadding = ButtonDefaults.contentPaddingFor(
                 buttonHeight = buttonHeight,
@@ -275,16 +276,27 @@ private fun AddTransactionContent(
         }
 
         // Explain a disabled button instead of leaving the user to guess.
-        uiState.issue?.let { issue ->
+        val hint = when {
+            uiState.saveFailed -> "Couldn't save the transaction. Try again."
+            else -> when (uiState.issue) {
+                TransactionFormIssue.AMOUNT -> "Enter an amount to continue"
+                TransactionFormIssue.CATEGORY -> "Choose a category to continue"
+                TransactionFormIssue.ACCOUNT -> "Choose an account to continue"
+                TransactionFormIssue.NEEDS_TWO_ACCOUNTS -> "Transfers need at least two accounts"
+                TransactionFormIssue.TO_ACCOUNT -> "Choose an account to transfer to"
+                null -> null
+            }
+        }
+
+        hint?.let {
             Text(
-                text = when (issue) {
-                    TransactionFormIssue.AMOUNT -> "Enter an amount to continue"
-                    TransactionFormIssue.CATEGORY -> "Choose a category to continue"
-                    TransactionFormIssue.ACCOUNT -> "Choose an account to continue"
-                    TransactionFormIssue.TRANSFER_UNAVAILABLE -> "Transfers aren't available yet"
-                },
+                text = it,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (uiState.saveFailed) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
                 textAlign = TextAlign.Center,
                 modifier = inset.fillMaxWidth()
             )
@@ -357,6 +369,44 @@ private class CurrencyAmountTransformation(
         }
 
         return TransformedText(transformed, offsetMapping)
+    }
+}
+
+@Composable
+private fun AccountChipSection(
+    title: String,
+    titleModifier: Modifier,
+    accounts: List<Account>,
+    selectedAccountId: Long?,
+    onAccountSelected: (Long) -> Unit
+) {
+    ChipSection(title = title, titleModifier = titleModifier) {
+        items(
+            items = accounts,
+            key = { it.id }
+        ) { account ->
+            val selected = selectedAccountId == account.id
+
+            FilterChip(
+                selected = selected,
+                onClick = {
+                    onAccountSelected(account.id)
+                },
+                label = {
+                    Text(text = account.name)
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = if (selected) {
+                            Icons.Filled.Check
+                        } else {
+                            accountIcon(account.type)
+                        },
+                        contentDescription = null
+                    )
+                }
+            )
+        }
     }
 }
 

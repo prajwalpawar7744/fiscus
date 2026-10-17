@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.prajwalpawar.fiscus.data.local.migration.MIGRATION_1_2
 import com.prajwalpawar.fiscus.data.local.seeder.FiscusDatabaseSeeder
 
 object FiscusDatabaseProvider {
@@ -27,7 +26,9 @@ object FiscusDatabaseProvider {
                 FiscusDatabase::class.java,
                 "fiscus.db"
             )
-                .addMigrations(MIGRATION_1_2)
+                // A restored backup from a newer schema can't be opened; rebuild instead of crashing.
+                // Note: this wipes that restored data. Revisit before release.
+                .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
                 .addCallback(seedCallback)
                 .build()
                 .also { database = it }
