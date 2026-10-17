@@ -6,12 +6,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CallToAction
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -27,6 +29,7 @@ import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,6 +48,7 @@ import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.BottomBarPreference
 import com.prajwalpawar.fiscus.data.model.ThemePreference
 import com.prajwalpawar.fiscus.ui.components.FiscusDropdownMenu
+import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.FiscusSegmentedListItem
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 
@@ -88,7 +92,7 @@ fun SettingsScreen(
                     checked = settings.dynamicColor,
                     onCheckedChange = viewModel::setDynamicColor,
                     shapes = shapes,
-                    colors = ListItemDefaults.colors(
+                    colors = ListItemDefaults.segmentedColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer
                     ),
                     leadingContent = {
@@ -108,7 +112,18 @@ fun SettingsScreen(
                         // The row handles the toggle, so the switch only displays state.
                         Switch(
                             checked = settings.dynamicColor,
-                            onCheckedChange = null
+                            onCheckedChange = null,
+                            thumbContent = if (settings.dynamicColor) {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            } else {
+                                null
+                            }
                         )
                     }
                 ) {
@@ -349,10 +364,8 @@ private fun SettingsSectionTitle(
     title: String
 ) {
     // Inset to line up with the text inside the rows below.
-    Text(
-        text = title,
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
+    FiscusSectionHeader(
+        title = title,
         modifier = Modifier.padding(
             start = FiscusSpacing.md,
             top = FiscusSpacing.lg,

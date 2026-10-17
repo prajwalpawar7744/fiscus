@@ -75,6 +75,7 @@ import com.prajwalpawar.fiscus.data.model.Category
 import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.DockedDatePicker
 import com.prajwalpawar.fiscus.ui.components.FiscusConnectedToggleGroup
+import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -395,9 +396,8 @@ private fun ChipSection(
     Column(
         verticalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
+        FiscusSectionHeader(
+            title = title,
             modifier = titleModifier
         )
 

@@ -1,17 +1,23 @@
 package com.prajwalpawar.fiscus.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,14 +28,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
@@ -38,6 +40,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import com.prajwalpawar.fiscus.ui.theme.FiscusElevation
+import com.prajwalpawar.fiscus.ui.theme.FiscusMotion
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 import java.text.SimpleDateFormat
@@ -55,10 +58,22 @@ fun DockedDatePicker(
     placeholder: String = "Select date",
     enabled: Boolean = true,
 ) {
-    var showDatePicker by remember { mutableStateOf(false) }
+    // Kept as a transition state so the popup stays composed while it animates out.
+    val pickerVisibility = remember { MutableTransitionState(false) }
 
     val popupGap = with(LocalDensity.current) {
         FiscusSpacing.xs.roundToPx()
+    }
+
+    // A read-only field never gets a click, so open the picker on any tap of the field.
+    val fieldInteractionSource = remember { MutableInteractionSource() }
+
+    LaunchedEffect(fieldInteractionSource, enabled) {
+        fieldInteractionSource.interactions.collect { interaction ->
+            if (enabled && interaction is PressInteraction.Release) {
+                pickerVisibility.targetState = true
+            }
+        }
     }
 
     Box(
@@ -77,10 +92,13 @@ fun DockedDatePicker(
             readOnly = true,
             singleLine = true,
             enabled = enabled,
+            interactionSource = fieldInteractionSource,
             trailingIcon = {
                 IconButton(
                     enabled = enabled,
-                    onClick = { showDatePicker = !showDatePicker }
+                    onClick = {
+                        pickerVisibility.targetState = !pickerVisibility.targetState
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.Default.DateRange,
@@ -90,62 +108,83 @@ fun DockedDatePicker(
             }
         )
 
-        if (showDatePicker) {
+        if (pickerVisibility.currentState || pickerVisibility.targetState) {
             key(selectedDateMillis) {
                 val datePickerState = rememberDatePickerState(
                     initialSelectedDateMillis = selectedDateMillis
                 )
 
+                val motionScheme = MaterialTheme.motionScheme
 
                 Popup(
                     popupPositionProvider = DockedDatePickerPositionProvider(popupGap),
                     onDismissRequest = {
-                        showDatePicker = false
+                        pickerVisibility.targetState = false
                     }
                 ) {
-                    Surface(
-                        modifier = Modifier
-                            .widthIn(max = FiscusSize.datePickerMaxWidth),
-                        shape = MaterialTheme.shapes.extraLarge,
-                        // Matches the DatePicker's own container so the two read as one surface.
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        shadowElevation = FiscusElevation.level2
+                    AnimatedVisibility(
+                        visibleState = pickerVisibility,
+                        enter = fadeIn(motionScheme.defaultEffectsSpec()) +
+                                scaleIn(
+                                    animationSpec = motionScheme.defaultSpatialSpec(),
+                                    initialScale = FiscusMotion.ENTER_SCALE
+                                ),
+                        exit = fadeOut(motionScheme.fastEffectsSpec()) +
+                                scaleOut(
+                                    animationSpec = motionScheme.fastSpatialSpec(),
+                                    targetScale = FiscusMotion.ENTER_SCALE
+                                )
                     ) {
-                        Column(
-                            modifier = Modifier.padding(FiscusSpacing.md),
-                            verticalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
+                        Surface(
+                            modifier = Modifier
+                                .widthIn(max = FiscusSize.datePickerMaxWidth),
+                            shape = MaterialTheme.shapes.extraLarge,
+                            // Matches the DatePicker's own container so the two read as one surface.
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            shadowElevation = FiscusElevation.level2
                         ) {
-                            DatePicker(
-                                state = datePickerState,
-                                showModeToggle = false,
-                                modifier = Modifier.fillMaxWidth(),
-                                // to get rid of the headline
-                                title = null,
-                                headline = null,
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End
+                            // No side padding: DatePicker pads itself and needs its full width.
+                            Column(
+                                modifier = Modifier.padding(
+                                    top = FiscusSpacing.sm,
+                                    bottom = FiscusSpacing.sm
+                                ),
+                                verticalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
                             ) {
-                                TextButton(
-                                    onClick = {
-                                        showDatePicker = false
-                                    }
-                                ) {
-                                    Text("Cancel")
-                                }
+                                DatePicker(
+                                    state = datePickerState,
+                                    showModeToggle = false,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    // to get rid of the headline
+                                    title = null,
+                                    headline = null,
+                                )
 
-                                TextButton(
-                                    enabled = datePickerState.selectedDateMillis != null,
-                                    onClick = {
-                                        datePickerState.selectedDateMillis?.let(
-                                            onDateSelected
-                                        )
-                                        showDatePicker = false
-                                    }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = FiscusSpacing.sm),
+                                    horizontalArrangement = Arrangement.End
                                 ) {
-                                    Text("Confirm")
+                                    TextButton(
+                                        onClick = {
+                                            pickerVisibility.targetState = false
+                                        }
+                                    ) {
+                                        Text("Cancel")
+                                    }
+
+                                    TextButton(
+                                        enabled = datePickerState.selectedDateMillis != null,
+                                        onClick = {
+                                            datePickerState.selectedDateMillis?.let(
+                                                onDateSelected
+                                            )
+                                            pickerVisibility.targetState = false
+                                        }
+                                    ) {
+                                        Text("Confirm")
+                                    }
                                 }
                             }
                         }

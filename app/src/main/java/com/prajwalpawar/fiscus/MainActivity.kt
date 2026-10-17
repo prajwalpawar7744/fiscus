@@ -1,6 +1,8 @@
 package com.prajwalpawar.fiscus
 
+import android.graphics.Color
 import android.os.Bundle
+import androidx.activity.SystemBarStyle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -30,6 +32,23 @@ class MainActivity : ComponentActivity() {
                 ThemePreference.SYSTEM -> systemDarkTheme
                 ThemePreference.LIGHT -> false
                 ThemePreference.DARK -> true
+            }
+
+            // Bar icons must follow the app's theme, not the system's, or they vanish
+            // when the two differ (e.g. app Dark on a Light system).
+            DisposableEffect(darkTheme) {
+                val barStyle = SystemBarStyle.auto(
+                    lightScrim = Color.TRANSPARENT,
+                    darkScrim = Color.TRANSPARENT,
+                    detectDarkMode = { darkTheme }
+                )
+
+                enableEdgeToEdge(
+                    statusBarStyle = barStyle,
+                    navigationBarStyle = barStyle
+                )
+
+                onDispose {}
             }
 
             FiscusTheme (

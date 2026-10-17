@@ -17,7 +17,8 @@ fun FiscusSegmentedListItem(
     selected: Boolean = false,
     // Null keeps the row static: no ripple, and TalkBack doesn't call it a button.
     onClick: (() -> Unit)? = null,
-    colors: ListItemColors = ListItemDefaults.colors(
+    // Raised one tone above the screen so the rows stand out from the background.
+    colors: ListItemColors = ListItemDefaults.segmentedColors(
         containerColor = MaterialTheme.colorScheme.surfaceContainer
     ),
     content: @Composable () -> Unit,

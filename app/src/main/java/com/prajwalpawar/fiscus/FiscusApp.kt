@@ -1,10 +1,14 @@
 package com.prajwalpawar.fiscus
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
@@ -37,11 +41,14 @@ import com.prajwalpawar.fiscus.data.repository.CategoryRepository
 import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
 import com.prajwalpawar.fiscus.ui.navigation.FiscusDestination
 import com.prajwalpawar.fiscus.ui.navigation.FiscusNavigationBar
+import com.prajwalpawar.fiscus.ui.screens.analysis.AnalysisScreen
 import com.prajwalpawar.fiscus.ui.screens.home.HomeScreen
 import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
 import com.prajwalpawar.fiscus.ui.screens.transaction.AddTransactionSheet
 import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionViewModel
 import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionViewModelFactory
+import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionsScreen
+import com.prajwalpawar.fiscus.ui.theme.FiscusMotion
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,6 +124,8 @@ fun FiscusApp () {
         ?.route
         ?.startsWith(FiscusDestination.Home.route) == true
 
+    val motionScheme = MaterialTheme.motionScheme
+
     Scaffold(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection)
@@ -183,18 +192,29 @@ fun FiscusApp () {
         NavHost(
             navController = navController,
             startDestination = FiscusDestination.Home.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            // Fade through between tabs, timed by the Expressive motion scheme.
+            enterTransition = {
+                fadeIn(motionScheme.defaultEffectsSpec()) +
+                        scaleIn(
+                            animationSpec = motionScheme.defaultSpatialSpec(),
+                            initialScale = FiscusMotion.ENTER_SCALE
+                        )
+            },
+            exitTransition = {
+                fadeOut(motionScheme.fastEffectsSpec())
+            }
         ) {
             composable(FiscusDestination.Home.route) {
                 HomeScreen()
             }
 
             composable(FiscusDestination.Transactions.route) {
-                Text("Transactions")
+                TransactionsScreen()
             }
 
             composable(FiscusDestination.Analysis.route) {
-                Text("Analysis")
+                AnalysisScreen()
             }
 
             composable(FiscusDestination.Settings.route) {
