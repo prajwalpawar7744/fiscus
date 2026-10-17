@@ -82,6 +82,7 @@ import com.prajwalpawar.fiscus.ui.components.FiscusChipIcon
 import com.prajwalpawar.fiscus.ui.components.FiscusConnectedToggleGroup
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.FiscusSubmitButton
+import com.prajwalpawar.fiscus.ui.components.ImeInsetsRepair
 import com.prajwalpawar.fiscus.ui.components.accountIcon
 import com.prajwalpawar.fiscus.ui.components.categoryIcon
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
@@ -109,6 +110,9 @@ fun AddTransactionSheet(
         sheetState = sheetState,
         modifier = modifier
     ) {
+        // The sheet is its own window, so it needs its own repair.
+        ImeInsetsRepair()
+
         AddTransactionContent(
             uiState = uiState,
             onTransactionTypeChange = viewModel::setTransactionType,

@@ -41,6 +41,7 @@ import com.prajwalpawar.fiscus.data.repository.AccountRepository
 import com.prajwalpawar.fiscus.data.repository.CategoryRepository
 import com.prajwalpawar.fiscus.data.repository.TransactionRepository
 import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
+import com.prajwalpawar.fiscus.ui.components.ImeInsetsRepair
 import com.prajwalpawar.fiscus.ui.navigation.FiscusDestination
 import com.prajwalpawar.fiscus.ui.navigation.FiscusNavigationBar
 import com.prajwalpawar.fiscus.ui.navigation.FiscusRoutes
@@ -163,6 +164,9 @@ fun FiscusApp (
     ).any { route.startsWith(it.route) }
 
     val motionScheme = MaterialTheme.motionScheme
+
+    // Keeps the keyboard's padding from sticking after a back-swipe closes it.
+    ImeInsetsRepair()
 
     val currentMonthLabel = remember {
         YearMonth.now().format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.getDefault()))
