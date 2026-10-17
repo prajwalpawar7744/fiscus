@@ -29,6 +29,23 @@ class TransactionRepository (
         }
     }
 
+    fun observeTransactionsInRange(range: DateRange): Flow<List<TransactionDetails>> {
+        return transactionDao.observeTransactionsInRange(range.startMillis, range.endMillis)
+            .map { rows -> rows.map { it.toDetails() } }
+    }
+
+    // Case-insensitive (for ASCII) match on title or note, newest first.
+    fun searchTransactions(query: String, limit: Int): Flow<List<TransactionDetails>> {
+        // Escape LIKE wildcards so "%" or "_" in the query match literally.
+        val pattern = query
+            .replace("\\", "\\\\")
+            .replace("%", "\\%")
+            .replace("_", "\\_")
+
+        return transactionDao.searchTransactions(pattern, limit)
+            .map { rows -> rows.map { it.toDetails() } }
+    }
+
     // Null once the transaction is deleted.
     fun observeTransactionDetails(id: Long): Flow<TransactionDetails?> {
         return transactionDao.observeTransactionDetails(id).map { it?.toDetails() }
@@ -77,6 +94,10 @@ class TransactionRepository (
             title = title,
             note = note,
             date = date,
+            categoryId = categoryId,
+            accountId = accountId,
+            sourceAccountId = sourceAccountId,
+            destinationAccountId = destinationAccountId,
             categoryName = categoryName,
             categoryIconKey = categoryIconKey,
             accountName = accountName,

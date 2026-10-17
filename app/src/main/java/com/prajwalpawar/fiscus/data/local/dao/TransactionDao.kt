@@ -17,6 +17,10 @@ private const val DETAILS_SELECT = """
         t.title,
         t.note,
         t.date,
+        t.categoryId,
+        t.accountId,
+        t.sourceAccountId,
+        t.destinationAccountId,
         c.name AS categoryName,
         c.iconKey AS categoryIconKey,
         a.name AS accountName,
@@ -36,6 +40,10 @@ data class TransactionDetailsRow(
     val title: String,
     val note: String?,
     val date: Long,
+    val categoryId: Long?,
+    val accountId: Long?,
+    val sourceAccountId: Long?,
+    val destinationAccountId: Long?,
     val categoryName: String?,
     val categoryIconKey: String?,
     val accountName: String?,
@@ -70,6 +78,22 @@ interface TransactionDao {
     // Newest first, with the names needed to show each row.
     @Query("$DETAILS_SELECT ORDER BY t.date DESC, t.id DESC LIMIT :limit")
     fun observeRecentTransactions(limit: Int): Flow<List<TransactionDetailsRow>>
+
+    // Everything dated in [startMillis, endMillis), newest first.
+    @Query("$DETAILS_SELECT WHERE t.date >= :startMillis AND t.date < :endMillis ORDER BY t.date DESC, t.id DESC")
+    fun observeTransactionsInRange(startMillis: Long, endMillis: Long): Flow<List<TransactionDetailsRow>>
+
+    // Title or note contains [pattern] (already LIKE-escaped with '\'), across all dates.
+    @Query(
+        """
+        $DETAILS_SELECT
+        WHERE t.title LIKE '%' || :pattern || '%' ESCAPE '\'
+           OR t.note LIKE '%' || :pattern || '%' ESCAPE '\'
+        ORDER BY t.date DESC, t.id DESC
+        LIMIT :limit
+        """
+    )
+    fun searchTransactions(pattern: String, limit: Int): Flow<List<TransactionDetailsRow>>
 
     // Emits null once the transaction is deleted.
     @Query("$DETAILS_SELECT WHERE t.id = :id")

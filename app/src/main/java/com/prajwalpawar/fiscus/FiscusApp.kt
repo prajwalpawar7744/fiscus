@@ -7,8 +7,10 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallExtendedFloatingActionButton
@@ -67,7 +69,10 @@ import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionDetailsScreen
 import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionDetailsViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionViewModel
 import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionViewModelFactory
+import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionSearchScreen
+import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionSearchViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionsScreen
+import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionsViewModelFactory
 import com.prajwalpawar.fiscus.ui.theme.FiscusMotion
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -159,6 +164,8 @@ fun FiscusApp (
     val route = currentDestination?.route
 
     val onHome = route?.startsWith(FiscusDestination.Home.route) == true
+    val onTransactions = route?.startsWith(FiscusDestination.Transactions.route) == true
+    val onSearch = route == FiscusRoutes.TRANSACTION_SEARCH
 
     // Tabs show the navigation bar; pages opened on top of them show a back arrow instead.
     val isTopLevel = route == null || listOf(
@@ -182,70 +189,85 @@ fun FiscusApp (
             .nestedScroll(scrollBehavior.nestedScrollConnection)
             .nestedScroll(fabScrollConnection),
         topBar = {
-            FiscusTopAppBar(
-                title = when {
-                    onHome -> {
-                            "Home"
+            // The search page draws its own search field as the header.
+            if (!onSearch) {
+                FiscusTopAppBar(
+                    title = when {
+                        onHome -> {
+                                "Home"
+                            }
+
+                        currentDestination
+                            ?.route
+                            ?.startsWith(FiscusDestination.Transactions.route) == true -> {
+                            "Transactions"
                         }
 
-                    currentDestination
-                        ?.route
-                        ?.startsWith(FiscusDestination.Transactions.route) == true -> {
-                        "Transactions"
-                    }
+                        currentDestination
+                            ?.route
+                            ?.startsWith(FiscusDestination.Analysis.route) == true -> {
+                            "Analysis"
+                        }
 
-                    currentDestination
-                        ?.route
-                        ?.startsWith(FiscusDestination.Analysis.route) == true -> {
-                        "Analysis"
-                    }
+                        currentDestination
+                            ?.route
+                            ?.startsWith(FiscusDestination.Settings.route) == true -> {
+                            "Settings"
+                        }
 
-                    currentDestination
-                        ?.route
-                        ?.startsWith(FiscusDestination.Settings.route) == true -> {
-                        "Settings"
-                    }
+                        route?.startsWith(FiscusRoutes.NEW_CATEGORY_BASE) == true -> {
+                            "New category"
+                        }
 
-                    route?.startsWith(FiscusRoutes.NEW_CATEGORY_BASE) == true -> {
-                        "New category"
-                    }
+                        route?.startsWith(FiscusRoutes.NEW_ACCOUNT) == true -> {
+                            "New account"
+                        }
 
-                    route?.startsWith(FiscusRoutes.NEW_ACCOUNT) == true -> {
-                        "New account"
-                    }
+                        route?.startsWith(FiscusRoutes.EDIT_CATEGORY_BASE) == true -> {
+                            "Edit category"
+                        }
 
-                    route?.startsWith(FiscusRoutes.EDIT_CATEGORY_BASE) == true -> {
-                        "Edit category"
-                    }
+                        route?.startsWith(FiscusRoutes.EDIT_ACCOUNT_BASE) == true -> {
+                            "Edit account"
+                        }
 
-                    route?.startsWith(FiscusRoutes.EDIT_ACCOUNT_BASE) == true -> {
-                        "Edit account"
-                    }
+                        route == FiscusRoutes.MANAGE_CATEGORIES -> {
+                            "Categories"
+                        }
 
-                    route == FiscusRoutes.MANAGE_CATEGORIES -> {
-                        "Categories"
-                    }
+                        route == FiscusRoutes.MANAGE_ACCOUNTS -> {
+                            "Accounts"
+                        }
 
-                    route == FiscusRoutes.MANAGE_ACCOUNTS -> {
-                        "Accounts"
+                        route?.startsWith(FiscusRoutes.TRANSACTION_DETAILS_BASE) == true -> {
+                            "Transaction"
+                        } else -> {
+                            "Fiscus"
+                        }
+                    },
+                    preference = settings.appBar,
+                    scrollBehavior = scrollBehavior,
+                    // Home's figures are for this month, so say which one.
+                    subtitle = if (onHome) currentMonthLabel else null,
+                    onNavigateUp = if (isTopLevel) {
+                        null
+                    } else {
+                        { navController.navigateUp() }
+                    },
+                    actions = {
+                        if (onTransactions) {
+                            IconButton(
+                                onClick = { navController.navigate(FiscusRoutes.TRANSACTION_SEARCH) }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Search,
+                                    contentDescription = "Search transactions"
+                                )
+                            }
+                        }
                     }
-
-                    route?.startsWith(FiscusRoutes.TRANSACTION_DETAILS_BASE) == true -> {
-                        "Transaction"
-                    } else -> {
-                        "Fiscus"
-                    }
-                },
-                preference = settings.appBar,
-                scrollBehavior = scrollBehavior,
-                // Home's figures are for this month, so say which one.
-                subtitle = if (onHome) currentMonthLabel else null,
-                onNavigateUp = if (isTopLevel) {
-                    null
-                } else {
-                    { navController.navigateUp() }
-                }
-            )
+                )
+            }
         },
         bottomBar = {
             if (isTopLevel) {
@@ -257,7 +279,7 @@ fun FiscusApp (
             }
         },
         floatingActionButton = {
-            if (onHome) {
+            if (onHome || onTransactions) {
                 SmallExtendedFloatingActionButton(
                     onClick = {
                         showAddTransactionSheet = true
@@ -317,7 +339,30 @@ fun FiscusApp (
                     }
 
                     fiscusComposable(FiscusDestination.Transactions.route) {
-                        TransactionsScreen()
+                        TransactionsScreen(
+                            viewModel = viewModel(
+                                factory = TransactionsViewModelFactory(
+                                    transactionRepository = transactionRepository,
+                                    accountRepository = accountRepository,
+                                    categoryRepository = categoryRepository
+                                )
+                            ),
+                            onTransactionClick = { id ->
+                                navController.navigate(FiscusRoutes.transactionDetails(id))
+                            }
+                        )
+                    }
+
+                    fiscusComposable(FiscusRoutes.TRANSACTION_SEARCH) {
+                        TransactionSearchScreen(
+                            viewModel = viewModel(
+                                factory = TransactionSearchViewModelFactory(transactionRepository)
+                            ),
+                            onBack = { navController.navigateUp() },
+                            onResultClick = { id ->
+                                navController.navigate(FiscusRoutes.transactionDetails(id))
+                            }
+                        )
                     }
 
                     fiscusComposable(FiscusDestination.Analysis.route) {

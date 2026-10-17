@@ -1,5 +1,6 @@
 package com.prajwalpawar.fiscus.ui.components
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,7 +27,8 @@ fun FiscusTopAppBar (
     scrollBehavior: TopAppBarScrollBehavior,
     subtitle: String? = null,
     // Shows a back arrow on pages below the top-level tabs.
-    onNavigateUp: (() -> Unit)? = null
+    onNavigateUp: (() -> Unit)? = null,
+    actions: @Composable RowScope.() -> Unit = {}
 ) {
     val navigationIcon: @Composable () -> Unit = {
         if (onNavigateUp != null) {
@@ -64,6 +66,7 @@ fun FiscusTopAppBar (
                     subtitle = subtitleContent,
                     modifier = modifier,
                     navigationIcon = navigationIcon,
+                    actions = actions,
                     colors = colors,
                     scrollBehavior = scrollBehavior
                 )
@@ -72,6 +75,7 @@ fun FiscusTopAppBar (
                     title = titleContent,
                     modifier = modifier,
                     navigationIcon = navigationIcon,
+                    actions = actions,
                     colors = colors,
                     scrollBehavior = scrollBehavior
                 )
@@ -84,6 +88,7 @@ fun FiscusTopAppBar (
                 subtitle = subtitleContent,
                 modifier = modifier,
                 navigationIcon = navigationIcon,
+                actions = actions,
                 colors = colors,
                 scrollBehavior = scrollBehavior
             )
@@ -95,6 +100,7 @@ fun FiscusTopAppBar (
                 subtitle = subtitleContent,
                 modifier = modifier,
                 navigationIcon = navigationIcon,
+                actions = actions,
                 colors = colors,
                 scrollBehavior = scrollBehavior
             )

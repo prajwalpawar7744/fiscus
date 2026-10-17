@@ -10,6 +10,9 @@ object FiscusRoutes {
     const val MANAGE_CATEGORIES = "categories"
     const val MANAGE_ACCOUNTS = "accounts"
 
+    // Not under "transactions/", which would read as the Transactions tab itself.
+    const val TRANSACTION_SEARCH = "search"
+
     const val NEW_CATEGORY_BASE = "category/new"
     const val NEW_CATEGORY = "$NEW_CATEGORY_BASE?$TYPE_ARG={$TYPE_ARG}"
 

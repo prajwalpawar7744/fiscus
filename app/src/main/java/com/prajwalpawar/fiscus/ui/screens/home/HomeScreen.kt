@@ -14,13 +14,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -40,29 +38,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.prajwalpawar.fiscus.data.model.AccountBalance
 import com.prajwalpawar.fiscus.data.model.PeriodTotals
 import com.prajwalpawar.fiscus.data.model.TransactionDetails
-import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.FiscusListIcon
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
-import com.prajwalpawar.fiscus.ui.components.FiscusSegmentedListItem
-import com.prajwalpawar.fiscus.ui.components.FiscusTransactionAmount
+import com.prajwalpawar.fiscus.ui.components.FiscusTransactionRow
+import com.prajwalpawar.fiscus.ui.components.transactionsByDay
 import com.prajwalpawar.fiscus.ui.components.accountIcon
 import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
 import com.prajwalpawar.fiscus.ui.navigation.containerTransform
-import com.prajwalpawar.fiscus.ui.components.categoryIcon
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 import com.prajwalpawar.fiscus.util.formatMoney
-import com.prajwalpawar.fiscus.util.storedDateToLocalDate
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -448,99 +438,14 @@ private fun LazyListScope.recentTransactions(
         return
     }
 
-    // Already newest first, so grouping keeps days in order.
-    val byDay = recent.groupBy { storedDateToLocalDate(it.date) }
-
-    byDay.forEach { (day, transactions) ->
-        item(key = "day-$day") {
-            Text(
-                text = dayLabel(day),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .padding(
-                        start = FiscusSpacing.md,
-                        top = FiscusSpacing.sm,
-                        bottom = FiscusSpacing.xs
-                    )
-                    .semantics { heading() }
-            )
-        }
-
-        itemsIndexed(
-            items = transactions,
-            key = { _, transaction -> transaction.id }
-        ) { index, transaction ->
-            TransactionRow(
-                transaction = transaction,
-                index = index,
-                count = transactions.size,
-                onClick = { onTransactionClick(transaction.id) },
-                modifier = Modifier
-                    .padding(horizontal = FiscusSpacing.md)
-                    .containerTransform(ContainerKeys.transaction(transaction.id))
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TransactionRow(
-    transaction: TransactionDetails,
-    index: Int,
-    count: Int,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val isTransfer = transaction.type == TransactionType.TRANSFER
-
-    FiscusSegmentedListItem(
-        shapes = ListItemDefaults.segmentedShapes(index = index, count = count),
-        modifier = modifier,
-        onClick = onClick,
-        leadingContent = {
-            FiscusListIcon(
-                icon = if (isTransfer) {
-                    Icons.Filled.SwapHoriz
-                } else {
-                    categoryIcon(transaction.categoryIconKey ?: "category")
-                }
-            )
-        },
-        content = {
-            Text(
-                text = transaction.title,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
-        supportingContent = {
-            Text(
-                text = if (isTransfer) {
-                    "${transaction.sourceAccountName.orEmpty()} → ${transaction.destinationAccountName.orEmpty()}"
-                } else {
-                    "${transaction.categoryName ?: "Uncategorised"} · ${transaction.accountName.orEmpty()}"
-                },
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
-        trailingContent = {
-            FiscusTransactionAmount(
-                type = transaction.type,
-                amount = transaction.amount
-            )
-        }
-    )
-}
-
-private fun dayLabel(day: LocalDate): String {
-    val today = LocalDate.now()
-
-    return when (day) {
-        today -> "Today"
-        today.minusDays(1) -> "Yesterday"
-        else -> day.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+    transactionsByDay(recent) { transaction, shapes ->
+        FiscusTransactionRow(
+            transaction = transaction,
+            shapes = shapes,
+            onClick = { onTransactionClick(transaction.id) },
+            modifier = Modifier
+                .padding(horizontal = FiscusSpacing.md)
+                .containerTransform(ContainerKeys.transaction(transaction.id))
+        )
     }
 }
