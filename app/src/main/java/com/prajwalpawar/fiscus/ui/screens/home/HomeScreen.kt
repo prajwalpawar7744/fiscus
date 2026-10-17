@@ -51,6 +51,7 @@ import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.FiscusListIcon
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.FiscusSegmentedListItem
+import com.prajwalpawar.fiscus.ui.components.FiscusTransactionAmount
 import com.prajwalpawar.fiscus.ui.components.accountIcon
 import com.prajwalpawar.fiscus.ui.components.categoryIcon
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
@@ -511,19 +512,9 @@ private fun TransactionRow(
             )
         },
         trailingContent = {
-            // Income is marked with "+" and the primary color; transfers just move money.
-            Text(
-                text = when (transaction.type) {
-                    TransactionType.INCOME -> "+" + formatMoney(transaction.amount)
-                    TransactionType.EXPENSE -> formatMoney(-transaction.amount)
-                    TransactionType.TRANSFER -> formatMoney(transaction.amount)
-                },
-                style = MaterialTheme.typography.titleSmall,
-                color = when (transaction.type) {
-                    TransactionType.INCOME -> MaterialTheme.colorScheme.primary
-                    TransactionType.EXPENSE -> MaterialTheme.colorScheme.onSurface
-                    TransactionType.TRANSFER -> MaterialTheme.colorScheme.onSurfaceVariant
-                }
+            FiscusTransactionAmount(
+                type = transaction.type,
+                amount = transaction.amount
             )
         }
     )
