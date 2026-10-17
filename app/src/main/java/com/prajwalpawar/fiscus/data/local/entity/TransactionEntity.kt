@@ -43,7 +43,7 @@ import com.prajwalpawar.fiscus.data.model.TransactionType
         Index("date")
     ]
 )
-data class TransactionEntity (
+data class TransactionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0L,
     val type: String,

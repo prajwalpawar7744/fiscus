@@ -87,7 +87,12 @@ class AccountEditorViewModel(
                 try {
                     val existing = original
                     if (existing != null) {
-                        accountRepository.updateAccount(existing.copy(name = name, type = current.type))
+                        accountRepository.updateAccount(
+                            existing.copy(
+                                name = name,
+                                type = current.type
+                            )
+                        )
                         existing.id
                     } else {
                         accountRepository.addAccount(Account(name = name, type = current.type))

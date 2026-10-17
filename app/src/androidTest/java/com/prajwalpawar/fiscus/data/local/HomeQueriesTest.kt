@@ -77,7 +77,8 @@ class HomeQueriesTest {
         add("EXPENSE", 3_000, date = 3, category = food, account = card)
         add("TRANSFER", 1_000, date = 4, from = cash, to = card)
 
-        val balances = db.accountDao().observeAccountBalances().first().associate { it.id to it.balance }
+        val balances =
+            db.accountDao().observeAccountBalances().first().associate { it.id to it.balance }
 
         // 10,000 opening + 50,000 - 2,000 - 1,000 transferred out
         assertEquals(57_000L, balances[cash])
@@ -87,7 +88,8 @@ class HomeQueriesTest {
 
     @Test
     fun accountWithNoTransactionsShowsOpeningBalance() = runBlocking {
-        val balances = db.accountDao().observeAccountBalances().first().associate { it.id to it.balance }
+        val balances =
+            db.accountDao().observeAccountBalances().first().associate { it.id to it.balance }
 
         assertEquals(10_000L, balances[cash])
         assertEquals(0L, balances[card])
@@ -101,7 +103,8 @@ class HomeQueriesTest {
         // End of range is exclusive.
         add("EXPENSE", 7_000, date = 200, category = food, account = cash)
 
-        val totals = db.transactionDao().observePeriodTotals(startMillis = 100, endMillis = 200).first()
+        val totals =
+            db.transactionDao().observePeriodTotals(startMillis = 100, endMillis = 200).first()
 
         assertEquals(50_000L, totals.income)
         assertEquals(2_000L, totals.expense)

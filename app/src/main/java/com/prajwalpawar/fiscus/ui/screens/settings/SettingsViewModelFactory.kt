@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.prajwalpawar.fiscus.data.local.SettingsDataStore
 
-class SettingsViewModelFactory (
+class SettingsViewModelFactory(
     private val context: Context
-): ViewModelProvider.Factory {
+) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(
         modelClass: Class<T>

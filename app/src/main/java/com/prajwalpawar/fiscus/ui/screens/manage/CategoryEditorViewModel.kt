@@ -102,7 +102,11 @@ class CategoryEditorViewModel(
                     val existing = original
                     if (existing != null) {
                         categoryRepository.updateCategory(
-                            existing.copy(name = name, type = current.type, iconKey = current.iconKey)
+                            existing.copy(
+                                name = name,
+                                type = current.type,
+                                iconKey = current.iconKey
+                            )
                         )
                         existing.id
                     } else {

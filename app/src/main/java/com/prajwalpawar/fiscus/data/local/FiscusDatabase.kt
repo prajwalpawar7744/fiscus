@@ -14,12 +14,12 @@ import com.prajwalpawar.fiscus.data.local.entity.TransactionEntity
         TransactionEntity::class,
         CategoryEntity::class,
         AccountEntity::class
-               ],
+    ],
     // Stays at 1 until release; the schema is changed in place before then.
     version = 1,
     exportSchema = true
 )
-abstract class FiscusDatabase: RoomDatabase() {
+abstract class FiscusDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun categoryDao(): CategoryDao
     abstract fun accountDao(): AccountDao

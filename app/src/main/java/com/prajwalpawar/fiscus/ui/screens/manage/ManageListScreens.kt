@@ -80,15 +80,15 @@ fun ManageCategoriesScreen(
                             onClick = { onCategoryClick(category.id) }
                         )
                     } + ManageRow(
-                        key = "add-$type",
-                        transformKey = ContainerKeys.newCategory(type.name),
-                        icon = Icons.Filled.Add,
-                        title = "Add ${label.lowercase()} category",
-                        supporting = null,
-                        trailingText = null,
-                        isAddRow = true,
-                        onClick = { onAddCategoryClick(type) }
-                    )
+                    key = "add-$type",
+                    transformKey = ContainerKeys.newCategory(type.name),
+                    icon = Icons.Filled.Add,
+                    title = "Add ${label.lowercase()} category",
+                    supporting = null,
+                    trailingText = null,
+                    isAddRow = true,
+                    onClick = { onAddCategoryClick(type) }
+                )
             }
 
             val archivedSection = archived.map { (category, usage) ->

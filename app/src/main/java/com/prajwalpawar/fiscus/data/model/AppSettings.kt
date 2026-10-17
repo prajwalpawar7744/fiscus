@@ -33,7 +33,7 @@ enum class IconShapePreference {
     FLOWER
 }
 
-data class AppSettings (
+data class AppSettings(
     val theme: ThemePreference = ThemePreference.SYSTEM,
     val dynamicColor: Boolean = true,
     val iconShape: IconShapePreference = IconShapePreference.COOKIE,

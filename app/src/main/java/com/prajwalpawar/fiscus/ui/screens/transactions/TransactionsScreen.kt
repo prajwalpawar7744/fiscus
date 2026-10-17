@@ -13,8 +13,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.FilterListOff
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -28,14 +28,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.prajwalpawar.fiscus.data.model.Account
 import com.prajwalpawar.fiscus.data.model.Category
 import com.prajwalpawar.fiscus.data.model.CategoryType
 import com.prajwalpawar.fiscus.data.model.PeriodTotals
@@ -51,7 +50,6 @@ import com.prajwalpawar.fiscus.ui.navigation.containerTransform
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 import com.prajwalpawar.fiscus.util.formatMoney
-import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -201,7 +199,12 @@ private fun FiltersBar(
         verticalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
     ) {
         FiscusConnectedToggleGroup(
-            options = listOf(null, TransactionType.EXPENSE, TransactionType.INCOME, TransactionType.TRANSFER),
+            options = listOf(
+                null,
+                TransactionType.EXPENSE,
+                TransactionType.INCOME,
+                TransactionType.TRANSFER
+            ),
             selectedOption = state.filters.type,
             onOptionSelected = onTypeSelected,
             optionLabel = { type ->
@@ -238,7 +241,12 @@ private fun FiltersBar(
                     selected = state.categories.firstOrNull { it.id == state.filters.categoryId },
                     allLabel = "All categories",
                     // Both types have an "Other", so say which one when all types are shown.
-                    optionLabel = { category -> categoryLabel(category, showType = state.filters.type == null) },
+                    optionLabel = { category ->
+                        categoryLabel(
+                            category,
+                            showType = state.filters.type == null
+                        )
+                    },
                     onSelected = { onCategorySelected(it?.id) }
                 )
             }

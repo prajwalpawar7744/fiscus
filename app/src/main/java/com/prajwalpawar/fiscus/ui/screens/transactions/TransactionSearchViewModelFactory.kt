@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.prajwalpawar.fiscus.data.repository.TransactionRepository
 
-class TransactionSearchViewModelFactory (
+class TransactionSearchViewModelFactory(
     private val transactionRepository: TransactionRepository
-): ViewModelProvider.Factory {
+) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(
         modelClass: Class<T>

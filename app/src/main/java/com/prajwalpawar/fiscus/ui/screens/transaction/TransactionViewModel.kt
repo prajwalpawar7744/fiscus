@@ -52,7 +52,7 @@ enum class TransactionFormIssue {
     TO_ACCOUNT
 }
 
-data class TransactionUiState (
+data class TransactionUiState(
     val accounts: List<Account> = emptyList(),
     val categories: List<Category> = emptyList(),
     val form: TransactionForm = TransactionForm(),
@@ -68,11 +68,11 @@ data class TransactionUiState (
     val canSubmit: Boolean get() = issue == null && !isSaving
 }
 
-class TransactionViewModel (
+class TransactionViewModel(
     accountRepository: AccountRepository,
     categoryRepository: CategoryRepository,
     private val transactionRepository: TransactionRepository
-): ViewModel() {
+) : ViewModel() {
     private val form = MutableStateFlow(TransactionForm())
     private val isSaving = MutableStateFlow(false)
     private val saveFailed = MutableStateFlow(false)

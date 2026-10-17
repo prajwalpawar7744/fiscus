@@ -1,6 +1,6 @@
 package com.prajwalpawar.fiscus.data.model
 
-data class Account (
+data class Account(
     val id: Long = 0L,
     val name: String,
     val type: AccountType,

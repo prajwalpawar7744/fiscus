@@ -2,9 +2,9 @@ package com.prajwalpawar.fiscus.ui.screens.analysis
 
 import com.prajwalpawar.fiscus.data.model.CategoryTotal
 import com.prajwalpawar.fiscus.data.model.MonthTotals
+import com.prajwalpawar.fiscus.util.Period
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import com.prajwalpawar.fiscus.util.Period
 import org.junit.Test
 import java.time.LocalDate
 import java.time.YearMonth
@@ -47,7 +47,10 @@ class AnalysisMathTest {
         assertEquals(100L, dailyAverage(3000, Period.month(YearMonth.of(2026, 9)), today))
         // A single day and a 5-day range.
         assertEquals(700L, dailyAverage(700, Period(today, today), today))
-        assertEquals(200L, dailyAverage(1000, Period(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 5)), today))
+        assertEquals(
+            200L,
+            dailyAverage(1000, Period(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 5)), today)
+        )
         // Entirely in the future.
         assertEquals(0L, dailyAverage(3000, Period.month(YearMonth.of(2026, 11)), today))
     }
@@ -67,7 +70,9 @@ class AnalysisMathTest {
         )
         val filled = fillMonths(rows, last = YearMonth.of(2026, 10), count = 6)
 
-        assertEquals((5 downTo 0).map { YearMonth.of(2026, 10).minusMonths(it.toLong()) }, filled.map { it.month })
+        assertEquals(
+            (5 downTo 0).map { YearMonth.of(2026, 10).minusMonths(it.toLong()) },
+            filled.map { it.month })
         assertEquals(listOf(0L, 0L, 0L, 50L, 0L, 80L), filled.map { it.expense })
     }
 
@@ -94,7 +99,8 @@ class TrendScaleTest {
     @Test
     fun dailyBucketsCoverEveryDayWithZerosForQuietDays() {
         val period = Period(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 3))
-        val rows = listOf(com.prajwalpawar.fiscus.data.model.DayTotals(LocalDate.of(2026, 10, 2), 0, 500))
+        val rows =
+            listOf(com.prajwalpawar.fiscus.data.model.DayTotals(LocalDate.of(2026, 10, 2), 0, 500))
         val buckets = dailyBuckets(rows, period)
 
         assertEquals(listOf(0L, 500L, 0L), buckets.map { it.expense })

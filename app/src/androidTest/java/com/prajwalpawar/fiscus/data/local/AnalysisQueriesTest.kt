@@ -73,7 +73,10 @@ class AnalysisQueriesTest {
 
     @Test
     fun categoryTotalsAreLargestFirstForOneType() = runBlocking {
-        val totals = repository.observeCategoryTotals(TransactionType.EXPENSE, monthRange(YearMonth.of(2026, 10))).first()
+        val totals = repository.observeCategoryTotals(
+            TransactionType.EXPENSE,
+            monthRange(YearMonth.of(2026, 10))
+        ).first()
 
         assertEquals(listOf("Travel" to 250L, "Food" to 150L), totals.map { it.name to it.total })
     }
@@ -95,11 +98,18 @@ class AnalysisQueriesTest {
 
     @Test
     fun dailyTotalsGroupByStoredDayAndCountTransactions() = runBlocking {
-        val range = com.prajwalpawar.fiscus.util.Period(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 15)).toDateRange()
+        val range = com.prajwalpawar.fiscus.util.Period(
+            LocalDate.of(2026, 10, 1),
+            LocalDate.of(2026, 10, 15)
+        ).toDateRange()
 
         val days = repository.observeDailyTotals(range).first()
         assertEquals(
-            listOf(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 15)),
+            listOf(
+                LocalDate.of(2026, 10, 1),
+                LocalDate.of(2026, 10, 5),
+                LocalDate.of(2026, 10, 15)
+            ),
             days.map { it.day }
         )
         assertEquals(listOf(100L, 0L, 250L), days.map { it.expense })
@@ -110,7 +120,8 @@ class AnalysisQueriesTest {
 
     @Test
     fun largestExpensesAreBiggestFirstWithinTheMonth() = runBlocking {
-        val largest = repository.observeLargestExpenses(monthRange(YearMonth.of(2026, 10)), limit = 2).first()
+        val largest =
+            repository.observeLargestExpenses(monthRange(YearMonth.of(2026, 10)), limit = 2).first()
 
         assertEquals(listOf(250L, 100L), largest.map { it.amount })
     }

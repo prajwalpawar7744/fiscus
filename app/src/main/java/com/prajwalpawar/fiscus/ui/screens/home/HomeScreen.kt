@@ -46,8 +46,8 @@ import com.prajwalpawar.fiscus.data.model.TransactionDetails
 import com.prajwalpawar.fiscus.ui.components.FiscusListIcon
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.FiscusTransactionRow
-import com.prajwalpawar.fiscus.ui.components.transactionsByDay
 import com.prajwalpawar.fiscus.ui.components.accountIcon
+import com.prajwalpawar.fiscus.ui.components.transactionsByDay
 import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
 import com.prajwalpawar.fiscus.ui.navigation.containerTransform
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
@@ -304,7 +304,8 @@ private fun AccountsCarousel(
             val cardModifier = Modifier
                 .fillMaxSize()
                 .containerTransform(
-                    key = account?.let { ContainerKeys.account(it.id) } ?: ContainerKeys.NEW_ACCOUNT,
+                    key = account?.let { ContainerKeys.account(it.id) }
+                        ?: ContainerKeys.NEW_ACCOUNT,
                     clipShape = MaterialTheme.shapes.extraLarge
                 )
                 .maskClip(MaterialTheme.shapes.extraLarge)

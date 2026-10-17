@@ -10,7 +10,7 @@ object FiscusDatabaseProvider {
     @Volatile
     private var database: FiscusDatabase? = null
 
-    private val seedCallback = object: RoomDatabase.Callback() {
+    private val seedCallback = object : RoomDatabase.Callback() {
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             FiscusDatabaseSeeder.seed(db)

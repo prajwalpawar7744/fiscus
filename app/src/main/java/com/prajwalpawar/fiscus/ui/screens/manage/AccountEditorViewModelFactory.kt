@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.prajwalpawar.fiscus.data.repository.AccountRepository
 
-class AccountEditorViewModelFactory (
+class AccountEditorViewModelFactory(
     private val accountRepository: AccountRepository,
     private val editingId: Long? = null
-): ViewModelProvider.Factory {
+) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(
         modelClass: Class<T>

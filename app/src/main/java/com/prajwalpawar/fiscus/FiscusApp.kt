@@ -33,8 +33,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.prajwalpawar.fiscus.data.local.FiscusDatabaseProvider
 import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.AppSettings
@@ -44,16 +44,20 @@ import com.prajwalpawar.fiscus.data.repository.AccountRepository
 import com.prajwalpawar.fiscus.data.repository.CategoryRepository
 import com.prajwalpawar.fiscus.data.repository.TransactionRepository
 import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
-import com.prajwalpawar.fiscus.ui.components.monthLabel
 import com.prajwalpawar.fiscus.ui.components.ImeInsetsRepair
+import com.prajwalpawar.fiscus.ui.components.monthLabel
+import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
 import com.prajwalpawar.fiscus.ui.navigation.FiscusDestination
 import com.prajwalpawar.fiscus.ui.navigation.FiscusNavigationBar
-import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
 import com.prajwalpawar.fiscus.ui.navigation.FiscusRoutes
 import com.prajwalpawar.fiscus.ui.navigation.LocalSharedTransitionScope
 import com.prajwalpawar.fiscus.ui.navigation.containerTransform
 import com.prajwalpawar.fiscus.ui.navigation.fiscusComposable
 import com.prajwalpawar.fiscus.ui.navigation.navigateToTab
+import com.prajwalpawar.fiscus.ui.screens.analysis.AnalysisScreen
+import com.prajwalpawar.fiscus.ui.screens.analysis.AnalysisViewModelFactory
+import com.prajwalpawar.fiscus.ui.screens.home.HomeScreen
+import com.prajwalpawar.fiscus.ui.screens.home.HomeViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.manage.AccountEditorScreen
 import com.prajwalpawar.fiscus.ui.screens.manage.AccountEditorViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.manage.CategoryEditorScreen
@@ -61,10 +65,6 @@ import com.prajwalpawar.fiscus.ui.screens.manage.CategoryEditorViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.manage.ManageAccountsScreen
 import com.prajwalpawar.fiscus.ui.screens.manage.ManageCategoriesScreen
 import com.prajwalpawar.fiscus.ui.screens.manage.ManageViewModelFactory
-import com.prajwalpawar.fiscus.ui.screens.analysis.AnalysisScreen
-import com.prajwalpawar.fiscus.ui.screens.analysis.AnalysisViewModelFactory
-import com.prajwalpawar.fiscus.ui.screens.home.HomeScreen
-import com.prajwalpawar.fiscus.ui.screens.home.HomeViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
 import com.prajwalpawar.fiscus.ui.screens.transaction.AddTransactionSheet
 import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionDetailsScreen
@@ -80,7 +80,7 @@ import java.time.YearMonth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FiscusApp (
+fun FiscusApp(
     settings: AppSettings
 ) {
     val navController = rememberNavController()
@@ -91,7 +91,7 @@ fun FiscusApp (
     val context = LocalContext.current
 
     val scrollBehavior = when (settings.appBarScroll) {
-       AppBarScrollPreference.PINNED ->
+        AppBarScrollPreference.PINNED ->
             TopAppBarDefaults.pinnedScrollBehavior()
 
         AppBarScrollPreference.ENTER_ALWAYS ->
@@ -194,8 +194,8 @@ fun FiscusApp (
                 FiscusTopAppBar(
                     title = when {
                         onHome -> {
-                                "Home"
-                            }
+                            "Home"
+                        }
 
                         currentDestination
                             ?.route
@@ -241,7 +241,9 @@ fun FiscusApp (
 
                         route?.startsWith(FiscusRoutes.TRANSACTION_DETAILS_BASE) == true -> {
                             "Transaction"
-                        } else -> {
+                        }
+
+                        else -> {
                             "Fiscus"
                         }
                     },
@@ -321,7 +323,10 @@ fun FiscusApp (
                     fiscusComposable(FiscusDestination.Home.route) {
                         HomeScreen(
                             viewModel = viewModel(
-                                factory = HomeViewModelFactory(accountRepository, transactionRepository)
+                                factory = HomeViewModelFactory(
+                                    accountRepository,
+                                    transactionRepository
+                                )
                             ),
                             onSeeAllClick = {
                                 navController.navigateToTab(FiscusDestination.Transactions)
@@ -402,9 +407,16 @@ fun FiscusApp (
                             ?: CategoryType.EXPENSE
 
                         CategoryEditorScreen(
-                            modifier = Modifier.containerTransform(ContainerKeys.newCategory(initialType.name)),
+                            modifier = Modifier.containerTransform(
+                                ContainerKeys.newCategory(
+                                    initialType.name
+                                )
+                            ),
                             viewModel = viewModel(
-                                factory = CategoryEditorViewModelFactory(categoryRepository, initialType)
+                                factory = CategoryEditorViewModelFactory(
+                                    categoryRepository,
+                                    initialType
+                                )
                             ),
                             onDone = { navController.popBackStack() },
                             onSaved = { id, type ->
@@ -456,7 +468,10 @@ fun FiscusApp (
                         TransactionDetailsScreen(
                             modifier = Modifier.containerTransform(ContainerKeys.transaction(id)),
                             viewModel = viewModel(
-                                factory = TransactionDetailsViewModelFactory(transactionRepository, id)
+                                factory = TransactionDetailsViewModelFactory(
+                                    transactionRepository,
+                                    id
+                                )
                             ),
                             onEditClick = { transactionId ->
                                 // Open the sheet once the transaction is loaded into it.
@@ -472,7 +487,10 @@ fun FiscusApp (
                         ManageCategoriesScreen(
                             modifier = Modifier.containerTransform(ContainerKeys.MANAGE_CATEGORIES),
                             viewModel = viewModel(
-                                factory = ManageViewModelFactory(categoryRepository, accountRepository)
+                                factory = ManageViewModelFactory(
+                                    categoryRepository,
+                                    accountRepository
+                                )
                             ),
                             onCategoryClick = { id ->
                                 navController.navigate(FiscusRoutes.editCategory(id))
@@ -487,7 +505,10 @@ fun FiscusApp (
                         ManageAccountsScreen(
                             modifier = Modifier.containerTransform(ContainerKeys.MANAGE_ACCOUNTS),
                             viewModel = viewModel(
-                                factory = ManageViewModelFactory(categoryRepository, accountRepository)
+                                factory = ManageViewModelFactory(
+                                    categoryRepository,
+                                    accountRepository
+                                )
                             ),
                             onAccountClick = { id ->
                                 navController.navigate(FiscusRoutes.editAccount(id))
@@ -531,7 +552,10 @@ fun FiscusApp (
                         AccountEditorScreen(
                             modifier = Modifier.containerTransform(ContainerKeys.account(id)),
                             viewModel = viewModel(
-                                factory = AccountEditorViewModelFactory(accountRepository, editingId = id)
+                                factory = AccountEditorViewModelFactory(
+                                    accountRepository,
+                                    editingId = id
+                                )
                             ),
                             onSaved = { navController.popBackStack() },
                             onDone = { navController.popBackStack() }

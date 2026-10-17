@@ -68,7 +68,7 @@ class MainActivity : ComponentActivity() {
                     onDispose {}
                 }
 
-                FiscusTheme (
+                FiscusTheme(
                     darkTheme = darkTheme,
                     dynamicColor = loadedSettings.dynamicColor,
                     iconShape = loadedSettings.iconShape

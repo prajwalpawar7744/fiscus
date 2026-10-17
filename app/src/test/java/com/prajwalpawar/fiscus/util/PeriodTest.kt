@@ -19,7 +19,10 @@ class PeriodTest {
         assertEquals(Period.month(YearMonth.of(2026, 9)), oct.previous())
         assertEquals(Period.month(YearMonth.of(2026, 11)), oct.next())
         // February has 28 days in 2026; stepping must not drift to "28 Feb – 27 Mar".
-        assertEquals(Period.month(YearMonth.of(2026, 2)), Period.month(YearMonth.of(2026, 3)).previous())
+        assertEquals(
+            Period.month(YearMonth.of(2026, 2)),
+            Period.month(YearMonth.of(2026, 3)).previous()
+        )
     }
 
     @Test
@@ -54,7 +57,10 @@ class PeriodTest {
     fun pickerMillisRoundTrip() {
         val range = Period(LocalDate.of(2026, 10, 3), LocalDate.of(2026, 10, 17))
         val millis = range.toDateRange()
-        assertEquals(range, Period.fromPickerMillis(millis.startMillis, millis.endMillis - 86_400_000L))
+        assertEquals(
+            range,
+            Period.fromPickerMillis(millis.startMillis, millis.endMillis - 86_400_000L)
+        )
     }
 
     @Test
@@ -62,8 +68,13 @@ class PeriodTest {
         val uk = Locale.UK
         assertEquals("October 2026", oct.label(uk))
         assertTrue(Period(today, today).label(uk).contains("18 Oct 2026"))
-        assertEquals("3 – 17 Oct 2026", Period(LocalDate.of(2026, 10, 3), LocalDate.of(2026, 10, 17)).label(uk))
-        assertTrue(Period(LocalDate.of(2026, 9, 28), LocalDate.of(2026, 10, 3)).label(uk).contains(" – "))
+        assertEquals(
+            "3 – 17 Oct 2026",
+            Period(LocalDate.of(2026, 10, 3), LocalDate.of(2026, 10, 17)).label(uk)
+        )
+        assertTrue(
+            Period(LocalDate.of(2026, 9, 28), LocalDate.of(2026, 10, 3)).label(uk).contains(" – ")
+        )
     }
 
     @Test(expected = IllegalArgumentException::class)

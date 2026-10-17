@@ -4,12 +4,12 @@ import com.prajwalpawar.fiscus.data.local.dao.CategoryDao
 import com.prajwalpawar.fiscus.data.local.entity.toCategory
 import com.prajwalpawar.fiscus.data.local.entity.toEntity
 import com.prajwalpawar.fiscus.data.model.Category
-import com.prajwalpawar.fiscus.data.model.CategoryWithUsage
 import com.prajwalpawar.fiscus.data.model.CategoryType
+import com.prajwalpawar.fiscus.data.model.CategoryWithUsage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class CategoryRepository (
+class CategoryRepository(
     private val categoryDao: CategoryDao
 ) {
     fun observeCategories(type: CategoryType): Flow<List<Category>> {

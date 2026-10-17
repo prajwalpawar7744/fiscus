@@ -5,10 +5,10 @@ import androidx.lifecycle.ViewModelProvider
 import com.prajwalpawar.fiscus.data.repository.AccountRepository
 import com.prajwalpawar.fiscus.data.repository.TransactionRepository
 
-class HomeViewModelFactory (
+class HomeViewModelFactory(
     private val accountRepository: AccountRepository,
     private val transactionRepository: TransactionRepository
-): ViewModelProvider.Factory {
+) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(
         modelClass: Class<T>

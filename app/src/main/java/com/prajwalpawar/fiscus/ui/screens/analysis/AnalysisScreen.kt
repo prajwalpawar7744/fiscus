@@ -45,7 +45,6 @@ import com.prajwalpawar.fiscus.ui.components.FiscusPeriodSwitcher
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.FiscusTransactionRow
 import com.prajwalpawar.fiscus.ui.components.categoryIcon
-import com.prajwalpawar.fiscus.ui.components.monthLabel
 import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
 import com.prajwalpawar.fiscus.ui.navigation.containerTransform
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
@@ -53,7 +52,6 @@ import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 import com.prajwalpawar.fiscus.util.Period
 import com.prajwalpawar.fiscus.util.formatMoney
 import java.time.LocalDate
-import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.math.abs
@@ -187,10 +185,12 @@ private fun HeadlineTiles(
     val previousName = when {
         period.isWholeMonth -> period.previous().start.month
             .getDisplayName(TextStyle.FULL, Locale.getDefault())
+
         period.isSingleDay -> "the day before"
         else -> "the previous ${period.dayCount} days"
     }
-    val includesToday = !LocalDate.now().isBefore(period.start) && !LocalDate.now().isAfter(period.end)
+    val includesToday =
+        !LocalDate.now().isBefore(period.start) && !LocalDate.now().isAfter(period.end)
 
     Column(
         modifier = modifier,

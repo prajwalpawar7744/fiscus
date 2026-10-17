@@ -20,7 +20,7 @@ import com.prajwalpawar.fiscus.data.model.AppBarPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FiscusTopAppBar (
+fun FiscusTopAppBar(
     title: String,
     modifier: Modifier = Modifier,
     preference: AppBarPreference,

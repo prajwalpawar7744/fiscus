@@ -54,8 +54,24 @@ class TransactionFiltersTest {
 
     @Test
     fun filtersCombine() {
-        assertTrue(lunch.matches(TransactionFilters(TransactionType.EXPENSE, accountId = 1, categoryId = 5)))
-        assertFalse(lunch.matches(TransactionFilters(TransactionType.EXPENSE, accountId = 2, categoryId = 5)))
+        assertTrue(
+            lunch.matches(
+                TransactionFilters(
+                    TransactionType.EXPENSE,
+                    accountId = 1,
+                    categoryId = 5
+                )
+            )
+        )
+        assertFalse(
+            lunch.matches(
+                TransactionFilters(
+                    TransactionType.EXPENSE,
+                    accountId = 2,
+                    categoryId = 5
+                )
+            )
+        )
     }
 }
 

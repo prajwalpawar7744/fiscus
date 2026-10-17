@@ -206,8 +206,20 @@ private fun DetailsList(details: TransactionDetails) {
     val rows = buildList {
         when (details.type) {
             TransactionType.TRANSFER -> {
-                add(DetailRow("From", details.sourceAccountName.orEmpty(), Icons.Filled.AccountBalanceWallet))
-                add(DetailRow("To", details.destinationAccountName.orEmpty(), Icons.Filled.AccountBalanceWallet))
+                add(
+                    DetailRow(
+                        "From",
+                        details.sourceAccountName.orEmpty(),
+                        Icons.Filled.AccountBalanceWallet
+                    )
+                )
+                add(
+                    DetailRow(
+                        "To",
+                        details.destinationAccountName.orEmpty(),
+                        Icons.Filled.AccountBalanceWallet
+                    )
+                )
             }
 
             else -> {
@@ -218,7 +230,13 @@ private fun DetailsList(details: TransactionDetails) {
                         icon = categoryIcon(details.categoryIconKey ?: "category")
                     )
                 )
-                add(DetailRow("Account", details.accountName.orEmpty(), Icons.Filled.AccountBalanceWallet))
+                add(
+                    DetailRow(
+                        "Account",
+                        details.accountName.orEmpty(),
+                        Icons.Filled.AccountBalanceWallet
+                    )
+                )
             }
         }
 

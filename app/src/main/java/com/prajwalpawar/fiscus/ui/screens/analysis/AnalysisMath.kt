@@ -5,14 +5,17 @@ import com.prajwalpawar.fiscus.data.model.DayTotals
 import com.prajwalpawar.fiscus.data.model.MonthTotals
 import com.prajwalpawar.fiscus.util.Period
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 import java.time.YearMonth
+import java.time.temporal.ChronoUnit
 
 // Past this many categories the rest fold into one "Other" bar; more bars stop being comparable.
 internal const val MAX_CATEGORY_BARS = 6
 
 // Keeps the [keep] largest (input is largest first) and sums the rest into "Other".
-internal fun foldCategories(totals: List<CategoryTotal>, keep: Int = MAX_CATEGORY_BARS): List<CategoryTotal> {
+internal fun foldCategories(
+    totals: List<CategoryTotal>,
+    keep: Int = MAX_CATEGORY_BARS
+): List<CategoryTotal> {
     // Folding a single leftover into "Other" would just rename it.
     if (totals.size <= keep + 1) return totals
 
@@ -59,8 +62,10 @@ internal fun fillMonths(rows: List<MonthTotals>, last: YearMonth, count: Int): L
 enum class TrendScale {
     // A whole month: that month among the months before it, for context.
     MONTH_CONTEXT,
+
     // A short range: one column per day.
     DAILY,
+
     // A long range: one column per month, counting only days inside the range.
     MONTHLY
 }

@@ -80,7 +80,8 @@ data class DayTotalsRow(
 
 @Dao
 interface TransactionDao {
-    @Query( """
+    @Query(
+        """
         SELECT *
         FROM transactions
         ORDER BY date DESC, id DESC
@@ -103,7 +104,10 @@ interface TransactionDao {
 
     // Everything dated in [startMillis, endMillis), newest first.
     @Query("$DETAILS_SELECT WHERE t.date >= :startMillis AND t.date < :endMillis ORDER BY t.date DESC, t.id DESC")
-    fun observeTransactionsInRange(startMillis: Long, endMillis: Long): Flow<List<TransactionDetailsRow>>
+    fun observeTransactionsInRange(
+        startMillis: Long,
+        endMillis: Long
+    ): Flow<List<TransactionDetailsRow>>
 
     // Title or note contains [pattern] (already LIKE-escaped with '\'), across all dates.
     @Query(
@@ -132,7 +136,11 @@ interface TransactionDao {
         ORDER BY total DESC
         """
     )
-    fun observeCategoryTotals(type: String, startMillis: Long, endMillis: Long): Flow<List<CategoryTotalRow>>
+    fun observeCategoryTotals(
+        type: String,
+        startMillis: Long,
+        endMillis: Long
+    ): Flow<List<CategoryTotalRow>>
 
     // Income and expense per calendar month. Dates are UTC midnights, so grouping in
     // UTC gives each transaction its local calendar month. Months with nothing are absent.
@@ -167,7 +175,11 @@ interface TransactionDao {
 
     // The largest expenses in [startMillis, endMillis).
     @Query("$DETAILS_SELECT WHERE t.type = 'EXPENSE' AND t.date >= :startMillis AND t.date < :endMillis ORDER BY t.amount DESC, t.date DESC LIMIT :limit")
-    fun observeLargestExpenses(startMillis: Long, endMillis: Long, limit: Int): Flow<List<TransactionDetailsRow>>
+    fun observeLargestExpenses(
+        startMillis: Long,
+        endMillis: Long,
+        limit: Int
+    ): Flow<List<TransactionDetailsRow>>
 
     // Emits null once the transaction is deleted.
     @Query("$DETAILS_SELECT WHERE t.id = :id")

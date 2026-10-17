@@ -48,7 +48,9 @@ fun DockedDateRangePicker(
                 // The picker's end is the last day itself, not the day after.
                 initialSelectedEndDateMillis = range.endMillis - DAY_MILLIS,
                 selectableDates = object : SelectableDates {
-                    override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= todayMillis
+                    override fun isSelectableDate(utcTimeMillis: Long) =
+                        utcTimeMillis <= todayMillis
+
                     override fun isSelectableYear(year: Int) = year <= LocalDate.now().year
                 }
             )

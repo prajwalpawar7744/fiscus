@@ -95,9 +95,10 @@ class AnalysisViewModel(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val categories = combine(period, categoryType, ::Pair).flatMapLatest { (selected, type) ->
-        transactionRepository.observeCategoryTotals(type, selected.toDateRange())
-    }
+    private val categories =
+        combine(period, categoryType, ::Pair).flatMapLatest { (selected, type) ->
+            transactionRepository.observeCategoryTotals(type, selected.toDateRange())
+        }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val largestExpenses = period.flatMapLatest { selected ->

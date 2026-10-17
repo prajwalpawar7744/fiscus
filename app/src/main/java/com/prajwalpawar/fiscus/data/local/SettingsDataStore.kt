@@ -1,7 +1,6 @@
 package com.prajwalpawar.fiscus.data.local
 
 import android.content.Context
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -19,7 +18,7 @@ private val Context.settingsDataStore by preferencesDataStore(
     name = "settings"
 )
 
-class SettingsDataStore (
+class SettingsDataStore(
     private val context: Context
 ) {
     private object Keys {

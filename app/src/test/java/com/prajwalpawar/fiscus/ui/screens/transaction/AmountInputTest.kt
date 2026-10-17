@@ -64,7 +64,10 @@ class FindIssueTest {
     fun expenseNeedsAmountThenTitleThenCategory() {
         assertEquals(TransactionFormIssue.AMOUNT, issue(TransactionForm(amount = "0")))
         assertEquals(TransactionFormIssue.TITLE, issue(TransactionForm(amount = "5", title = "  ")))
-        assertEquals(TransactionFormIssue.CATEGORY, issue(TransactionForm(amount = "5", title = "Lunch")))
+        assertEquals(
+            TransactionFormIssue.CATEGORY,
+            issue(TransactionForm(amount = "5", title = "Lunch"))
+        )
         assertNull(issue(TransactionForm(amount = "5", title = "Lunch", categoryId = 1)))
     }
 
@@ -79,7 +82,8 @@ class FindIssueTest {
 
     @Test
     fun transferNeedsTwoAccountsAndADestination() {
-        val transfer = TransactionForm(type = TransactionType.TRANSFER, amount = "5", title = "Savings")
+        val transfer =
+            TransactionForm(type = TransactionType.TRANSFER, amount = "5", title = "Savings")
 
         assertEquals(TransactionFormIssue.NEEDS_TWO_ACCOUNTS, issue(transfer, accountCount = 1))
         assertEquals(TransactionFormIssue.TO_ACCOUNT, issue(transfer))

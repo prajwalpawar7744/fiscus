@@ -4,12 +4,12 @@ import com.prajwalpawar.fiscus.data.local.dao.AccountDao
 import com.prajwalpawar.fiscus.data.local.entity.toAccount
 import com.prajwalpawar.fiscus.data.local.entity.toEntity
 import com.prajwalpawar.fiscus.data.model.Account
-import com.prajwalpawar.fiscus.data.model.AccountType
 import com.prajwalpawar.fiscus.data.model.AccountBalance
+import com.prajwalpawar.fiscus.data.model.AccountType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class AccountRepository (
+class AccountRepository(
     private val accountDao: AccountDao
 ) {
     val accounts: Flow<List<Account>> =

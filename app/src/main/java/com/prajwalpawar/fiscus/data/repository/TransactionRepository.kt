@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.YearMonth
 
-class TransactionRepository (
+class TransactionRepository(
     private val database: FiscusDatabase,
     private val transactionDao: TransactionDao
 ) {

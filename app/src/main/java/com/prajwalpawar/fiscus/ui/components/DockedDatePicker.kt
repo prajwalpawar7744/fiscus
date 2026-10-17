@@ -233,9 +233,9 @@ private fun formatDate(millis: Long): String {
 }
 
 // To position the picker above or below depending on the space
-private class DockedPickerPositionProvider (
+private class DockedPickerPositionProvider(
     private val gapInPx: Int
-): PopupPositionProvider {
+) : PopupPositionProvider {
     override fun calculatePosition(
         anchorBounds: IntRect,
         windowSize: IntSize,

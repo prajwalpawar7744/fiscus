@@ -1,6 +1,6 @@
 package com.prajwalpawar.fiscus.data.model
 
-data class Category (
+data class Category(
     val id: Long = 0L,
     val name: String,
     val type: CategoryType,

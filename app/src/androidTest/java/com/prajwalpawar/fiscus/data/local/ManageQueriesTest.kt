@@ -41,7 +41,8 @@ class ManageQueriesTest {
         categories = CategoryRepository(db.categoryDao())
         accounts = AccountRepository(db.accountDao())
 
-        cash = db.accountDao().insertAccount(AccountEntity(name = "Cash", type = "CASH", isDefault = true))
+        cash = db.accountDao()
+            .insertAccount(AccountEntity(name = "Cash", type = "CASH", isDefault = true))
         bank = db.accountDao().insertAccount(AccountEntity(name = "Bank", type = "BANK"))
         spare = db.accountDao().insertAccount(AccountEntity(name = "Spare", type = "OTHER"))
         food = db.categoryDao().insertCategory(CategoryEntity(name = "Food", type = "EXPENSE"))

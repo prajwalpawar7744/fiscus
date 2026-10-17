@@ -60,6 +60,7 @@ data class Period(
             isSingleDay -> start.format(medium)
             YearMonth.from(start) == YearMonth.from(end) ->
                 "${start.dayOfMonth} – ${end.format(medium)}"
+
             else -> "${start.format(medium)} – ${end.format(medium)}"
         }
     }

@@ -11,7 +11,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import com.prajwalpawar.fiscus.data.model.BottomBarPreference
 
 @Composable
-fun FiscusNavigationBar (
+fun FiscusNavigationBar(
     navController: NavController,
     currentDestination: NavDestination?,
     preference: BottomBarPreference

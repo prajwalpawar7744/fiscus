@@ -15,7 +15,7 @@ import com.prajwalpawar.fiscus.data.model.CategoryType
         )
     ]
 )
-data class CategoryEntity (
+data class CategoryEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0L,
     val name: String,

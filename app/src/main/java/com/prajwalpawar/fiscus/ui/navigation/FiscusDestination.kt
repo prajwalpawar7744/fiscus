@@ -17,7 +17,7 @@ sealed class FiscusDestination(
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector
 ) {
-    data object Home: FiscusDestination(
+    data object Home : FiscusDestination(
         route = "home",
         label = "Home",
         selectedIcon = Icons.Filled.Home,
@@ -25,7 +25,7 @@ sealed class FiscusDestination(
 
     )
 
-    data object Transactions: FiscusDestination(
+    data object Transactions : FiscusDestination(
         route = "transactions",
         label = "Transactions",
         selectedIcon = Icons.Filled.AccountBalanceWallet,
@@ -33,14 +33,14 @@ sealed class FiscusDestination(
 
     )
 
-    data object Analysis: FiscusDestination(
+    data object Analysis : FiscusDestination(
         route = "analysis",
         label = "Analysis",
         selectedIcon = Icons.Filled.BarChart,
         unselectedIcon = Icons.Outlined.BarChart
     )
 
-    data object Settings: FiscusDestination(
+    data object Settings : FiscusDestination(
         route = "settings",
         label = "Settings",
         selectedIcon = Icons.Filled.Settings,

@@ -56,21 +56,30 @@ class TransactionsQueriesTest {
 
     @Test
     fun rangeIsStartInclusiveEndExclusiveNewestFirst() = runBlocking {
-        val titles = repository.observeTransactionsInRange(DateRange(100, 200)).first().map { it.title }
+        val titles =
+            repository.observeTransactionsInRange(DateRange(100, 200)).first().map { it.title }
         assertEquals(listOf("Coffee_beans", "50% off shoes", "Lunch"), titles)
     }
 
     @Test
     fun searchMatchesTitleOrNoteIgnoringCase() = runBlocking {
-        assertEquals(listOf("Lunch"), repository.searchTransactions("TEAM", 10).first().map { it.title })
-        assertEquals(listOf("Lunch"), repository.searchTransactions("lun", 10).first().map { it.title })
+        assertEquals(
+            listOf("Lunch"),
+            repository.searchTransactions("TEAM", 10).first().map { it.title })
+        assertEquals(
+            listOf("Lunch"),
+            repository.searchTransactions("lun", 10).first().map { it.title })
     }
 
     @Test
     fun wildcardsInTheQueryMatchLiterally() = runBlocking {
         // "%" must not match "50 percent".
-        assertEquals(listOf("50% off shoes"), repository.searchTransactions("50%", 10).first().map { it.title })
+        assertEquals(
+            listOf("50% off shoes"),
+            repository.searchTransactions("50%", 10).first().map { it.title })
         // "_" must not match any single character.
-        assertEquals(listOf("Coffee_beans"), repository.searchTransactions("e_b", 10).first().map { it.title })
+        assertEquals(
+            listOf("Coffee_beans"),
+            repository.searchTransactions("e_b", 10).first().map { it.title })
     }
 }
