@@ -22,7 +22,6 @@ object FiscusSize {
     val fabClearance: Dp = 88.dp
 
     // Charts: thin marks with a small rounded data-end, square at the baseline.
-    val chartBarThickness: Dp = 12.dp
     val chartColumnWidth: Dp = 24.dp
     val chartMarkCorner: Dp = 4.dp
     val trendChartHeight: Dp = 140.dp

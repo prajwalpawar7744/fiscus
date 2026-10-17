@@ -58,3 +58,26 @@ class TransactionFiltersTest {
         assertFalse(lunch.matches(TransactionFilters(TransactionType.EXPENSE, accountId = 2, categoryId = 5)))
     }
 }
+
+class ShownTotalsTest {
+    private fun row(type: TransactionType, amount: Long) = TransactionDetails(
+        id = amount, type = type, amount = amount, title = "t", note = null, date = 0,
+        categoryId = null, accountId = null, sourceAccountId = null, destinationAccountId = null,
+        categoryName = null, categoryIconKey = null, accountName = null,
+        sourceAccountName = null, destinationAccountName = null
+    )
+
+    @Test
+    fun totalsSumIncomeAndExpenseAndCountEveryRow() {
+        val totals = listOf(
+            row(TransactionType.INCOME, 1000),
+            row(TransactionType.EXPENSE, 300),
+            row(TransactionType.EXPENSE, 200),
+            row(TransactionType.TRANSFER, 999)
+        ).totals()
+
+        org.junit.Assert.assertEquals(1000L, totals.income)
+        org.junit.Assert.assertEquals(500L, totals.expense)
+        org.junit.Assert.assertEquals(4, totals.count)
+    }
+}

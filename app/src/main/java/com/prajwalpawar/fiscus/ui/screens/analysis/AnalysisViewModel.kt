@@ -3,7 +3,6 @@ package com.prajwalpawar.fiscus.ui.screens.analysis
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prajwalpawar.fiscus.data.model.CategoryTotal
-import com.prajwalpawar.fiscus.data.model.MonthTotals
 import com.prajwalpawar.fiscus.data.model.TransactionDetails
 import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.data.repository.TransactionRepository
@@ -15,11 +14,13 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
 import java.time.YearMonth
 
-// Months in the trend chart, ending at the period's last month.
+// Months of context around a whole month in the trend chart.
 internal const val TREND_MONTHS = 6
 
 // How many of the month's largest expenses to list.
@@ -34,23 +35,21 @@ data class AnalysisUiState(
     // Against the same-length period just before; null when that had no spending.
     val changeVsPrevious: Int? = null,
     val dailyAverage: Long = 0L,
-    // Null when there's no income this month.
+    // Every transaction in the period, transfers included.
+    val transactionCount: Int = 0,
+    // Null when there's no income in the period.
     val savingsRate: Int? = null,
     // Which side the category breakdown shows.
     val categoryType: TransactionType = TransactionType.EXPENSE,
     // Largest first, with the tail folded into "Other".
     val categories: List<CategoryTotal> = emptyList(),
-    // TREND_MONTHS entries, oldest first, ending at the period's last month.
-    val trend: List<MonthTotals> = emptyList(),
+    // How the trend buckets the period; null hides the trend (a single day).
+    val trendScale: TrendScale? = TrendScale.MONTH_CONTEXT,
+    // Oldest first.
+    val trend: List<TrendBucket> = emptyList(),
     val largestExpenses: List<TransactionDetails> = emptyList()
 ) {
     val categoryTotal: Long get() = categories.sumOf { it.total }
-
-    // Trend months the period touches; these are the emphasised columns.
-    val highlightedMonths: Set<YearMonth>
-        get() = generateSequence(YearMonth.from(period.start)) { it.plusMonths(1) }
-            .takeWhile { !it.isAfter(YearMonth.from(period.end)) }
-            .toSet()
 }
 
 class AnalysisViewModel(
@@ -61,9 +60,28 @@ class AnalysisViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val trend = period.flatMapLatest { selected ->
-        val last = YearMonth.from(selected.end)
-        val first = last.minusMonths((TREND_MONTHS - 1).toLong())
-        transactionRepository.observeMonthlyTotals(monthSpanRange(first, last))
+        val firstMonth = YearMonth.from(selected.start)
+        val lastMonth = YearMonth.from(selected.end)
+
+        when (trendScale(selected)) {
+            null -> flowOf(emptyList())
+
+            // The month among the TREND_MONTHS before it, emphasised.
+            TrendScale.MONTH_CONTEXT -> {
+                val first = lastMonth.minusMonths((TREND_MONTHS - 1).toLong())
+                transactionRepository.observeMonthlyTotals(monthSpanRange(first, lastMonth))
+                    .map { rows -> monthlyBuckets(rows, first, lastMonth) { it == lastMonth } }
+            }
+
+            TrendScale.DAILY ->
+                transactionRepository.observeDailyTotals(selected.toDateRange())
+                    .map { rows -> dailyBuckets(rows, selected) }
+
+            // Queried over the period itself, so edge months only count days inside it.
+            TrendScale.MONTHLY ->
+                transactionRepository.observeMonthlyTotals(selected.toDateRange())
+                    .map { rows -> monthlyBuckets(rows, firstMonth, lastMonth) { true } }
+        }
     }
 
     // This period's totals and the same-length period's just before it.
@@ -101,10 +119,12 @@ class AnalysisViewModel(
                 spent = current.expense,
                 changeVsPrevious = percentChange(previous.expense, current.expense),
                 dailyAverage = dailyAverage(current.expense, selected),
+                transactionCount = current.count,
                 savingsRate = savingsRate(current.income, current.expense),
                 categoryType = type,
                 categories = foldCategories(categoryRows),
-                trend = fillMonths(trendRows, last = YearMonth.from(selected.end), count = TREND_MONTHS),
+                trendScale = trendScale(selected),
+                trend = trendRows,
                 largestExpenses = largest
             )
         }.stateIn(
@@ -116,11 +136,6 @@ class AnalysisViewModel(
     // Ignores periods that start in the future.
     fun setPeriod(selected: Period) {
         if (!selected.start.isAfter(LocalDate.now())) period.value = selected
-    }
-
-    // Tapping a trend column jumps to that whole month.
-    fun selectMonth(selected: YearMonth) {
-        setPeriod(Period.month(selected))
     }
 
     fun setCategoryType(type: TransactionType) {

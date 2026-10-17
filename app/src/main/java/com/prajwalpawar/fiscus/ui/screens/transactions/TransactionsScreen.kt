@@ -75,8 +75,9 @@ fun TransactionsScreen(
         }
 
         item(key = "summary") {
-            MonthSummary(
-                totals = uiState.periodTotals,
+            PeriodSummary(
+                totals = uiState.totals,
+                isFiltered = uiState.filters.isActive,
                 modifier = Modifier.padding(horizontal = FiscusSpacing.md)
             )
         }
@@ -130,10 +131,11 @@ fun TransactionsScreen(
     }
 }
 
-// Whole-period figures, so they don't change as filters narrow the list.
+// Figures for exactly the transactions listed below, filters included.
 @Composable
-private fun MonthSummary(
+private fun PeriodSummary(
     totals: PeriodTotals,
+    isFiltered: Boolean,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -141,13 +143,27 @@ private fun MonthSummary(
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainer
     ) {
-        Row(
+        Column(
             modifier = Modifier.padding(FiscusSpacing.md),
-            horizontalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
+            verticalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
         ) {
-            SummaryFigure("Income", totals.income, Modifier.weight(1f))
-            SummaryFigure("Spent", totals.expense, Modifier.weight(1f))
-            SummaryFigure("Net", totals.income - totals.expense, Modifier.weight(1f))
+            Row(horizontalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)) {
+                SummaryFigure("Income", totals.income, Modifier.weight(1f))
+                SummaryFigure("Spent", totals.expense, Modifier.weight(1f))
+                SummaryFigure("Net", totals.income - totals.expense, Modifier.weight(1f))
+            }
+
+            // Says what the numbers cover, so a filtered total isn't mistaken for the whole period.
+            Text(
+                text = when {
+                    isFiltered && totals.count == 1 -> "1 matching transaction"
+                    isFiltered -> "${totals.count} matching transactions"
+                    totals.count == 1 -> "1 transaction"
+                    else -> "${totals.count} transactions"
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

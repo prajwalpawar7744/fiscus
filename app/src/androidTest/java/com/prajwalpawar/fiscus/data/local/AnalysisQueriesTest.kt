@@ -94,6 +94,21 @@ class AnalysisQueriesTest {
     }
 
     @Test
+    fun dailyTotalsGroupByStoredDayAndCountTransactions() = runBlocking {
+        val range = com.prajwalpawar.fiscus.util.Period(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 15)).toDateRange()
+
+        val days = repository.observeDailyTotals(range).first()
+        assertEquals(
+            listOf(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 15)),
+            days.map { it.day }
+        )
+        assertEquals(listOf(100L, 0L, 250L), days.map { it.expense })
+
+        // 3 transactions fall inside 1-15 Oct.
+        assertEquals(3, repository.observePeriodTotals(range).first().count)
+    }
+
+    @Test
     fun largestExpensesAreBiggestFirstWithinTheMonth() = runBlocking {
         val largest = repository.observeLargestExpenses(monthRange(YearMonth.of(2026, 10)), limit = 2).first()
 

@@ -67,6 +67,14 @@ data class MonthTotalsRow(
 
 data class PeriodTotalsRow(
     val income: Long,
+    val expense: Long,
+    val count: Int
+)
+
+data class DayTotalsRow(
+    // The stored date: the day's UTC midnight.
+    val day: Long,
+    val income: Long,
     val expense: Long
 )
 
@@ -142,6 +150,21 @@ interface TransactionDao {
     )
     fun observeMonthlyTotals(startMillis: Long, endMillis: Long): Flow<List<MonthTotalsRow>>
 
+    // Income and expense per day; days with nothing are absent.
+    @Query(
+        """
+        SELECT
+            date AS day,
+            COALESCE(SUM(CASE WHEN type = 'INCOME' THEN amount END), 0) AS income,
+            COALESCE(SUM(CASE WHEN type = 'EXPENSE' THEN amount END), 0) AS expense
+        FROM transactions
+        WHERE date >= :startMillis AND date < :endMillis
+        GROUP BY date
+        ORDER BY date
+        """
+    )
+    fun observeDailyTotals(startMillis: Long, endMillis: Long): Flow<List<DayTotalsRow>>
+
     // The largest expenses in [startMillis, endMillis).
     @Query("$DETAILS_SELECT WHERE t.type = 'EXPENSE' AND t.date >= :startMillis AND t.date < :endMillis ORDER BY t.amount DESC, t.date DESC LIMIT :limit")
     fun observeLargestExpenses(startMillis: Long, endMillis: Long, limit: Int): Flow<List<TransactionDetailsRow>>
@@ -150,12 +173,14 @@ interface TransactionDao {
     @Query("$DETAILS_SELECT WHERE t.id = :id")
     fun observeTransactionDetails(id: Long): Flow<TransactionDetailsRow?>
 
-    // Income and expense in [startMillis, endMillis); transfers move money, so they're left out.
+    // Income and expense in [startMillis, endMillis); transfers move money, so they're left
+    // out of the sums. The count includes every transaction, transfers too.
     @Query(
         """
         SELECT
             COALESCE(SUM(CASE WHEN type = 'INCOME' THEN amount END), 0) AS income,
-            COALESCE(SUM(CASE WHEN type = 'EXPENSE' THEN amount END), 0) AS expense
+            COALESCE(SUM(CASE WHEN type = 'EXPENSE' THEN amount END), 0) AS expense,
+            COUNT(*) AS count
         FROM transactions
         WHERE date >= :startMillis AND date < :endMillis
         """

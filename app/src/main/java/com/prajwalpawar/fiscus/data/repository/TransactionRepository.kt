@@ -7,12 +7,14 @@ import com.prajwalpawar.fiscus.data.local.dao.TransactionDetailsRow
 import com.prajwalpawar.fiscus.data.local.entity.toEntity
 import com.prajwalpawar.fiscus.data.local.entity.toTransaction
 import com.prajwalpawar.fiscus.data.model.CategoryTotal
+import com.prajwalpawar.fiscus.data.model.DayTotals
 import com.prajwalpawar.fiscus.data.model.MonthTotals
 import com.prajwalpawar.fiscus.data.model.PeriodTotals
 import com.prajwalpawar.fiscus.data.model.Transaction
 import com.prajwalpawar.fiscus.data.model.TransactionDetails
 import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.util.DateRange
+import com.prajwalpawar.fiscus.util.storedDateToLocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.YearMonth
@@ -71,6 +73,14 @@ class TransactionRepository (
             }
     }
 
+    // One entry per day in the range that has transactions; callers fill the gaps.
+    fun observeDailyTotals(range: DateRange): Flow<List<DayTotals>> {
+        return transactionDao.observeDailyTotals(range.startMillis, range.endMillis)
+            .map { rows ->
+                rows.map { DayTotals(storedDateToLocalDate(it.day), it.income, it.expense) }
+            }
+    }
+
     fun observeLargestExpenses(range: DateRange, limit: Int): Flow<List<TransactionDetails>> {
         return transactionDao.observeLargestExpenses(range.startMillis, range.endMillis, limit)
             .map { rows -> rows.map { it.toDetails() } }
@@ -87,7 +97,7 @@ class TransactionRepository (
 
     fun observePeriodTotals(range: DateRange): Flow<PeriodTotals> {
         return transactionDao.observePeriodTotals(range.startMillis, range.endMillis).map {
-            PeriodTotals(income = it.income, expense = it.expense)
+            PeriodTotals(income = it.income, expense = it.expense, count = it.count)
         }
     }
 

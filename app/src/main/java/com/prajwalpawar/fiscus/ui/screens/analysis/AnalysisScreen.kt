@@ -13,13 +13,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
@@ -37,7 +38,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.prajwalpawar.fiscus.data.model.CategoryTotal
-import com.prajwalpawar.fiscus.data.model.MonthTotals
 import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.FiscusConnectedToggleGroup
 import com.prajwalpawar.fiscus.ui.components.FiscusListIcon
@@ -57,6 +57,7 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -116,19 +117,24 @@ fun AnalysisScreen(
             )
         }
 
-        item(key = "trendHeader") {
-            SectionHeader("Spending by month")
-        }
+        // A single day has no trend: the tiles already say everything a one-column chart would.
+        uiState.trendScale?.let { scale ->
+            item(key = "trendHeader") {
+                SectionHeader(
+                    if (scale == TrendScale.DAILY) "Spending by day" else "Spending by month"
+                )
+            }
 
-        item(key = "trend") {
-            SpendingTrend(
-                trend = uiState.trend,
-                period = uiState.period,
-                periodSpent = uiState.spent,
-                highlighted = uiState.highlightedMonths,
-                onMonthClick = viewModel::selectMonth,
-                modifier = Modifier.padding(horizontal = FiscusSpacing.md)
-            )
+            item(key = "trend") {
+                SpendingTrend(
+                    buckets = uiState.trend,
+                    scale = scale,
+                    period = uiState.period,
+                    periodSpent = uiState.spent,
+                    onBucketClick = viewModel::setPeriod,
+                    modifier = Modifier.padding(horizontal = FiscusSpacing.md)
+                )
+            }
         }
 
         if (uiState.largestExpenses.isNotEmpty()) {
@@ -218,12 +224,22 @@ private fun HeadlineTiles(
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)) {
-            StatTile(
-                label = "Daily average",
-                value = formatMoney(state.dailyAverage),
-                caption = if (includesToday && !period.isSingleDay) "Per day so far" else "Per day",
-                modifier = Modifier.weight(1f)
-            )
+            // For one day the daily average would just repeat "Spent", so count instead.
+            if (period.isSingleDay) {
+                StatTile(
+                    label = "Transactions",
+                    value = state.transactionCount.toString(),
+                    caption = "On this day",
+                    modifier = Modifier.weight(1f)
+                )
+            } else {
+                StatTile(
+                    label = "Daily average",
+                    value = formatMoney(state.dailyAverage),
+                    caption = if (includesToday) "Per day so far" else "Per day",
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
             val rate = state.savingsRate
             StatTile(
@@ -282,7 +298,7 @@ private fun StatTile(
     }
 }
 
-// Ranked bars in one color: length carries the amount, the label names the category.
+// Ranked by amount, one wavy meter per category showing its share of the total.
 @Composable
 private fun CategoryBreakdown(
     type: TransactionType,
@@ -316,19 +332,19 @@ private fun CategoryBreakdown(
             return@Column
         }
 
-        // The largest category spans the full width; the rest scale to it.
-        val largest = categories.maxOf { it.total }.coerceAtLeast(1L)
 
         categories.forEach { category ->
             CategoryBar(
                 category = category,
-                fraction = category.total.toFloat() / largest,
+                // A meter of the category's share of the whole: a full track means 100%.
+                fraction = if (total > 0) category.total.toFloat() / total else 0f,
                 share = if (total > 0) (category.total * 100f / total).roundToInt() else 0
             )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun CategoryBar(
     category: CategoryTotal,
@@ -374,35 +390,30 @@ private fun CategoryBar(
                 )
             }
 
-            // Grows from a square baseline to a rounded data end.
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(animatedFraction.coerceIn(0f, 1f))
-                    .height(FiscusSize.chartBarThickness)
-                    .background(
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(
-                            topEnd = FiscusSize.chartMarkCorner,
-                            bottomEnd = FiscusSize.chartMarkCorner
-                        )
-                    )
+            // Expressive wavy meter; the track is a lighter tone of the same colour.
+            LinearWavyProgressIndicator(
+                // The spring can overshoot; keep the indicator inside its track.
+                progress = { animatedFraction.coerceIn(0f, 1f) },
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
 }
 
-// Spending per month with the period's months emphasized and the rest muted, so what
-// matters stands out without needing a second hue.
+// Spending per bucket (day or month). In the month-context view the selected month is
+// emphasised and the rest muted, so it stands out without a second hue.
 @Composable
 private fun SpendingTrend(
-    trend: List<MonthTotals>,
+    buckets: List<TrendBucket>,
+    scale: TrendScale,
     period: Period,
     periodSpent: Long,
-    highlighted: Set<YearMonth>,
-    onMonthClick: (YearMonth) -> Unit,
+    onBucketClick: (Period) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val largest = trend.maxOfOrNull { it.expense }?.coerceAtLeast(1L) ?: 1L
+    val largest = buckets.maxOfOrNull { it.expense }?.coerceAtLeast(1L) ?: 1L
+    // Label every n-th column so labels never crowd, however many columns there are.
+    val labelEvery = ceil(buckets.size / MAX_TREND_LABELS.toDouble()).toInt().coerceAtLeast(1)
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -413,7 +424,7 @@ private fun SpendingTrend(
             modifier = Modifier.padding(FiscusSpacing.md),
             verticalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
         ) {
-            // Only the period gets a value label; tap a month to see that one.
+            // Only the period gets a value label; tap a column to open that day or month.
             Text(
                 text = "${formatMoney(periodSpent)} in ${period.label()}",
                 style = MaterialTheme.typography.titleMedium
@@ -425,12 +436,12 @@ private fun SpendingTrend(
                     .height(FiscusSize.trendChartHeight),
                 verticalAlignment = Alignment.Bottom
             ) {
-                trend.forEach { month ->
+                buckets.forEach { bucket ->
                     TrendColumn(
-                        month = month,
-                        fraction = month.expense.toFloat() / largest,
-                        isSelected = month.month in highlighted,
-                        onClick = { onMonthClick(month.month) },
+                        bucket = bucket,
+                        description = bucketDescription(bucket),
+                        fraction = bucket.expense.toFloat() / largest,
+                        onClick = { onBucketClick(bucket.period) },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -440,16 +451,18 @@ private fun SpendingTrend(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             Row(modifier = Modifier.fillMaxWidth()) {
-                trend.forEach { month ->
+                buckets.forEachIndexed { index, bucket ->
                     Text(
-                        text = month.month.month.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                        text = if (index % labelEvery == 0) bucketLabel(bucket, scale) else "",
                         style = MaterialTheme.typography.labelMedium,
-                        color = if (month.month in highlighted) {
+                        color = if (bucket.isHighlighted) {
                             MaterialTheme.colorScheme.onSurface
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
                         },
                         textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        softWrap = false,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -458,11 +471,23 @@ private fun SpendingTrend(
     }
 }
 
+// "Oct" for a month column, "18" for a day column.
+private fun bucketLabel(bucket: TrendBucket, scale: TrendScale): String {
+    return if (scale == TrendScale.DAILY) {
+        bucket.period.start.dayOfMonth.toString()
+    } else {
+        bucket.period.start.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+    }
+}
+
+// "October 2026" or "18 Oct 2026", for screen readers and the tap label.
+private fun bucketDescription(bucket: TrendBucket): String = bucket.period.label()
+
 @Composable
 private fun TrendColumn(
-    month: MonthTotals,
+    bucket: TrendBucket,
+    description: String,
     fraction: Float,
-    isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -472,29 +497,31 @@ private fun TrendColumn(
         label = "trendColumn"
     )
 
-    // The whole slot is the tap target, much larger than the column itself.
+    // The whole slot is the tap target, larger than the column itself.
     Box(
         modifier = modifier
             .fillMaxHeight()
             .clickable(
                 role = Role.Button,
-                onClickLabel = "Show ${monthLabel(month.month)}",
+                onClickLabel = "Show $description",
                 onClick = onClick
             )
             .semantics {
-                selected = isSelected
-                contentDescription = "${monthLabel(month.month)}, spent ${formatMoney(month.expense)}"
+                selected = bucket.isHighlighted
+                contentDescription = "$description, spent ${formatMoney(bucket.expense)}"
             },
         contentAlignment = Alignment.BottomCenter
     ) {
-        if (month.expense > 0L) {
+        if (bucket.expense > 0L) {
             Box(
                 modifier = Modifier
-                    .width(FiscusSize.chartColumnWidth)
-                    // Keep tiny months visible as a sliver rather than vanishing.
+                    // Narrower than its slot so neighbours stay apart; capped for thin marks.
+                    .fillMaxWidth(COLUMN_SLOT_FILL)
+                    .widthIn(max = FiscusSize.chartColumnWidth)
+                    // Keep tiny amounts visible as a sliver rather than vanishing.
                     .fillMaxHeight(abs(animatedFraction).coerceIn(0.02f, 1f))
                     .background(
-                        color = if (isSelected) {
+                        color = if (bucket.isHighlighted) {
                             MaterialTheme.colorScheme.primary
                         } else {
                             MaterialTheme.colorScheme.outlineVariant
@@ -508,3 +535,9 @@ private fun TrendColumn(
         }
     }
 }
+
+// Most axis labels shown at once; beyond this they're thinned to every n-th column.
+private const val MAX_TREND_LABELS = 7
+
+// Share of each column's slot the column itself fills.
+private const val COLUMN_SLOT_FILL = 0.6f

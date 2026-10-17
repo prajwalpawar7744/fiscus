@@ -36,8 +36,8 @@ data class TransactionsUiState(
     val isLoading: Boolean = true,
     // A month by default; can be a single day or any range.
     val period: Period = Period.currentMonth(),
-    // Totals for the whole period, regardless of filters.
-    val periodTotals: PeriodTotals = PeriodTotals(),
+    // Totals of the transactions shown, so they follow the filters.
+    val totals: PeriodTotals = PeriodTotals(),
     val filters: TransactionFilters = TransactionFilters(),
     // The period's transactions after filters, newest first.
     val transactions: List<TransactionDetails> = emptyList(),
@@ -61,28 +61,23 @@ class TransactionsViewModel(
         transactionRepository.observeTransactionsInRange(it.toDateRange())
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val periodTotals = period.flatMapLatest {
-        transactionRepository.observePeriodTotals(it.toDateRange())
-    }
-
     private val activeCategories = categoryRepository.categoriesWithUsage.map { all ->
         all.map { it.category }.filterNot { it.isArchived }
     }
 
     val uiState: StateFlow<TransactionsUiState> =
         combine(
-            combine(period, periodTotals, periodTransactions, ::Triple),
+            combine(period, periodTransactions, ::Pair),
             filters,
             accountRepository.accounts,
             activeCategories
-        ) { (period, totals, transactions), filters, accounts, categories ->
+        ) { (period, transactions), filters, accounts, categories ->
             val visible = transactions.filter { it.matches(filters) }
 
             TransactionsUiState(
                 isLoading = false,
                 period = period,
-                periodTotals = totals,
+                totals = visible.totals(),
                 filters = filters,
                 transactions = visible,
                 filteredOut = transactions.isNotEmpty() && visible.isEmpty(),
@@ -128,6 +123,15 @@ class TransactionsViewModel(
     fun clearFilters() {
         filters.value = TransactionFilters()
     }
+}
+
+// Income and expense sums (transfers only move money) plus a count of every row.
+internal fun List<TransactionDetails>.totals(): PeriodTotals {
+    return PeriodTotals(
+        income = filter { it.type == TransactionType.INCOME }.sumOf { it.amount },
+        expense = filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount },
+        count = size
+    )
 }
 
 internal fun TransactionDetails.matches(filters: TransactionFilters): Boolean {

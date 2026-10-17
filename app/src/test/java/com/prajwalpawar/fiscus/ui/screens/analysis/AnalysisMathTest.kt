@@ -78,3 +78,37 @@ class AnalysisMathTest {
         assertEquals(YearMonth.of(2027, 2), filled.last().month)
     }
 }
+
+class TrendScaleTest {
+    private val oct = YearMonth.of(2026, 10)
+
+    @Test
+    fun scaleFollowsThePeriod() {
+        val day = LocalDate.of(2026, 10, 18)
+        assertNull(trendScale(Period(day, day)))
+        assertEquals(TrendScale.MONTH_CONTEXT, trendScale(Period.month(oct)))
+        assertEquals(TrendScale.DAILY, trendScale(Period(day.minusDays(30), day)))
+        assertEquals(TrendScale.MONTHLY, trendScale(Period(day.minusDays(31), day)))
+    }
+
+    @Test
+    fun dailyBucketsCoverEveryDayWithZerosForQuietDays() {
+        val period = Period(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 3))
+        val rows = listOf(com.prajwalpawar.fiscus.data.model.DayTotals(LocalDate.of(2026, 10, 2), 0, 500))
+        val buckets = dailyBuckets(rows, period)
+
+        assertEquals(listOf(0L, 500L, 0L), buckets.map { it.expense })
+        assertEquals(LocalDate.of(2026, 10, 2), buckets[1].period.start)
+        assertEquals(true, buckets.all { it.isHighlighted && it.period.isSingleDay })
+    }
+
+    @Test
+    fun monthlyBucketsSpanFirstToLastAndHighlightOnRequest() {
+        val rows = listOf(MonthTotals(YearMonth.of(2026, 9), 0, 300))
+        val buckets = monthlyBuckets(rows, YearMonth.of(2026, 8), oct) { it == oct }
+
+        assertEquals(listOf(0L, 300L, 0L), buckets.map { it.expense })
+        assertEquals(listOf(false, false, true), buckets.map { it.isHighlighted })
+        assertEquals(Period.month(YearMonth.of(2026, 9)), buckets[1].period)
+    }
+}
