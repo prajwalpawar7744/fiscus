@@ -2,35 +2,31 @@ package com.prajwalpawar.fiscus.ui.screens.settings
 
 import android.content.Intent
 import android.os.Build
-import android.net.Uri
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CallToAction
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SwapVert
-import androidx.compose.material.icons.filled.ViewAgenda
 import androidx.compose.material.icons.filled.Wallpaper
-import androidx.compose.material3.Switch
-import androidx.compose.material3.CheckableDropdownMenuItem
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuGroup
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenuPopup
+import androidx.compose.material.icons.filled.WebAsset
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.SegmentedListItem
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,11 +34,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalCursorBlinkEnabled
 import androidx.compose.ui.unit.DpOffset
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.prajwalpawar.fiscus.data.model.AppBarPreference
@@ -52,8 +47,9 @@ import com.prajwalpawar.fiscus.data.model.ThemePreference
 import com.prajwalpawar.fiscus.ui.components.FiscusDropdownMenu
 import com.prajwalpawar.fiscus.ui.components.FiscusSegmentedListItem
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
-import kotlin.math.exp
-import androidx.core.net.toUri
+
+// A settings row; it receives the corner shapes for its position in the section.
+private typealias SettingsRow = @Composable (shapes: ListItemShapes) -> Unit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,21 +66,9 @@ fun SettingsScreen(
 
     // Wallpaper-based color only exists on Android 12+.
     val dynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val appearanceOffset = if (dynamicColorSupported) 1 else 0
-    val appearanceCount = 4 + appearanceOffset
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = FiscusSpacing.md),
-        verticalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
-    ) {
-        // Appearance
-        item {
-            SettingsSectionTitle("Appearance")
-        }
-
-        item {
+    val appearanceRows = listOfNotNull<SettingsRow>(
+        { shapes ->
             SettingsSelectionItem(
                 label = "Theme",
                 icon = Icons.Default.Palette,
@@ -94,21 +78,16 @@ fun SettingsScreen(
                     ThemePreference.LIGHT to "Light",
                     ThemePreference.DARK to "Dark"
                 ),
-                index = 0,
-                count = appearanceCount,
+                shapes = shapes,
                 onValueSelected = viewModel::setTheme
             )
-        }
-
+        },
         if (dynamicColorSupported) {
-            item {
+            { shapes ->
                 SegmentedListItem(
                     checked = settings.dynamicColor,
                     onCheckedChange = viewModel::setDynamicColor,
-                    shapes = ListItemDefaults.segmentedShapes(
-                        index = 1,
-                        count = appearanceCount
-                    ),
+                    shapes = shapes,
                     colors = ListItemDefaults.colors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer
                     ),
@@ -139,41 +118,38 @@ fun SettingsScreen(
                     )
                 }
             }
-        }
-
-        item {
+        } else {
+            null
+        },
+        { shapes ->
             SettingsSelectionItem(
                 label = "App bar",
-                icon = Icons.Default.ViewAgenda,
+                icon = Icons.Default.WebAsset,
                 selectedValue = settings.appBar,
                 values = listOf(
                     AppBarPreference.SMALL to "Small",
                     AppBarPreference.MEDIUM to "Medium",
                     AppBarPreference.LARGE to "Large"
                 ),
-                index = 1 + appearanceOffset,
-                count = appearanceCount,
+                shapes = shapes,
                 onValueSelected = viewModel::setAppBar
             )
-        }
-
-        item {
+        },
+        { shapes ->
             SettingsSelectionItem(
                 label = "Bottom bar",
-                icon = Icons.Default.ViewAgenda,
+                icon = Icons.Default.CallToAction,
                 selectedValue = settings.bottomBar,
                 values = listOf(
                     BottomBarPreference.SHOW_LABELS to "Show labels",
                     BottomBarPreference.ICONS_ONLY to "Icons only",
                     BottomBarPreference.SHOW_LABELS_WHEN_SELECTED to "Show labels when selected"
                 ),
-                index = 2 + appearanceOffset,
-                count = appearanceCount,
+                shapes = shapes,
                 onValueSelected = viewModel::setBottomBar
             )
-        }
-
-        item {
+        },
+        { shapes ->
             SettingsSelectionItem(
                 label = "App bar scroll",
                 icon = Icons.Default.SwapVert,
@@ -185,56 +161,27 @@ fun SettingsScreen(
                     (AppBarScrollPreference.EXIT_UNTIL_COLLAPSED to "Collapse")
                         .takeIf { settings.appBar != AppBarPreference.SMALL }
                 ),
-                index = 3 + appearanceOffset,
-                count = appearanceCount,
+                shapes = shapes,
                 onValueSelected = viewModel::setAppBarScroll
             )
         }
+    )
 
-        // About
-        item {
-            SettingsSectionTitle("About")
-        }
-
-        item {
-            FiscusSegmentedListItem(
-                index = 0,
-                count = 2,
-                selected = false,
-                onClick = {},
-                leadingContent = {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null
-                    )
-                },
-                content = {
-                    Text(
-                        text = "Developer",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                },
-                supportingContent = {
-                    Text(
-                        text = "Prajwal Pawar",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+    val aboutRows = listOf<SettingsRow>(
+        { shapes ->
+            SettingsInfoItem(
+                label = "Developer",
+                description = "Prajwal Pawar",
+                icon = Icons.Default.Person,
+                shapes = shapes
             )
-        }
-
-        item {
-            FiscusSegmentedListItem(
-                index = 1,
-                count = 2,
-                selected = false,
-                leadingContent = {
-                    Icon(
-                        imageVector = Icons.Default.Code,
-                        contentDescription = null
-                    )
-                },
+        },
+        { shapes ->
+            SettingsInfoItem(
+                label = "GitHub",
+                description = "View source code",
+                icon = Icons.Default.Code,
+                shapes = shapes,
                 onClick = {
                     context.startActivity(
                         Intent(
@@ -242,61 +189,74 @@ fun SettingsScreen(
                             "https://github.com/prajwalpawar7744/fiscus".toUri()
                         )
                     )
-                },
-                content = {
-                    Text(
-                        text = "GitHub",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                },
-                supportingContent = {
-                    Text(
-                        text = "View source code",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
             )
         }
+    )
+
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = FiscusSpacing.md,
+            end = FiscusSpacing.md,
+            bottom = FiscusSpacing.lg
+        ),
+        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
+    ) {
+        settingsSection("Appearance", appearanceRows)
+        settingsSection("About", aboutRows)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+// Shapes come from each row's position, so adding or hiding a row keeps the corners right.
+private fun LazyListScope.settingsSection(
+    title: String,
+    rows: List<SettingsRow>
+) {
+    item(key = title) {
+        SettingsSectionTitle(title)
+    }
+
+    itemsIndexed(rows) { index, row ->
+        row(
+            ListItemDefaults.segmentedShapes(
+                index = index,
+                count = rows.size
+            )
+        )
+    }
+}
+
 @Composable
 private fun <T> SettingsSelectionItem(
     label: String,
     icon: ImageVector,
     selectedValue: T,
     values: List<Pair<T, String>>,
-    index: Int,
-    count: Int,
+    shapes: ListItemShapes,
     onValueSelected: (T) -> Unit
 ) {
     var expanded by remember {
         mutableStateOf(false)
     }
 
-    val selectedText = values
-        .firstOrNull {
-            it.first == selectedValue
-        }
-        ?.second
-        .orEmpty()
+    val selectedPair = values.firstOrNull {
+        it.first == selectedValue
+    }
 
     Column {
         FiscusSegmentedListItem(
-            index = index,
-            count = count,
+            shapes = shapes,
             selected = expanded,
             onClick = {
                 expanded = !expanded
             },
-           content = {
-               Text(
-                   text = label,
-                   style = MaterialTheme.typography.bodyLarge
-               )
-           },
+            content = {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            },
             leadingContent = {
                 Icon(
                     imageVector = icon,
@@ -305,7 +265,7 @@ private fun <T> SettingsSelectionItem(
             },
             supportingContent = {
                 Text(
-                    text = selectedText,
+                    text = selectedPair?.second.orEmpty(),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -332,9 +292,9 @@ private fun <T> SettingsSelectionItem(
                 expanded = false
             },
             items = values,
-            selectedItem = values.first { it.first == selectedValue },
-            onItemSelected = { selectedPair ->
-                onValueSelected(selectedPair.first)
+            selectedItem = selectedPair,
+            onItemSelected = { pair ->
+                onValueSelected(pair.first)
                 expanded = false
             },
             itemLabel = { pair ->
@@ -352,15 +312,51 @@ private fun <T> SettingsSelectionItem(
 }
 
 @Composable
+private fun SettingsInfoItem(
+    label: String,
+    description: String,
+    icon: ImageVector,
+    shapes: ListItemShapes,
+    onClick: (() -> Unit)? = null
+) {
+    FiscusSegmentedListItem(
+        shapes = shapes,
+        onClick = onClick,
+        leadingContent = {
+            Icon(
+                imageVector = icon,
+                contentDescription = null
+            )
+        },
+        content = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        },
+        supportingContent = {
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    )
+}
+
+@Composable
 private fun SettingsSectionTitle(
     title: String
 ) {
+    // Inset to line up with the text inside the rows below.
     Text(
         text = title,
-        style = MaterialTheme.typography.titleMedium,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(
-            top = FiscusSpacing.md,
-            bottom = FiscusSpacing.xs
+            start = FiscusSpacing.md,
+            top = FiscusSpacing.lg,
+            bottom = FiscusSpacing.sm
         )
     )
 }

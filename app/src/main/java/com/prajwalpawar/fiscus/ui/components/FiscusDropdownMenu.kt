@@ -20,7 +20,7 @@ fun <T> FiscusDropdownMenu(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
     items: List<T>,
-    selectedItem: T,
+    selectedItem: T?,
     onItemSelected: (T) -> Unit,
     itemLabel: @Composable (T) -> Unit,
     modifier: Modifier = Modifier,

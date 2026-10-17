@@ -2,7 +2,6 @@ package com.prajwalpawar.fiscus.ui.screens.transaction
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,7 +38,6 @@ import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
@@ -49,7 +47,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -60,10 +57,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selectableGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -80,6 +74,7 @@ import com.prajwalpawar.fiscus.data.model.AccountType
 import com.prajwalpawar.fiscus.data.model.Category
 import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.DockedDatePicker
+import com.prajwalpawar.fiscus.ui.components.FiscusConnectedToggleGroup
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -174,48 +169,19 @@ private fun AddTransactionContent(
         )
 
         // Type comes first because it changes which fields follow.
-        FlowRow(
-            modifier = inset
-                .fillMaxWidth()
-                .semantics {
-                    selectableGroup()
-                },
-            horizontalArrangement = Arrangement.spacedBy(
-                ButtonGroupDefaults.ConnectedSpaceBetween
-            ),
-            verticalArrangement = Arrangement.spacedBy(FiscusSpacing.md)
-        ) {
-            TransactionType.entries.forEachIndexed { index, type ->
-                ToggleButton(
-                    checked = transactionType == type,
-                    onCheckedChange = {
-                        onTransactionTypeChange(type)
-                    },
-                    shapes = when (index) {
-                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-
-                        TransactionType.entries.lastIndex ->
-                            ButtonGroupDefaults.connectedTrailingButtonShapes()
-
-                        else ->
-                            ButtonGroupDefaults.connectedMiddleButtonShapes()
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics {
-                            role = Role.RadioButton
-                        }
-                ) {
-                    Text(
-                        text = when (type) {
-                            TransactionType.EXPENSE -> "Expense"
-                            TransactionType.INCOME -> "Income"
-                            TransactionType.TRANSFER -> "Transfer"
-                        }
-                    )
+        FiscusConnectedToggleGroup(
+            options = TransactionType.entries,
+            selectedOption = transactionType,
+            onOptionSelected = onTransactionTypeChange,
+            optionLabel = { type ->
+                when (type) {
+                    TransactionType.EXPENSE -> "Expense"
+                    TransactionType.INCOME -> "Income"
+                    TransactionType.TRANSFER -> "Transfer"
                 }
-            }
-        }
+            },
+            modifier = inset
+        )
 
         AmountField(
             modifier = inset,

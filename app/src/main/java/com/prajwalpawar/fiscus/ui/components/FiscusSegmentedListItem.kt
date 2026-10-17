@@ -12,15 +12,11 @@ import androidx.compose.ui.Modifier
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FiscusSegmentedListItem(
-    index: Int,
-    count: Int,
-    selected: Boolean = false,
-    onClick: (() -> Unit)? = null,
+    shapes: ListItemShapes,
     modifier: Modifier = Modifier,
-    shapes: ListItemShapes = ListItemDefaults.segmentedShapes(
-        index = index,
-        count = count
-    ),
+    selected: Boolean = false,
+    // Null keeps the row static: no ripple, and TalkBack doesn't call it a button.
+    onClick: (() -> Unit)? = null,
     colors: ListItemColors = ListItemDefaults.colors(
         containerColor = MaterialTheme.colorScheme.surfaceContainer
     ),
@@ -30,16 +26,29 @@ fun FiscusSegmentedListItem(
     leadingContent: (@Composable () -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null
 ) {
-    SegmentedListItem(
-        modifier = modifier,
-        shapes = shapes,
-        colors = colors,
-        selected = selected,
-        onClick = onClick ?: {},
-        content = content,
-        supportingContent = supportingContent,
-        overlineContent = overlineContent,
-        leadingContent = leadingContent,
-        trailingContent = trailingContent
-    )
+    if (onClick == null) {
+        SegmentedListItem(
+            shapes = shapes,
+            modifier = modifier,
+            colors = colors,
+            content = content,
+            supportingContent = supportingContent,
+            overlineContent = overlineContent,
+            leadingContent = leadingContent,
+            trailingContent = trailingContent
+        )
+    } else {
+        SegmentedListItem(
+            selected = selected,
+            onClick = onClick,
+            shapes = shapes,
+            modifier = modifier,
+            colors = colors,
+            content = content,
+            supportingContent = supportingContent,
+            overlineContent = overlineContent,
+            leadingContent = leadingContent,
+            trailingContent = trailingContent
+        )
+    }
 }
