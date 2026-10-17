@@ -16,6 +16,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
 import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
@@ -28,7 +29,8 @@ fun FiscusTransactionAmount(
     type: TransactionType,
     amount: Long,
     modifier: Modifier = Modifier,
-    style: TextStyle = MaterialTheme.typography.titleSmall
+    style: TextStyle = MaterialTheme.typography.titleSmall,
+    arrowSize: Dp = FiscusSize.amountArrow
 ) {
     val color = when (type) {
         TransactionType.INCOME -> MaterialTheme.colorScheme.primary
@@ -54,7 +56,7 @@ fun FiscusTransactionAmount(
                     TransactionType.EXPENSE -> "Expense"
                     TransactionType.TRANSFER -> "Transfer"
                 },
-                modifier = Modifier.size(FiscusSize.amountArrow)
+                modifier = Modifier.size(arrowSize)
             )
 
             Text(

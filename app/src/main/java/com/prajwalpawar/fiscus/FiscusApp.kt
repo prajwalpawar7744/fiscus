@@ -57,6 +57,8 @@ import com.prajwalpawar.fiscus.ui.screens.home.HomeScreen
 import com.prajwalpawar.fiscus.ui.screens.home.HomeViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
 import com.prajwalpawar.fiscus.ui.screens.transaction.AddTransactionSheet
+import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionDetailsScreen
+import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionDetailsViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionViewModel
 import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionsScreen
@@ -217,6 +219,10 @@ fun FiscusApp (
 
                     route == FiscusRoutes.MANAGE_ACCOUNTS -> {
                         "Accounts"
+                    }
+
+                    route?.startsWith(FiscusRoutes.TRANSACTION_DETAILS_BASE) == true -> {
+                        "Transaction"
                     } else -> {
                         "Fiscus"
                     }
@@ -291,6 +297,9 @@ fun FiscusApp (
                     },
                     onAccountClick = { id ->
                         navController.navigate(FiscusRoutes.editAccount(id))
+                    },
+                    onTransactionClick = { id ->
+                        navController.navigate(FiscusRoutes.transactionDetails(id))
                     }
                 )
             }
@@ -370,6 +379,28 @@ fun FiscusApp (
                 )
             }
 
+            composable(
+                route = FiscusRoutes.TRANSACTION_DETAILS,
+                arguments = listOf(
+                    navArgument(FiscusRoutes.ID_ARG) { type = NavType.LongType }
+                )
+            ) { entry ->
+                val id = entry.arguments?.getLong(FiscusRoutes.ID_ARG) ?: 0L
+
+                TransactionDetailsScreen(
+                    viewModel = viewModel(
+                        factory = TransactionDetailsViewModelFactory(transactionRepository, id)
+                    ),
+                    onEditClick = { transactionId ->
+                        // Open the sheet once the transaction is loaded into it.
+                        transactionViewModel.startEditing(transactionId) {
+                            showAddTransactionSheet = true
+                        }
+                    },
+                    onDeleted = { navController.popBackStack() }
+                )
+            }
+
             composable(FiscusRoutes.MANAGE_CATEGORIES) {
                 ManageCategoriesScreen(
                     viewModel = viewModel(
@@ -438,12 +469,18 @@ fun FiscusApp (
         }
     }
 
+    // The sheet also opens over a transaction's details page, to edit it.
+    val sheetCanShow = isTopLevel ||
+            route?.startsWith(FiscusRoutes.TRANSACTION_DETAILS_BASE) == true
+
     // The sheet steps aside while a page is open on top and returns with the draft intact.
-    if (showAddTransactionSheet && isTopLevel) {
+    if (showAddTransactionSheet && sheetCanShow) {
         AddTransactionSheet(
             viewModel = transactionViewModel,
             onDismissRequest = {
                 showAddTransactionSheet = false
+                // Closing an edit discards its changes and brings back any "add" draft.
+                transactionViewModel.cancelEditing()
             },
             onAddCategory = { type ->
                 navController.navigate(FiscusRoutes.newCategory(type))

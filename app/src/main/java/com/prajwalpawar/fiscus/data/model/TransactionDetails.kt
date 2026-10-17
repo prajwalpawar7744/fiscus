@@ -6,6 +6,7 @@ data class TransactionDetails(
     val type: TransactionType,
     val amount: Long,
     val title: String,
+    val note: String?,
     val date: Long,
     val categoryName: String?,
     val categoryIconKey: String?,

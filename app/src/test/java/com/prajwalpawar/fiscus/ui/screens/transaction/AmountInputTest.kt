@@ -34,6 +34,19 @@ class AmountInputTest {
         assertNull(amountToMinorUnits(""))
         assertNull(amountToMinorUnits("."))
     }
+
+    @Test
+    fun storedAmountsRoundTripThroughTheEditField() {
+        assertEquals("12.5", minorUnitsToAmountInput(1250))
+        assertEquals("10", minorUnitsToAmountInput(1000))
+        assertEquals("0.05", minorUnitsToAmountInput(5))
+
+        listOf(1L, 5L, 1250L, 1000L, 99999999999999L).forEach { stored ->
+            val text = minorUnitsToAmountInput(stored)
+            assertTrue("'$text' must be valid input", isAmountInput(text))
+            assertEquals(stored, amountToMinorUnits(text))
+        }
+    }
 }
 
 class FindIssueTest {

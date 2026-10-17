@@ -70,6 +70,7 @@ fun HomeScreen(
     onSeeAllClick: () -> Unit,
     onAddAccountClick: () -> Unit,
     onAccountClick: (id: Long) -> Unit,
+    onTransactionClick: (id: Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -119,7 +120,8 @@ fun HomeScreen(
 
         recentTransactions(
             recent = uiState.recent,
-            onSeeAllClick = onSeeAllClick
+            onSeeAllClick = onSeeAllClick,
+            onTransactionClick = onTransactionClick
         )
     }
 }
@@ -392,7 +394,8 @@ private fun AddAccountCard(
 
 private fun LazyListScope.recentTransactions(
     recent: List<TransactionDetails>,
-    onSeeAllClick: () -> Unit
+    onSeeAllClick: () -> Unit,
+    onTransactionClick: (id: Long) -> Unit
 ) {
     item(key = "recentHeader") {
         Row(
@@ -465,6 +468,7 @@ private fun LazyListScope.recentTransactions(
                 transaction = transaction,
                 index = index,
                 count = transactions.size,
+                onClick = { onTransactionClick(transaction.id) },
                 modifier = Modifier.padding(horizontal = FiscusSpacing.md)
             )
         }
@@ -477,6 +481,7 @@ private fun TransactionRow(
     transaction: TransactionDetails,
     index: Int,
     count: Int,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isTransfer = transaction.type == TransactionType.TRANSFER
@@ -484,6 +489,7 @@ private fun TransactionRow(
     FiscusSegmentedListItem(
         shapes = ListItemDefaults.segmentedShapes(index = index, count = count),
         modifier = modifier,
+        onClick = onClick,
         leadingContent = {
             FiscusListIcon(
                 icon = if (isTransfer) {

@@ -3,6 +3,7 @@ package com.prajwalpawar.fiscus.data.repository
 import androidx.room.withTransaction
 import com.prajwalpawar.fiscus.data.local.FiscusDatabase
 import com.prajwalpawar.fiscus.data.local.dao.TransactionDao
+import com.prajwalpawar.fiscus.data.local.dao.TransactionDetailsRow
 import com.prajwalpawar.fiscus.data.local.entity.toEntity
 import com.prajwalpawar.fiscus.data.local.entity.toTransaction
 import com.prajwalpawar.fiscus.data.model.PeriodTotals
@@ -24,21 +25,17 @@ class TransactionRepository (
 
     fun observeRecentTransactions(limit: Int): Flow<List<TransactionDetails>> {
         return transactionDao.observeRecentTransactions(limit).map { rows ->
-            rows.map { row ->
-                TransactionDetails(
-                    id = row.id,
-                    type = TransactionType.valueOf(row.type),
-                    amount = row.amount,
-                    title = row.title,
-                    date = row.date,
-                    categoryName = row.categoryName,
-                    categoryIconKey = row.categoryIconKey,
-                    accountName = row.accountName,
-                    sourceAccountName = row.sourceAccountName,
-                    destinationAccountName = row.destinationAccountName
-                )
-            }
+            rows.map { it.toDetails() }
         }
+    }
+
+    // Null once the transaction is deleted.
+    fun observeTransactionDetails(id: Long): Flow<TransactionDetails?> {
+        return transactionDao.observeTransactionDetails(id).map { it?.toDetails() }
+    }
+
+    suspend fun deleteTransaction(id: Long) {
+        transactionDao.deleteTransaction(id)
     }
 
     fun observePeriodTotals(range: DateRange): Flow<PeriodTotals> {
@@ -70,6 +67,22 @@ class TransactionRepository (
 
     suspend fun deleteTransaction(transaction: Transaction) {
         transactionDao.deleteTransaction(transaction.toEntity())
+    }
+
+    private fun TransactionDetailsRow.toDetails(): TransactionDetails {
+        return TransactionDetails(
+            id = id,
+            type = TransactionType.valueOf(type),
+            amount = amount,
+            title = title,
+            note = note,
+            date = date,
+            categoryName = categoryName,
+            categoryIconKey = categoryIconKey,
+            accountName = accountName,
+            sourceAccountName = sourceAccountName,
+            destinationAccountName = destinationAccountName
+        )
     }
 
     private fun validate(transaction: Transaction) {

@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Category
@@ -170,7 +171,7 @@ private fun AddTransactionContent(
         val inset = Modifier.padding(horizontal = FiscusSpacing.md)
 
         Text(
-            text = "Add transaction",
+            text = if (form.editingId != null) "Edit transaction" else "Add transaction",
             style = MaterialTheme.typography.headlineLargeEmphasized,
             modifier = inset
         )
@@ -290,8 +291,8 @@ private fun AddTransactionContent(
         )
 
         FiscusSubmitButton(
-            text = "Add transaction",
-            icon = Icons.Filled.Add,
+            text = if (form.editingId != null) "Save changes" else "Add transaction",
+            icon = if (form.editingId != null) Icons.Filled.Check else Icons.Filled.Add,
             enabled = uiState.canSubmit,
             onClick = onSubmit,
             modifier = inset

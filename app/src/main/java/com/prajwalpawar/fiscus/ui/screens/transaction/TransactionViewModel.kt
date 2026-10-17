@@ -37,7 +37,9 @@ data class TransactionForm(
     val toAccountId: Long? = null,
     val dateMillis: Long = todayAsUtcMillis(),
     val title: String = "",
-    val note: String = ""
+    val note: String = "",
+    // Set when the sheet is editing an existing transaction instead of adding one.
+    val editingId: Long? = null
 )
 
 // The first thing stopping the form from being submitted, in field order.
@@ -173,10 +175,53 @@ class TransactionViewModel (
         form.update { it.copy(note = value) }
     }
 
+    // An unfinished "add" draft, set aside while an existing transaction is edited.
+    private var setAsideDraft: TransactionForm? = null
+
+    // Loads an existing transaction into the form, then calls [onLoaded] to show the sheet.
+    fun startEditing(id: Long, onLoaded: () -> Unit) {
+        viewModelScope.launch {
+            val transaction = transactionRepository.getTransaction(id) ?: return@launch
+
+            if (form.value.editingId == null) {
+                setAsideDraft = form.value
+            }
+            saveFailed.value = false
+
+            val isTransfer = transaction.type == TransactionType.TRANSFER
+
+            form.value = TransactionForm(
+                type = transaction.type,
+                amount = minorUnitsToAmountInput(transaction.amount),
+                categoryId = transaction.categoryId,
+                accountId = if (isTransfer) transaction.sourceAccountId else transaction.accountId,
+                toAccountId = transaction.destinationAccountId,
+                dateMillis = transaction.date,
+                title = transaction.title,
+                note = transaction.note.orEmpty(),
+                editingId = id
+            )
+            onLoaded()
+        }
+    }
+
+    // Leaving edit mode without saving: bring back any set-aside draft.
+    fun cancelEditing() {
+        if (form.value.editingId != null) {
+            finishEditing()
+        }
+    }
+
+    private fun finishEditing() {
+        form.value = setAsideDraft ?: TransactionForm()
+        setAsideDraft = null
+    }
+
     fun saveTransaction(onSaved: () -> Unit) {
         val state = uiState.value
         if (!state.canSubmit) return
 
+        val editingId = state.form.editingId
         val transaction = state.toTransaction() ?: return
 
         viewModelScope.launch {
@@ -184,14 +229,19 @@ class TransactionViewModel (
             saveFailed.value = false
 
             val result = runCatching {
-                transactionRepository.addTransaction(transaction)
+                if (editingId != null) {
+                    transactionRepository.updateTransaction(transaction.copy(id = editingId))
+                } else {
+                    transactionRepository.addTransaction(transaction)
+                }
             }
 
             isSaving.value = false
 
             if (result.isSuccess) {
-                // Next sheet starts empty; a failed save keeps the draft to retry.
-                form.value = TransactionForm()
+                // Next sheet starts empty (or back on the set-aside draft);
+                // a failed save keeps the form to retry.
+                if (editingId != null) finishEditing() else form.value = TransactionForm()
                 onSaved()
             } else {
                 saveFailed.value = true
@@ -266,6 +316,11 @@ internal fun findIssue(
 // with at most one decimal point and two decimal places.
 internal fun isAmountInput(value: String): Boolean {
     return value.matches(Regex("""\d{0,12}(\.\d{0,2})?"""))
+}
+
+// 1250 -> "12.5", 1000 -> "10": the way the user would have typed it.
+internal fun minorUnitsToAmountInput(hundredths: Long): String {
+    return BigDecimal.valueOf(hundredths, 2).stripTrailingZeros().toPlainString()
 }
 
 // "12.5" -> 1250. Null when the text isn't a number yet (e.g. "" or ".").

@@ -21,6 +21,11 @@ object FiscusRoutes {
     const val EDIT_ACCOUNT_BASE = "account/edit"
     const val EDIT_ACCOUNT = "$EDIT_ACCOUNT_BASE/{$ID_ARG}"
 
+    const val TRANSACTION_DETAILS_BASE = "transaction"
+    const val TRANSACTION_DETAILS = "$TRANSACTION_DETAILS_BASE/{$ID_ARG}"
+
+    fun transactionDetails(id: Long): String = "$TRANSACTION_DETAILS_BASE/$id"
+
     fun newCategory(type: CategoryType): String = "$NEW_CATEGORY_BASE?$TYPE_ARG=${type.name}"
 
     fun editCategory(id: Long): String = "$EDIT_CATEGORY_BASE/$id"
