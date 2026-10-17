@@ -1,13 +1,13 @@
 package com.prajwalpawar.fiscus.ui.navigation
 
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ShortNavigationBar
+import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.compose.material3.Icon
 import com.prajwalpawar.fiscus.data.model.BottomBarPreference
 
 @Composable
@@ -23,13 +23,19 @@ fun FiscusNavigationBar (
         FiscusDestination.Settings
     )
 
-    NavigationBar {
+    ShortNavigationBar {
         destinations.forEach { destination ->
             val selected = currentDestination
                 ?.hierarchy
                 ?.any { it.route == destination.route } == true
 
-            NavigationBarItem(
+            val showLabel = when (preference) {
+                BottomBarPreference.SHOW_LABELS -> true
+                BottomBarPreference.ICONS_ONLY -> false
+                BottomBarPreference.SHOW_LABELS_WHEN_SELECTED -> selected
+            }
+
+            ShortNavigationBarItem(
                 selected = selected,
                 onClick = {
                     navController.navigate(destination.route) {
@@ -47,29 +53,16 @@ fun FiscusNavigationBar (
                         } else {
                             destination.unselectedIcon
                         },
-                        contentDescription = destination.label
+                        // A visible label already names the item; only describe bare icons.
+                        contentDescription = if (showLabel) null else destination.label
                     )
                 },
-                label = when (preference) {
-                    BottomBarPreference.SHOW_LABELS -> {
-                        {
-                            Text(destination.label)
-                        }
+                label = if (showLabel) {
+                    {
+                        Text(destination.label)
                     }
-
-                    BottomBarPreference.ICONS_ONLY -> {
-                        null
-                    }
-
-                    BottomBarPreference.SHOW_LABELS_WHEN_SELECTED -> {
-                        if (selected) {
-                            {
-                                Text(destination.label)
-                            }
-                        } else {
-                            null
-                        }
-                    }
+                } else {
+                    null
                 }
             )
         }

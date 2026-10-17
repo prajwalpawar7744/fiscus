@@ -1,38 +1,44 @@
 package com.prajwalpawar.fiscus
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.prajwalpawar.fiscus.ui.navigation.FiscusDestination
-import com.prajwalpawar.fiscus.ui.navigation.FiscusNavigationBar
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.prajwalpawar.fiscus.data.local.FiscusDatabaseProvider
 import com.prajwalpawar.fiscus.data.local.SettingsDataStore
 import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.AppSettings
-import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
-import com.prajwalpawar.fiscus.ui.screens.home.HomeScreen
-import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
-import androidx.compose.runtime.*
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.prajwalpawar.fiscus.data.local.FiscusDatabaseProvider
 import com.prajwalpawar.fiscus.data.repository.AccountRepository
 import com.prajwalpawar.fiscus.data.repository.CategoryRepository
+import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
+import com.prajwalpawar.fiscus.ui.navigation.FiscusDestination
+import com.prajwalpawar.fiscus.ui.navigation.FiscusNavigationBar
+import com.prajwalpawar.fiscus.ui.screens.home.HomeScreen
+import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
 import com.prajwalpawar.fiscus.ui.screens.transaction.AddTransactionSheet
 import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionViewModel
 import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionViewModelFactory
@@ -63,6 +69,24 @@ fun FiscusApp () {
             TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     }
 
+    // Shrink the FAB to its icon while scrolling down, restore it when scrolling up.
+    var fabExpanded by rememberSaveable {
+        mutableStateOf(true)
+    }
+
+    val fabScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                if (available.y < 0f) fabExpanded = false
+                if (available.y > 0f) fabExpanded = true
+                return Offset.Zero
+            }
+        }
+    }
+
     var showAddTransactionSheet by rememberSaveable {
         mutableStateOf(false)
     }
@@ -89,16 +113,18 @@ fun FiscusApp () {
         )
     }
 
+    val onHome = currentDestination
+        ?.route
+        ?.startsWith(FiscusDestination.Home.route) == true
+
     Scaffold(
-        modifier = Modifier.nestedScroll(
-          scrollBehavior.nestedScrollConnection
-        ),
+        modifier = Modifier
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+            .nestedScroll(fabScrollConnection),
         topBar = {
             FiscusTopAppBar(
                 title = when {
-                    currentDestination
-                        ?.route
-                        ?.startsWith(FiscusDestination.Home.route) == true -> {
+                    onHome -> {
                             "Home"
                         }
 
@@ -132,6 +158,26 @@ fun FiscusApp () {
                 currentDestination = currentDestination,
                 preference = settings.bottomBar
             )
+        },
+        floatingActionButton = {
+            if (onHome) {
+                SmallExtendedFloatingActionButton(
+                    onClick = {
+                        showAddTransactionSheet = true
+                    },
+                    expanded = fabExpanded,
+                    icon = {
+                        // The text names the action; collapsed, the icon needs its own label.
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = if (fabExpanded) null else "Add transaction"
+                        )
+                    },
+                    text = {
+                        Text("Add transaction")
+                    }
+                )
+            }
         }
     ) { innerPadding ->
         NavHost(
@@ -140,24 +186,7 @@ fun FiscusApp () {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(FiscusDestination.Home.route) {
-                val transactionViewModel: TransactionViewModel = viewModel(
-                    factory = transactionViewModelFactory
-                )
-
-                HomeScreen(
-                    onAddTransactionClick = {
-                        showAddTransactionSheet = true
-                    }
-                )
-
-                if (showAddTransactionSheet) {
-                    AddTransactionSheet(
-                        viewModel = transactionViewModel,
-                        onDismissRequest = {
-                            showAddTransactionSheet = false
-                        }
-                    )
-                }
+                HomeScreen()
             }
 
             composable(FiscusDestination.Transactions.route) {
@@ -172,5 +201,18 @@ fun FiscusApp () {
                 SettingsScreen()
             }
         }
+    }
+
+    if (showAddTransactionSheet) {
+        val transactionViewModel: TransactionViewModel = viewModel(
+            factory = transactionViewModelFactory
+        )
+
+        AddTransactionSheet(
+            viewModel = transactionViewModel,
+            onDismissRequest = {
+                showAddTransactionSheet = false
+            }
+        )
     }
 }
