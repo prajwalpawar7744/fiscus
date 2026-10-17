@@ -18,4 +18,10 @@ object FiscusSize {
     val accountCardHeight: Dp = 148.dp
     // Small FAB (56dp) plus its 16dp margins, so the last list row can scroll clear of it.
     val fabClearance: Dp = 88.dp
+
+    // Charts: thin marks with a small rounded data-end, square at the baseline.
+    val chartBarThickness: Dp = 12.dp
+    val chartColumnWidth: Dp = 24.dp
+    val chartMarkCorner: Dp = 4.dp
+    val trendChartHeight: Dp = 140.dp
 }

@@ -82,6 +82,7 @@ util              Money.kt (formatMoney, currencySymbol), DateRanges.kt
   - `FiscusTransactionAmount` — amount with direction arrow instead of a sign: ↑ income (primary), ↓ expense, ⇄ transfer; arrows carry TalkBack labels.
   - `FiscusEmptyState`, `DockedDatePicker` (animated popup; tapping the field opens it), `FiscusTopAppBar` (small/medium/large flexible, optional subtitle and back arrow).
   - `ItemEditorLayout` + `ItemManageActions` for category/account editors.
+- **Charts** (drawn with plain Compose layout, no chart library): pick the form first, colour last. One series → one colour (`primary`); to single out one item use emphasis (`primary` vs muted `outlineVariant`), not extra hues — dynamic colour makes multi-hue palettes impossible to check for colour-blind safety. No pies/donuts, no dual axes. Marks are thin (`FiscusSize.chart*` tokens) with a 4dp rounded data end and a square baseline; one solid hairline baseline, no dashed grids. Values and labels use text colours, never the mark colour; label selectively and give every mark a TalkBack description. Load the `dataviz` skill before adding a chart.
 - Accessibility: decorative icons get `contentDescription = null`; when a visible label is hidden (icons-only nav, collapsed FAB) the icon gets the label instead.
 - Strings are still hard-coded (no `strings.xml` yet).
 
@@ -92,7 +93,7 @@ util              Money.kt (formatMoney, currencySymbol), DateRanges.kt
 - **Transaction details**: hero, segmented details, `HorizontalFloatingToolbar` with Edit / Delete (confirm). Live — edits show immediately.
 - **Settings**: Appearance (theme, dynamic color, icon shape, app bar size, bottom bar labels, app bar scroll), Manage (Categories, Accounts), About. "Collapse" scroll is hidden and read as Pinned when the app bar is Small.
 - **Transactions**: month by month (‹ month › header, no future months), whole-month Income/Spent/Net summary, filters (type as a connected button group; Account and Category filter chips with menus; Clear), list grouped by day. Deleting happens only from the details page (swipe-to-delete was removed: its red background showed through the container transform). Uses the app's normal title bar (so the app bar size/scroll settings apply) with a **search icon** that opens the Search page (`search` route): its own search field as the header, focused on arrival, results across all months (title or note, `LIKE` with escaped wildcards) that container-transform into details. The app title bar is hidden only on the Search page. (A search icon can't open `ExpandedFullScreenContainedSearchBar`: it grows out of an on-screen search field's position, which only `SearchBar`/`AppBarWithSearch` record.) Filtering happens in `TransactionsViewModel` over the month's rows; the summary ignores filters.
-- **Analysis**: empty-state placeholder only.
+- **Analysis**: same ‹ month › switcher (`FiscusMonthSwitcher`); 2×2 stat tiles (Spent + income, change vs last month in words, daily average — days so far for the current month — and savings rate); "By category" ranked single-colour bars with an Expense/Income toggle (top 6 + "Other"); "Spending by month" 6-month columns with the selected month emphasised (tap a column to jump there); "Biggest expenses" (top 5, rows open details). Maths is pure and unit-tested in `AnalysisMath.kt`; monthly grouping uses SQLite `strftime` in UTC, matching the UTC-midnight date storage.
 
 ## Known bugs and workarounds
 
@@ -106,7 +107,6 @@ util              Money.kt (formatMoney, currencySymbol), DateRanges.kt
 
 ## Open items
 
-- Analysis screen.
 - Account opening balance can't be set in the UI (DB supports it).
 - Month on Home is fixed when it opens (`shortcut:` in `HomeViewModel`).
 - Draft isn't kept across process death.

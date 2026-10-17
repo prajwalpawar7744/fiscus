@@ -44,6 +44,7 @@ import com.prajwalpawar.fiscus.data.repository.AccountRepository
 import com.prajwalpawar.fiscus.data.repository.CategoryRepository
 import com.prajwalpawar.fiscus.data.repository.TransactionRepository
 import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
+import com.prajwalpawar.fiscus.ui.components.monthLabel
 import com.prajwalpawar.fiscus.ui.components.ImeInsetsRepair
 import com.prajwalpawar.fiscus.ui.navigation.FiscusDestination
 import com.prajwalpawar.fiscus.ui.navigation.FiscusNavigationBar
@@ -61,6 +62,7 @@ import com.prajwalpawar.fiscus.ui.screens.manage.ManageAccountsScreen
 import com.prajwalpawar.fiscus.ui.screens.manage.ManageCategoriesScreen
 import com.prajwalpawar.fiscus.ui.screens.manage.ManageViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.analysis.AnalysisScreen
+import com.prajwalpawar.fiscus.ui.screens.analysis.AnalysisViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.home.HomeScreen
 import com.prajwalpawar.fiscus.ui.screens.home.HomeViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
@@ -75,8 +77,6 @@ import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionsScreen
 import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionsViewModelFactory
 import com.prajwalpawar.fiscus.ui.theme.FiscusMotion
 import java.time.YearMonth
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -181,7 +181,7 @@ fun FiscusApp (
     ImeInsetsRepair()
 
     val currentMonthLabel = remember {
-        YearMonth.now().format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.getDefault()))
+        monthLabel(YearMonth.now())
     }
 
     Scaffold(
@@ -366,7 +366,14 @@ fun FiscusApp (
                     }
 
                     fiscusComposable(FiscusDestination.Analysis.route) {
-                        AnalysisScreen()
+                        AnalysisScreen(
+                            viewModel = viewModel(
+                                factory = AnalysisViewModelFactory(transactionRepository)
+                            ),
+                            onTransactionClick = { id ->
+                                navController.navigate(FiscusRoutes.transactionDetails(id))
+                            }
+                        )
                     }
 
                     fiscusComposable(FiscusDestination.Settings.route) {

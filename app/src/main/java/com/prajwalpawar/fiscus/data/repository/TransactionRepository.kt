@@ -6,6 +6,8 @@ import com.prajwalpawar.fiscus.data.local.dao.TransactionDao
 import com.prajwalpawar.fiscus.data.local.dao.TransactionDetailsRow
 import com.prajwalpawar.fiscus.data.local.entity.toEntity
 import com.prajwalpawar.fiscus.data.local.entity.toTransaction
+import com.prajwalpawar.fiscus.data.model.CategoryTotal
+import com.prajwalpawar.fiscus.data.model.MonthTotals
 import com.prajwalpawar.fiscus.data.model.PeriodTotals
 import com.prajwalpawar.fiscus.data.model.Transaction
 import com.prajwalpawar.fiscus.data.model.TransactionDetails
@@ -13,6 +15,7 @@ import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.util.DateRange
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.YearMonth
 
 class TransactionRepository (
     private val database: FiscusDatabase,
@@ -43,6 +46,33 @@ class TransactionRepository (
             .replace("_", "\\_")
 
         return transactionDao.searchTransactions(pattern, limit)
+            .map { rows -> rows.map { it.toDetails() } }
+    }
+
+    fun observeCategoryTotals(type: TransactionType, range: DateRange): Flow<List<CategoryTotal>> {
+        return transactionDao.observeCategoryTotals(type.name, range.startMillis, range.endMillis)
+            .map { rows ->
+                rows.map { row ->
+                    CategoryTotal(
+                        categoryId = row.categoryId,
+                        name = row.categoryName ?: "Uncategorised",
+                        iconKey = row.iconKey ?: "category",
+                        total = row.total
+                    )
+                }
+            }
+    }
+
+    // One entry per month in the range that has transactions; callers fill the gaps.
+    fun observeMonthlyTotals(range: DateRange): Flow<List<MonthTotals>> {
+        return transactionDao.observeMonthlyTotals(range.startMillis, range.endMillis)
+            .map { rows ->
+                rows.map { MonthTotals(YearMonth.parse(it.month), it.income, it.expense) }
+            }
+    }
+
+    fun observeLargestExpenses(range: DateRange, limit: Int): Flow<List<TransactionDetails>> {
+        return transactionDao.observeLargestExpenses(range.startMillis, range.endMillis, limit)
             .map { rows -> rows.map { it.toDetails() } }
     }
 

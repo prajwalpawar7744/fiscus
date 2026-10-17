@@ -13,8 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.FilterListOff
@@ -22,7 +20,6 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +43,8 @@ import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.FiscusConnectedToggleGroup
 import com.prajwalpawar.fiscus.ui.components.FiscusDropdownMenu
 import com.prajwalpawar.fiscus.ui.components.FiscusEmptyState
+import com.prajwalpawar.fiscus.ui.components.FiscusMonthSwitcher
+import com.prajwalpawar.fiscus.ui.components.monthLabel
 import com.prajwalpawar.fiscus.ui.components.FiscusTransactionRow
 import com.prajwalpawar.fiscus.ui.components.transactionsByDay
 import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
@@ -53,9 +52,6 @@ import com.prajwalpawar.fiscus.ui.navigation.containerTransform
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 import com.prajwalpawar.fiscus.util.formatMoney
-import java.time.YearMonth
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -73,7 +69,7 @@ fun TransactionsScreen(
         verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
     ) {
         item(key = "month") {
-            MonthHeader(
+            FiscusMonthSwitcher(
                 month = uiState.month,
                 canGoForward = uiState.canGoForward,
                 onPrevious = viewModel::previousMonth,
@@ -133,42 +129,6 @@ fun TransactionsScreen(
                         .containerTransform(ContainerKeys.transaction(transaction.id))
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun MonthHeader(
-    month: YearMonth,
-    canGoForward: Boolean,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = FiscusSpacing.xs, vertical = FiscusSpacing.sm),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onPrevious) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = "Previous month"
-            )
-        }
-
-        Text(
-            text = monthLabel(month),
-            style = MaterialTheme.typography.titleLargeEmphasized,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.weight(1f)
-        )
-
-        IconButton(onClick = onNext, enabled = canGoForward) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "Next month"
-            )
         }
     }
 }
@@ -345,8 +305,4 @@ private fun NoMatches(onClear: () -> Unit) {
             Text("Clear filters")
         }
     }
-}
-
-private fun monthLabel(month: YearMonth): String {
-    return month.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.getDefault()))
 }

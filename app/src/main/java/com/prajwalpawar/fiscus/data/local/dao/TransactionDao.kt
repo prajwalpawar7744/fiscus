@@ -51,6 +51,20 @@ data class TransactionDetailsRow(
     val destinationAccountName: String?
 )
 
+data class CategoryTotalRow(
+    val categoryId: Long?,
+    val categoryName: String?,
+    val iconKey: String?,
+    val total: Long
+)
+
+data class MonthTotalsRow(
+    // "2026-10"
+    val month: String,
+    val income: Long,
+    val expense: Long
+)
+
 data class PeriodTotalsRow(
     val income: Long,
     val expense: Long
@@ -94,6 +108,43 @@ interface TransactionDao {
         """
     )
     fun searchTransactions(pattern: String, limit: Int): Flow<List<TransactionDetailsRow>>
+
+    // Totals per category for one type in [startMillis, endMillis), largest first.
+    @Query(
+        """
+        SELECT
+            t.categoryId AS categoryId,
+            c.name AS categoryName,
+            c.iconKey AS iconKey,
+            SUM(t.amount) AS total
+        FROM transactions AS t
+        LEFT JOIN categories AS c ON c.id = t.categoryId
+        WHERE t.type = :type AND t.date >= :startMillis AND t.date < :endMillis
+        GROUP BY t.categoryId
+        ORDER BY total DESC
+        """
+    )
+    fun observeCategoryTotals(type: String, startMillis: Long, endMillis: Long): Flow<List<CategoryTotalRow>>
+
+    // Income and expense per calendar month. Dates are UTC midnights, so grouping in
+    // UTC gives each transaction its local calendar month. Months with nothing are absent.
+    @Query(
+        """
+        SELECT
+            strftime('%Y-%m', date / 1000, 'unixepoch') AS month,
+            COALESCE(SUM(CASE WHEN type = 'INCOME' THEN amount END), 0) AS income,
+            COALESCE(SUM(CASE WHEN type = 'EXPENSE' THEN amount END), 0) AS expense
+        FROM transactions
+        WHERE date >= :startMillis AND date < :endMillis
+        GROUP BY month
+        ORDER BY month
+        """
+    )
+    fun observeMonthlyTotals(startMillis: Long, endMillis: Long): Flow<List<MonthTotalsRow>>
+
+    // The largest expenses in [startMillis, endMillis).
+    @Query("$DETAILS_SELECT WHERE t.type = 'EXPENSE' AND t.date >= :startMillis AND t.date < :endMillis ORDER BY t.amount DESC, t.date DESC LIMIT :limit")
+    fun observeLargestExpenses(startMillis: Long, endMillis: Long, limit: Int): Flow<List<TransactionDetailsRow>>
 
     // Emits null once the transaction is deleted.
     @Query("$DETAILS_SELECT WHERE t.id = :id")

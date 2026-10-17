@@ -19,6 +19,14 @@ fun monthRange(month: YearMonth = YearMonth.now()): DateRange {
     )
 }
 
+// From the first day of [first] up to (not including) the month after [last].
+fun monthSpanRange(first: YearMonth, last: YearMonth): DateRange {
+    return DateRange(
+        startMillis = first.atDay(1).toUtcMidnightMillis(),
+        endMillis = last.plusMonths(1).atDay(1).toUtcMidnightMillis()
+    )
+}
+
 // The local calendar day of a stored transaction date.
 fun storedDateToLocalDate(millis: Long): LocalDate {
     return java.time.Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
