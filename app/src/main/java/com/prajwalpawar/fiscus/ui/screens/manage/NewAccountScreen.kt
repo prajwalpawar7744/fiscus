@@ -6,11 +6,8 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -26,6 +23,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.prajwalpawar.fiscus.data.model.AccountType
+import com.prajwalpawar.fiscus.ui.components.FiscusChipIcon
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.accountIcon
 import com.prajwalpawar.fiscus.ui.components.accountTypeLabel
@@ -101,9 +99,9 @@ fun NewAccountScreen(
                             Text(accountTypeLabel(type))
                         },
                         leadingIcon = {
-                            Icon(
-                                imageVector = if (selected) Icons.Filled.Check else accountIcon(type),
-                                contentDescription = null
+                            FiscusChipIcon(
+                                selected = selected,
+                                icon = accountIcon(type)
                             )
                         }
                     )

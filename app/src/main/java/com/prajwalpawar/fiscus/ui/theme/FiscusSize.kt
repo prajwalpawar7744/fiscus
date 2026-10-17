@@ -9,4 +9,5 @@ object FiscusSize {
     val datePickerMaxWidth: Dp = 360.dp
     val emptyStateShape: Dp = 120.dp
     val emptyStateIcon: Dp = 48.dp
+    val listIconContainer: Dp = 40.dp
 }

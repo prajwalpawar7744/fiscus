@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.DirectionsCar
@@ -78,6 +77,7 @@ import com.prajwalpawar.fiscus.data.model.Account
 import com.prajwalpawar.fiscus.data.model.CategoryType
 import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.DockedDatePicker
+import com.prajwalpawar.fiscus.ui.components.FiscusChipIcon
 import com.prajwalpawar.fiscus.ui.components.FiscusConnectedToggleGroup
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.FiscusSubmitButton
@@ -236,13 +236,9 @@ private fun AddTransactionContent(
                             Text(text = category.name)
                         },
                         leadingIcon = {
-                            Icon(
-                                imageVector = if (selected) {
-                                    Icons.Filled.Check
-                                } else {
-                                    categoryIcon(category.iconKey)
-                                },
-                                contentDescription = null
+                            FiscusChipIcon(
+                                selected = selected,
+                                icon = categoryIcon(category.iconKey)
                             )
                         }
                     )
@@ -430,13 +426,9 @@ private fun AccountChipSection(
                     Text(text = account.name)
                 },
                 leadingIcon = {
-                    Icon(
-                        imageVector = if (selected) {
-                            Icons.Filled.Check
-                        } else {
-                            accountIcon(account.type)
-                        },
-                        contentDescription = null
+                    FiscusChipIcon(
+                        selected = selected,
+                        icon = accountIcon(account.type)
                     )
                 }
             )

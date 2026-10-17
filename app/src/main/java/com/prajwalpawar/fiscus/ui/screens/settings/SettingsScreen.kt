@@ -48,6 +48,7 @@ import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.BottomBarPreference
 import com.prajwalpawar.fiscus.data.model.ThemePreference
 import com.prajwalpawar.fiscus.ui.components.FiscusDropdownMenu
+import com.prajwalpawar.fiscus.ui.components.FiscusListIcon
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.FiscusSegmentedListItem
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
@@ -96,10 +97,7 @@ fun SettingsScreen(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer
                     ),
                     leadingContent = {
-                        Icon(
-                            imageVector = Icons.Default.Wallpaper,
-                            contentDescription = null
-                        )
+                        FiscusListIcon(icon = Icons.Default.Wallpaper)
                     },
                     supportingContent = {
                         Text(
@@ -273,10 +271,7 @@ private fun <T> SettingsSelectionItem(
                 )
             },
             leadingContent = {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null
-                )
+                FiscusListIcon(icon = icon)
             },
             supportingContent = {
                 Text(
@@ -338,10 +333,7 @@ private fun SettingsInfoItem(
         shapes = shapes,
         onClick = onClick,
         leadingContent = {
-            Icon(
-                imageVector = icon,
-                contentDescription = null
-            )
+            FiscusListIcon(icon = icon)
         },
         content = {
             Text(
