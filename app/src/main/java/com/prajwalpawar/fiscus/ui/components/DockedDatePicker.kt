@@ -37,8 +37,9 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
+import com.prajwalpawar.fiscus.ui.theme.FiscusElevation
+import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
-import kotlinx.serialization.descriptors.PrimitiveKind
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -104,10 +105,11 @@ fun DockedDatePicker(
                 ) {
                     Surface(
                         modifier = Modifier
-                            .widthIn(max = FiscusSpacing.uxxxl),
+                            .widthIn(max = FiscusSize.datePickerMaxWidth),
                         shape = MaterialTheme.shapes.extraLarge,
-                        color = MaterialTheme.colorScheme.surface,
-                        tonalElevation = FiscusSpacing.xs
+                        // Matches the DatePicker's own container so the two read as one surface.
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shadowElevation = FiscusElevation.level2
                     ) {
                         Column(
                             modifier = Modifier.padding(FiscusSpacing.md),

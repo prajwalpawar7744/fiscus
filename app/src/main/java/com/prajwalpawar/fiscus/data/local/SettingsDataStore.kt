@@ -2,6 +2,7 @@ package com.prajwalpawar.fiscus.data.local
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -22,6 +23,7 @@ class SettingsDataStore (
 ) {
     private object Keys {
         val theme = stringPreferencesKey("theme")
+        val dynamicColor = booleanPreferencesKey("dynamic_color")
         val appBar = stringPreferencesKey("app_bar")
         val bottomBar = stringPreferencesKey("bottom_bar")
         val appBarScroll = stringPreferencesKey("app_bar_scroll")
@@ -36,6 +38,8 @@ class SettingsDataStore (
                     }.getOrNull()
                 }
                 ?: ThemePreference.SYSTEM,
+
+            dynamicColor = preferences[Keys.dynamicColor] ?: true,
 
             appBar = preferences[Keys.appBar]
                 ?.let { value ->
@@ -76,6 +80,12 @@ class SettingsDataStore (
     suspend fun setTheme(theme: ThemePreference) {
         context.settingsDataStore.edit { preferences ->
             preferences[Keys.theme] = theme.name
+        }
+    }
+
+    suspend fun setDynamicColor(enabled: Boolean) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[Keys.dynamicColor] = enabled
         }
     }
 

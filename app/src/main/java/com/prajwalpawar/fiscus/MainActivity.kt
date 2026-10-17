@@ -33,7 +33,8 @@ class MainActivity : ComponentActivity() {
             }
 
             FiscusTheme (
-                darkTheme = darkTheme
+                darkTheme = darkTheme,
+                dynamicColor = settings.dynamicColor
             ) {
                 FiscusApp()
             }

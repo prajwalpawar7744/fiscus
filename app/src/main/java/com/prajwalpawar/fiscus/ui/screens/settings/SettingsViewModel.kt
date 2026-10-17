@@ -28,6 +28,12 @@ class SettingsViewModel(
         }
     }
 
+    fun setDynamicColor(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.setDynamicColor(enabled)
+        }
+    }
+
     fun setAppBar(appBar: AppBarPreference) {
         viewModelScope.launch {
             settingsDataStore.setAppBar(appBar)

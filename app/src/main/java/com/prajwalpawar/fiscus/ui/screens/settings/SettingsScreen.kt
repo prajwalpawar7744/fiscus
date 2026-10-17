@@ -1,6 +1,7 @@
 package com.prajwalpawar.fiscus.ui.screens.settings
 
 import android.content.Intent
+import android.os.Build
 import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,8 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.ViewAgenda
+import androidx.compose.material.icons.filled.Wallpaper
+import androidx.compose.material3.Switch
 import androidx.compose.material3.CheckableDropdownMenuItem
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuGroup
@@ -40,7 +43,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalCursorBlinkEnabled
 import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.prajwalpawar.fiscus.data.model.AppBarPreference
@@ -66,6 +68,11 @@ fun SettingsScreen(
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
+    // Wallpaper-based color only exists on Android 12+.
+    val dynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val appearanceOffset = if (dynamicColorSupported) 1 else 0
+    val appearanceCount = 4 + appearanceOffset
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -88,9 +95,50 @@ fun SettingsScreen(
                     ThemePreference.DARK to "Dark"
                 ),
                 index = 0,
-                count = 4,
+                count = appearanceCount,
                 onValueSelected = viewModel::setTheme
             )
+        }
+
+        if (dynamicColorSupported) {
+            item {
+                SegmentedListItem(
+                    checked = settings.dynamicColor,
+                    onCheckedChange = viewModel::setDynamicColor,
+                    shapes = ListItemDefaults.segmentedShapes(
+                        index = 1,
+                        count = appearanceCount
+                    ),
+                    colors = ListItemDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    leadingContent = {
+                        Icon(
+                            imageVector = Icons.Default.Wallpaper,
+                            contentDescription = null
+                        )
+                    },
+                    supportingContent = {
+                        Text(
+                            text = "Use colors from your wallpaper",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    trailingContent = {
+                        // The row handles the toggle, so the switch only displays state.
+                        Switch(
+                            checked = settings.dynamicColor,
+                            onCheckedChange = null
+                        )
+                    }
+                ) {
+                    Text(
+                        text = "Dynamic color",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
         }
 
         item {
@@ -103,8 +151,8 @@ fun SettingsScreen(
                     AppBarPreference.MEDIUM to "Medium",
                     AppBarPreference.LARGE to "Large"
                 ),
-                index = 1,
-                count = 4,
+                index = 1 + appearanceOffset,
+                count = appearanceCount,
                 onValueSelected = viewModel::setAppBar
             )
         }
@@ -119,8 +167,8 @@ fun SettingsScreen(
                     BottomBarPreference.ICONS_ONLY to "Icons only",
                     BottomBarPreference.SHOW_LABELS_WHEN_SELECTED to "Show labels when selected"
                 ),
-                index = 2,
-                count = 4,
+                index = 2 + appearanceOffset,
+                count = appearanceCount,
                 onValueSelected = viewModel::setBottomBar
             )
         }
@@ -137,8 +185,8 @@ fun SettingsScreen(
                     (AppBarScrollPreference.EXIT_UNTIL_COLLAPSED to "Collapse")
                         .takeIf { settings.appBar != AppBarPreference.SMALL }
                 ),
-                index = 3,
-                count = 4,
+                index = 3 + appearanceOffset,
+                count = appearanceCount,
                 onValueSelected = viewModel::setAppBarScroll
             )
         }
@@ -296,7 +344,7 @@ private fun <T> SettingsSelectionItem(
                 )
             },
             offset = DpOffset(
-                x = 0.dp,
+                x = FiscusSpacing.none,
                 y = FiscusSpacing.xs
             )
         )
