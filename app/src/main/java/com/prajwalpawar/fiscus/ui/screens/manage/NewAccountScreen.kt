@@ -8,7 +8,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,7 +48,6 @@ fun NewAccountScreen(
         previewIcon = accountIcon(uiState.type),
         previewName = uiState.name.trim(),
         namePlaceholder = "New account",
-        previewShape = MaterialShapes.Clover4Leaf,
         saveLabel = "Add account",
         canSave = uiState.canSave,
         onSave = { viewModel.save(onSaved) },

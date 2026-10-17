@@ -24,9 +24,19 @@ enum class AppBarScrollPreference {
     EXIT_UNTIL_COLLAPSED
 }
 
+enum class IconShapePreference {
+    CIRCLE,
+    SQUARE,
+    COOKIE,
+    CLOVER,
+    SUNNY,
+    FLOWER
+}
+
 data class AppSettings (
     val theme: ThemePreference = ThemePreference.SYSTEM,
     val dynamicColor: Boolean = true,
+    val iconShape: IconShapePreference = IconShapePreference.COOKIE,
     val appBar: AppBarPreference = AppBarPreference.SMALL,
     val bottomBar: BottomBarPreference = BottomBarPreference.SHOW_LABELS,
     val appBarScroll: AppBarScrollPreference = AppBarScrollPreference.PINNED

@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CallToAction
+import androidx.compose.material.icons.filled.Interests
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -46,6 +47,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.prajwalpawar.fiscus.data.model.AppBarPreference
 import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.BottomBarPreference
+import com.prajwalpawar.fiscus.data.model.IconShapePreference
 import com.prajwalpawar.fiscus.data.model.ThemePreference
 import com.prajwalpawar.fiscus.ui.components.FiscusDropdownMenu
 import com.prajwalpawar.fiscus.ui.components.FiscusListIcon
@@ -133,6 +135,24 @@ fun SettingsScreen(
             }
         } else {
             null
+        },
+        { shapes ->
+            SettingsSelectionItem(
+                label = "Icon shape",
+                // The row's own badge previews the chosen shape.
+                icon = Icons.Default.Interests,
+                selectedValue = settings.iconShape,
+                values = listOf(
+                    IconShapePreference.CIRCLE to "Circle",
+                    IconShapePreference.SQUARE to "Square",
+                    IconShapePreference.COOKIE to "Cookie",
+                    IconShapePreference.CLOVER to "Clover",
+                    IconShapePreference.SUNNY to "Sunny",
+                    IconShapePreference.FLOWER to "Flower"
+                ),
+                shapes = shapes,
+                onValueSelected = viewModel::setIconShape
+            )
         },
         { shapes ->
             SettingsSelectionItem(

@@ -22,15 +22,14 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
-import androidx.graphics.shapes.RoundedPolygon
 import com.prajwalpawar.fiscus.ui.components.FiscusSubmitButton
 import com.prajwalpawar.fiscus.ui.theme.FiscusMotion
+import com.prajwalpawar.fiscus.ui.theme.FiscusShapes
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 
@@ -42,7 +41,6 @@ fun NewItemLayout(
     previewIcon: ImageVector,
     previewName: String,
     namePlaceholder: String,
-    previewShape: RoundedPolygon,
     saveLabel: String,
     canSave: Boolean,
     onSave: () -> Unit,
@@ -69,7 +67,7 @@ fun NewItemLayout(
                     .size(FiscusSize.emptyStateShape)
                     .background(
                         color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = previewShape.toShape()
+                        shape = FiscusShapes.icon
                     ),
                 contentAlignment = Alignment.Center
             ) {

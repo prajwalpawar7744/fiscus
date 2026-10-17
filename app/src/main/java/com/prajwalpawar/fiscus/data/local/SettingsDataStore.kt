@@ -10,6 +10,7 @@ import com.prajwalpawar.fiscus.data.model.AppBarPreference
 import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.AppSettings
 import com.prajwalpawar.fiscus.data.model.BottomBarPreference
+import com.prajwalpawar.fiscus.data.model.IconShapePreference
 import com.prajwalpawar.fiscus.data.model.ThemePreference
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -24,6 +25,7 @@ class SettingsDataStore (
     private object Keys {
         val theme = stringPreferencesKey("theme")
         val dynamicColor = booleanPreferencesKey("dynamic_color")
+        val iconShape = stringPreferencesKey("icon_shape")
         val appBar = stringPreferencesKey("app_bar")
         val bottomBar = stringPreferencesKey("bottom_bar")
         val appBarScroll = stringPreferencesKey("app_bar_scroll")
@@ -40,6 +42,14 @@ class SettingsDataStore (
                 ?: ThemePreference.SYSTEM,
 
             dynamicColor = preferences[Keys.dynamicColor] ?: true,
+
+            iconShape = preferences[Keys.iconShape]
+                ?.let { value ->
+                    runCatching {
+                        IconShapePreference.valueOf(value)
+                    }.getOrNull()
+                }
+                ?: IconShapePreference.COOKIE,
 
             appBar = preferences[Keys.appBar]
                 ?.let { value ->
@@ -86,6 +96,12 @@ class SettingsDataStore (
     suspend fun setDynamicColor(enabled: Boolean) {
         context.settingsDataStore.edit { preferences ->
             preferences[Keys.dynamicColor] = enabled
+        }
+    }
+
+    suspend fun setIconShape(iconShape: IconShapePreference) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[Keys.iconShape] = iconShape.name
         }
     }
 

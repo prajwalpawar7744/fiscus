@@ -6,6 +6,7 @@ import com.prajwalpawar.fiscus.data.local.SettingsDataStore
 import com.prajwalpawar.fiscus.data.model.AppBarPreference
 import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.BottomBarPreference
+import com.prajwalpawar.fiscus.data.model.IconShapePreference
 import com.prajwalpawar.fiscus.data.model.ThemePreference
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -31,6 +32,12 @@ class SettingsViewModel(
     fun setDynamicColor(enabled: Boolean) {
         viewModelScope.launch {
             settingsDataStore.setDynamicColor(enabled)
+        }
+    }
+
+    fun setIconShape(iconShape: IconShapePreference) {
+        viewModelScope.launch {
+            settingsDataStore.setIconShape(iconShape)
         }
     }
 

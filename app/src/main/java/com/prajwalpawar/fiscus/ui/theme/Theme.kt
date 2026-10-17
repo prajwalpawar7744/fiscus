@@ -7,14 +7,20 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.expressiveLightColorScheme
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
+import com.prajwalpawar.fiscus.data.model.IconShapePreference
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FiscusTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
+    iconShape: IconShapePreference = IconShapePreference.COOKIE,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -29,7 +35,11 @@ fun FiscusTheme(
 
     // Shapes, motion and typography (system font) use the Expressive defaults.
     MaterialExpressiveTheme(
-        colorScheme = colorScheme,
-        content = content
-    )
+        colorScheme = colorScheme
+    ) {
+        CompositionLocalProvider(
+            LocalIconShape provides iconShape.polygon().toShape(),
+            content = content
+        )
+    }
 }

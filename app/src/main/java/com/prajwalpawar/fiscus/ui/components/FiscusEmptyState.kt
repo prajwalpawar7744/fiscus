@@ -7,29 +7,24 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
-import androidx.graphics.shapes.RoundedPolygon
+import com.prajwalpawar.fiscus.ui.theme.FiscusShapes
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FiscusEmptyState(
     icon: ImageVector,
     title: String,
     message: String,
-    modifier: Modifier = Modifier,
-    shape: RoundedPolygon = MaterialShapes.Cookie9Sided
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
@@ -47,7 +42,7 @@ fun FiscusEmptyState(
                 .size(FiscusSize.emptyStateShape)
                 .background(
                     color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = shape.toShape()
+                    shape = FiscusShapes.icon
                 ),
             contentAlignment = Alignment.Center
         ) {

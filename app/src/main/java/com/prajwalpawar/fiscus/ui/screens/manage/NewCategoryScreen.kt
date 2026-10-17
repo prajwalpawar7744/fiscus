@@ -11,7 +11,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,7 +51,6 @@ fun NewCategoryScreen(
         previewIcon = categoryIcon(uiState.iconKey),
         previewName = uiState.name.trim(),
         namePlaceholder = "New category",
-        previewShape = MaterialShapes.Cookie9Sided,
         saveLabel = "Add category",
         canSave = uiState.canSave,
         onSave = { viewModel.save(onSaved) },
