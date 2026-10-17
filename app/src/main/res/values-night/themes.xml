@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Dark window background in system dark mode, so launch never flashes white. -->
+    <style name="Theme.Fiscus" parent="android:Theme.Material.NoActionBar" />
+</resources>

@@ -25,15 +25,12 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.prajwalpawar.fiscus.data.local.FiscusDatabaseProvider
-import com.prajwalpawar.fiscus.data.local.SettingsDataStore
 import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.AppSettings
 import com.prajwalpawar.fiscus.data.repository.AccountRepository
@@ -52,18 +49,15 @@ import com.prajwalpawar.fiscus.ui.theme.FiscusMotion
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FiscusApp () {
+fun FiscusApp (
+    settings: AppSettings
+) {
     val navController = rememberNavController()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
     val context = LocalContext.current
-    val settingsDataStore = SettingsDataStore(context.applicationContext)
-    val settings by settingsDataStore.settings.collectAsStateWithLifecycle(
-        initialValue = AppSettings(),
-        lifecycle = LocalLifecycleOwner.current.lifecycle
-    )
 
     val scrollBehavior = when (settings.appBarScroll) {
        AppBarScrollPreference.PINNED ->

@@ -2,4 +2,9 @@
 <resources>
 
     <style name="Theme.Fiscus" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Shown until saved settings load, so the first frame already uses the right theme. -->
+    <style name="Theme.Fiscus.Starting" parent="Theme.SplashScreen">
+        <item name="postSplashScreenTheme">@style/Theme.Fiscus</item>
+    </style>
 </resources>

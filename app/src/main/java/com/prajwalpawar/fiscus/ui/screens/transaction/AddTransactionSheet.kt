@@ -50,9 +50,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -69,14 +67,14 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.prajwalpawar.fiscus.data.model.Account
 import com.prajwalpawar.fiscus.data.model.AccountType
-import com.prajwalpawar.fiscus.data.model.Category
 import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.DockedDatePicker
 import com.prajwalpawar.fiscus.ui.components.FiscusConnectedToggleGroup
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
+import java.util.Currency
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,11 +95,17 @@ fun AddTransactionSheet(
         modifier = modifier
     ) {
         AddTransactionContent(
-            categories = uiState.categories,
-            accounts = uiState.accounts,
-            transactionType = uiState.transactionType,
+            uiState = uiState,
             onTransactionTypeChange = viewModel::setTransactionType,
-            onDismissRequest = onDismissRequest
+            onAmountChange = viewModel::setAmount,
+            onCategorySelected = viewModel::selectCategory,
+            onAccountSelected = viewModel::selectAccount,
+            onDateSelected = viewModel::setDate,
+            onNoteChange = viewModel::setNote,
+            onSubmit = {
+                // Saving is connected in F1; until then the draft is kept.
+                onDismissRequest()
+            }
         )
     }
 }
@@ -109,48 +113,17 @@ fun AddTransactionSheet(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun AddTransactionContent(
-    onDismissRequest: () -> Unit,
-    modifier: Modifier = Modifier,
-    categories: List<Category>,
-    accounts: List<Account>,
-    transactionType: TransactionType,
-    onTransactionTypeChange: (TransactionType) -> Unit
+    uiState: TransactionUiState,
+    onTransactionTypeChange: (TransactionType) -> Unit,
+    onAmountChange: (String) -> Unit,
+    onCategorySelected: (Long) -> Unit,
+    onAccountSelected: (Long) -> Unit,
+    onDateSelected: (Long) -> Unit,
+    onNoteChange: (String) -> Unit,
+    onSubmit: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    var selectedCategoryId by remember {
-        mutableStateOf<Long?>(null)
-    }
-
-    var selectedAccountId by remember {
-        mutableStateOf<Long?>(null)
-    }
-
-    var amount by remember {
-        mutableStateOf("")
-    }
-
-    var note by remember {
-        mutableStateOf("")
-    }
-
-    var selectedDateMillis by remember {
-        mutableStateOf(todayAsUtcMillis())
-    }
-
-    val parsedAmount = amount.toBigDecimalOrNull()
-
-    val amountIsValid = parsedAmount?.let {
-        it > java.math.BigDecimal.ZERO
-    } ?: false
-
-    val formIsValid = amountIsValid && when (transactionType) {
-        TransactionType.EXPENSE,
-        TransactionType.INCOME -> {
-            selectedCategoryId != null &&
-                    selectedAccountId != null
-        }
-
-        TransactionType.TRANSFER -> false
-    }
+    val form = uiState.form
 
     // The sheet already pads for the navigation bar and keyboard.
     Column(
@@ -172,7 +145,7 @@ private fun AddTransactionContent(
         // Type comes first because it changes which fields follow.
         FiscusConnectedToggleGroup(
             options = TransactionType.entries,
-            selectedOption = transactionType,
+            selectedOption = form.type,
             onOptionSelected = onTransactionTypeChange,
             optionLabel = { type ->
                 when (type) {
@@ -186,30 +159,22 @@ private fun AddTransactionContent(
 
         AmountField(
             modifier = inset,
-            amount = amount,
-            onAmountChange = { value ->
-                val filtered = value.filter { character ->
-                    character.isDigit() || character == '.'
-                }
-
-                if (filtered.count { it == '.' } <= 1) {
-                    amount = filtered
-                }
-            }
+            amount = form.amount,
+            onAmountChange = onAmountChange
         )
 
-        if (transactionType != TransactionType.TRANSFER) {
+        if (form.type != TransactionType.TRANSFER) {
             ChipSection(title = "Category", titleModifier = inset) {
                 items(
-                    items = categories,
+                    items = uiState.categories,
                     key = { it.id }
                 ) { category ->
-                    val selected = selectedCategoryId == category.id
+                    val selected = form.categoryId == category.id
 
                     FilterChip(
                         selected = selected,
                         onClick = {
-                            selectedCategoryId = category.id
+                            onCategorySelected(category.id)
                         },
                         label = {
                             Text(text = category.name)
@@ -231,15 +196,15 @@ private fun AddTransactionContent(
 
         ChipSection(title = "Account", titleModifier = inset) {
             items(
-                items = accounts,
+                items = uiState.accounts,
                 key = { it.id }
             ) { account ->
-                val selected = selectedAccountId == account.id
+                val selected = uiState.selectedAccountId == account.id
 
                 FilterChip(
                     selected = selected,
                     onClick = {
-                        selectedAccountId = account.id
+                        onAccountSelected(account.id)
                     },
                     label = {
                         Text(text = account.name)
@@ -260,18 +225,14 @@ private fun AddTransactionContent(
 
         DockedDatePicker(
             modifier = inset,
-            selectedDateMillis = selectedDateMillis,
-            onDateSelected = {
-                selectedDateMillis = it
-            },
+            selectedDateMillis = form.dateMillis,
+            onDateSelected = onDateSelected,
             label = "Date"
         )
 
         OutlinedTextField(
-            value = note,
-            onValueChange = {
-                note = it
-            },
+            value = form.note,
+            onValueChange = onNoteChange,
             modifier = inset.fillMaxWidth(),
             label = {
                 Text("Note")
@@ -286,15 +247,11 @@ private fun AddTransactionContent(
         val buttonHeight = ButtonDefaults.MediumContainerHeight
 
         Button(
-            onClick = {
-                // Transaction creation will be connected later.
-                // for now dismiss only
-                onDismissRequest()
-            },
+            onClick = onSubmit,
             modifier = inset
                 .fillMaxWidth()
                 .heightIn(min = buttonHeight),
-            enabled = formIsValid,
+            enabled = uiState.isValid,
             shapes = ButtonDefaults.shapes(),
             contentPadding = ButtonDefaults.contentPaddingFor(
                 buttonHeight = buttonHeight,
@@ -316,6 +273,22 @@ private fun AddTransactionContent(
                 style = ButtonDefaults.textStyleFor(buttonHeight)
             )
         }
+
+        // Explain a disabled button instead of leaving the user to guess.
+        uiState.issue?.let { issue ->
+            Text(
+                text = when (issue) {
+                    TransactionFormIssue.AMOUNT -> "Enter an amount to continue"
+                    TransactionFormIssue.CATEGORY -> "Choose a category to continue"
+                    TransactionFormIssue.ACCOUNT -> "Choose an account to continue"
+                    TransactionFormIssue.TRANSFER_UNAVAILABLE -> "Transfers aren't available yet"
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = inset.fillMaxWidth()
+            )
+        }
     }
 }
 
@@ -328,7 +301,7 @@ private fun AmountField(
     val mutedColor = MaterialTheme.colorScheme.onSurfaceVariant
     val transformation = remember(mutedColor) {
         CurrencyAmountTransformation(
-            symbol = "$",
+            symbol = localCurrencySymbol(),
             mutedColor = mutedColor
         )
     }
@@ -410,19 +383,11 @@ private fun ChipSection(
     }
 }
 
-private fun todayAsUtcMillis(): Long {
-    val today = java.util.Calendar.getInstance()
-
-    return java.util.Calendar.getInstance(
-        java.util.TimeZone.getTimeZone("UTC")
-    ).apply {
-        clear()
-        set(
-            today.get(java.util.Calendar.YEAR),
-            today.get(java.util.Calendar.MONTH),
-            today.get(java.util.Calendar.DAY_OF_MONTH)
-        )
-    }.timeInMillis
+// Locales without a country (e.g. plain "en") have no currency, so fall back to the generic sign.
+private fun localCurrencySymbol(): String {
+    return runCatching {
+        Currency.getInstance(Locale.getDefault()).symbol
+    }.getOrDefault("¤")
 }
 
 private fun categoryIcon(iconKey: String): ImageVector {
