@@ -1,5 +1,6 @@
 package com.prajwalpawar.fiscus
 
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -14,6 +15,7 @@ import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,7 +30,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
@@ -44,7 +45,11 @@ import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
 import com.prajwalpawar.fiscus.ui.components.ImeInsetsRepair
 import com.prajwalpawar.fiscus.ui.navigation.FiscusDestination
 import com.prajwalpawar.fiscus.ui.navigation.FiscusNavigationBar
+import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
 import com.prajwalpawar.fiscus.ui.navigation.FiscusRoutes
+import com.prajwalpawar.fiscus.ui.navigation.LocalSharedTransitionScope
+import com.prajwalpawar.fiscus.ui.navigation.containerTransform
+import com.prajwalpawar.fiscus.ui.navigation.fiscusComposable
 import com.prajwalpawar.fiscus.ui.navigation.navigateToTab
 import com.prajwalpawar.fiscus.ui.screens.manage.AccountEditorScreen
 import com.prajwalpawar.fiscus.ui.screens.manage.AccountEditorViewModelFactory
@@ -272,203 +277,215 @@ fun FiscusApp (
             }
         }
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = FiscusDestination.Home.route,
-            modifier = Modifier.padding(innerPadding),
-            // Fade through between tabs, timed by the Expressive motion scheme.
-            enterTransition = {
-                fadeIn(motionScheme.defaultEffectsSpec()) +
-                        scaleIn(
-                            animationSpec = motionScheme.defaultSpatialSpec(),
-                            initialScale = FiscusMotion.ENTER_SCALE
-                        )
-            },
-            exitTransition = {
-                fadeOut(motionScheme.fastEffectsSpec())
-            }
-        ) {
-            composable(FiscusDestination.Home.route) {
-                HomeScreen(
-                    viewModel = viewModel(
-                        factory = HomeViewModelFactory(accountRepository, transactionRepository)
-                    ),
-                    onSeeAllClick = {
-                        navController.navigateToTab(FiscusDestination.Transactions)
+        // Lets a tapped row or card grow into the page it opens (container transform).
+        SharedTransitionLayout {
+            CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+                NavHost(
+                    navController = navController,
+                    startDestination = FiscusDestination.Home.route,
+                    modifier = Modifier.padding(innerPadding),
+                    // Fade through between tabs, timed by the Expressive motion scheme.
+                    enterTransition = {
+                        fadeIn(motionScheme.defaultEffectsSpec()) +
+                                scaleIn(
+                                    animationSpec = motionScheme.defaultSpatialSpec(),
+                                    initialScale = FiscusMotion.ENTER_SCALE
+                                )
                     },
-                    onAddAccountClick = {
-                        navController.navigate(FiscusRoutes.NEW_ACCOUNT)
-                    },
-                    onAccountClick = { id ->
-                        navController.navigate(FiscusRoutes.editAccount(id))
-                    },
-                    onTransactionClick = { id ->
-                        navController.navigate(FiscusRoutes.transactionDetails(id))
+                    exitTransition = {
+                        fadeOut(motionScheme.fastEffectsSpec())
                     }
-                )
-            }
-
-            composable(FiscusDestination.Transactions.route) {
-                TransactionsScreen()
-            }
-
-            composable(FiscusDestination.Analysis.route) {
-                AnalysisScreen()
-            }
-
-            composable(FiscusDestination.Settings.route) {
-                SettingsScreen(
-                    onCategoriesClick = {
-                        navController.navigate(FiscusRoutes.MANAGE_CATEGORIES)
-                    },
-                    onAccountsClick = {
-                        navController.navigate(FiscusRoutes.MANAGE_ACCOUNTS)
-                    }
-                )
-            }
-
-            composable(
-                route = FiscusRoutes.NEW_CATEGORY,
-                arguments = listOf(
-                    navArgument(FiscusRoutes.TYPE_ARG) {
-                        type = NavType.StringType
-                        defaultValue = CategoryType.EXPENSE.name
-                    }
-                )
-            ) { entry ->
-                val initialType = entry.arguments
-                    ?.getString(FiscusRoutes.TYPE_ARG)
-                    ?.let { runCatching { CategoryType.valueOf(it) }.getOrNull() }
-                    ?: CategoryType.EXPENSE
-
-                CategoryEditorScreen(
-                    viewModel = viewModel(
-                        factory = CategoryEditorViewModelFactory(categoryRepository, initialType)
-                    ),
-                    onDone = { navController.popBackStack() },
-                    onSaved = { id, type ->
-                        // Opened from the sheet: pick the new category in the draft.
-                        if (showAddTransactionSheet) {
-                            transactionViewModel.setTransactionType(
-                                if (type == CategoryType.INCOME) {
-                                    TransactionType.INCOME
-                                } else {
-                                    TransactionType.EXPENSE
-                                }
-                            )
-                            transactionViewModel.selectCategory(id)
-                        }
-                        navController.popBackStack()
-                    }
-                )
-            }
-
-            composable(FiscusRoutes.NEW_ACCOUNT) {
-                AccountEditorScreen(
-                    viewModel = viewModel(
-                        factory = AccountEditorViewModelFactory(accountRepository)
-                    ),
-                    onDone = { navController.popBackStack() },
-                    onSaved = { id ->
-                        // Opened from the sheet: pick the new account in the row it came from.
-                        if (showAddTransactionSheet) {
-                            if (newAccountIsTransferTarget) {
-                                transactionViewModel.selectToAccount(id)
-                            } else {
-                                transactionViewModel.selectAccount(id)
+                ) {
+                    fiscusComposable(FiscusDestination.Home.route) {
+                        HomeScreen(
+                            viewModel = viewModel(
+                                factory = HomeViewModelFactory(accountRepository, transactionRepository)
+                            ),
+                            onSeeAllClick = {
+                                navController.navigateToTab(FiscusDestination.Transactions)
+                            },
+                            onAddAccountClick = {
+                                navController.navigate(FiscusRoutes.NEW_ACCOUNT)
+                            },
+                            onAccountClick = { id ->
+                                navController.navigate(FiscusRoutes.editAccount(id))
+                            },
+                            onTransactionClick = { id ->
+                                navController.navigate(FiscusRoutes.transactionDetails(id))
                             }
-                        }
-                        navController.popBackStack()
-                    }
-                )
-            }
-
-            composable(
-                route = FiscusRoutes.TRANSACTION_DETAILS,
-                arguments = listOf(
-                    navArgument(FiscusRoutes.ID_ARG) { type = NavType.LongType }
-                )
-            ) { entry ->
-                val id = entry.arguments?.getLong(FiscusRoutes.ID_ARG) ?: 0L
-
-                TransactionDetailsScreen(
-                    viewModel = viewModel(
-                        factory = TransactionDetailsViewModelFactory(transactionRepository, id)
-                    ),
-                    onEditClick = { transactionId ->
-                        // Open the sheet once the transaction is loaded into it.
-                        transactionViewModel.startEditing(transactionId) {
-                            showAddTransactionSheet = true
-                        }
-                    },
-                    onDeleted = { navController.popBackStack() }
-                )
-            }
-
-            composable(FiscusRoutes.MANAGE_CATEGORIES) {
-                ManageCategoriesScreen(
-                    viewModel = viewModel(
-                        factory = ManageViewModelFactory(categoryRepository, accountRepository)
-                    ),
-                    onCategoryClick = { id ->
-                        navController.navigate(FiscusRoutes.editCategory(id))
-                    },
-                    onAddCategoryClick = { type ->
-                        navController.navigate(FiscusRoutes.newCategory(type))
-                    }
-                )
-            }
-
-            composable(FiscusRoutes.MANAGE_ACCOUNTS) {
-                ManageAccountsScreen(
-                    viewModel = viewModel(
-                        factory = ManageViewModelFactory(categoryRepository, accountRepository)
-                    ),
-                    onAccountClick = { id ->
-                        navController.navigate(FiscusRoutes.editAccount(id))
-                    },
-                    onAddAccountClick = {
-                        navController.navigate(FiscusRoutes.NEW_ACCOUNT)
-                    }
-                )
-            }
-
-            composable(
-                route = FiscusRoutes.EDIT_CATEGORY,
-                arguments = listOf(
-                    navArgument(FiscusRoutes.ID_ARG) { type = NavType.LongType }
-                )
-            ) { entry ->
-                val id = entry.arguments?.getLong(FiscusRoutes.ID_ARG) ?: 0L
-
-                CategoryEditorScreen(
-                    viewModel = viewModel(
-                        factory = CategoryEditorViewModelFactory(
-                            categoryRepository = categoryRepository,
-                            initialType = CategoryType.EXPENSE,
-                            editingId = id
                         )
-                    ),
-                    onSaved = { _, _ -> navController.popBackStack() },
-                    onDone = { navController.popBackStack() }
-                )
-            }
+                    }
 
-            composable(
-                route = FiscusRoutes.EDIT_ACCOUNT,
-                arguments = listOf(
-                    navArgument(FiscusRoutes.ID_ARG) { type = NavType.LongType }
-                )
-            ) { entry ->
-                val id = entry.arguments?.getLong(FiscusRoutes.ID_ARG) ?: 0L
+                    fiscusComposable(FiscusDestination.Transactions.route) {
+                        TransactionsScreen()
+                    }
 
-                AccountEditorScreen(
-                    viewModel = viewModel(
-                        factory = AccountEditorViewModelFactory(accountRepository, editingId = id)
-                    ),
-                    onSaved = { navController.popBackStack() },
-                    onDone = { navController.popBackStack() }
-                )
+                    fiscusComposable(FiscusDestination.Analysis.route) {
+                        AnalysisScreen()
+                    }
+
+                    fiscusComposable(FiscusDestination.Settings.route) {
+                        SettingsScreen(
+                            onCategoriesClick = {
+                                navController.navigate(FiscusRoutes.MANAGE_CATEGORIES)
+                            },
+                            onAccountsClick = {
+                                navController.navigate(FiscusRoutes.MANAGE_ACCOUNTS)
+                            }
+                        )
+                    }
+
+                    fiscusComposable(
+                        route = FiscusRoutes.NEW_CATEGORY,
+                        arguments = listOf(
+                            navArgument(FiscusRoutes.TYPE_ARG) {
+                                type = NavType.StringType
+                                defaultValue = CategoryType.EXPENSE.name
+                            }
+                        )
+                    ) { entry ->
+                        val initialType = entry.arguments
+                            ?.getString(FiscusRoutes.TYPE_ARG)
+                            ?.let { runCatching { CategoryType.valueOf(it) }.getOrNull() }
+                            ?: CategoryType.EXPENSE
+
+                        CategoryEditorScreen(
+                            modifier = Modifier.containerTransform(ContainerKeys.newCategory(initialType.name)),
+                            viewModel = viewModel(
+                                factory = CategoryEditorViewModelFactory(categoryRepository, initialType)
+                            ),
+                            onDone = { navController.popBackStack() },
+                            onSaved = { id, type ->
+                                // Opened from the sheet: pick the new category in the draft.
+                                if (showAddTransactionSheet) {
+                                    transactionViewModel.setTransactionType(
+                                        if (type == CategoryType.INCOME) {
+                                            TransactionType.INCOME
+                                        } else {
+                                            TransactionType.EXPENSE
+                                        }
+                                    )
+                                    transactionViewModel.selectCategory(id)
+                                }
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+
+                    fiscusComposable(FiscusRoutes.NEW_ACCOUNT) {
+                        AccountEditorScreen(
+                            modifier = Modifier.containerTransform(ContainerKeys.NEW_ACCOUNT),
+                            viewModel = viewModel(
+                                factory = AccountEditorViewModelFactory(accountRepository)
+                            ),
+                            onDone = { navController.popBackStack() },
+                            onSaved = { id ->
+                                // Opened from the sheet: pick the new account in the row it came from.
+                                if (showAddTransactionSheet) {
+                                    if (newAccountIsTransferTarget) {
+                                        transactionViewModel.selectToAccount(id)
+                                    } else {
+                                        transactionViewModel.selectAccount(id)
+                                    }
+                                }
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+
+                    fiscusComposable(
+                        route = FiscusRoutes.TRANSACTION_DETAILS,
+                        arguments = listOf(
+                            navArgument(FiscusRoutes.ID_ARG) { type = NavType.LongType }
+                        )
+                    ) { entry ->
+                        val id = entry.arguments?.getLong(FiscusRoutes.ID_ARG) ?: 0L
+
+                        TransactionDetailsScreen(
+                            modifier = Modifier.containerTransform(ContainerKeys.transaction(id)),
+                            viewModel = viewModel(
+                                factory = TransactionDetailsViewModelFactory(transactionRepository, id)
+                            ),
+                            onEditClick = { transactionId ->
+                                // Open the sheet once the transaction is loaded into it.
+                                transactionViewModel.startEditing(transactionId) {
+                                    showAddTransactionSheet = true
+                                }
+                            },
+                            onDeleted = { navController.popBackStack() }
+                        )
+                    }
+
+                    fiscusComposable(FiscusRoutes.MANAGE_CATEGORIES) {
+                        ManageCategoriesScreen(
+                            modifier = Modifier.containerTransform(ContainerKeys.MANAGE_CATEGORIES),
+                            viewModel = viewModel(
+                                factory = ManageViewModelFactory(categoryRepository, accountRepository)
+                            ),
+                            onCategoryClick = { id ->
+                                navController.navigate(FiscusRoutes.editCategory(id))
+                            },
+                            onAddCategoryClick = { type ->
+                                navController.navigate(FiscusRoutes.newCategory(type))
+                            }
+                        )
+                    }
+
+                    fiscusComposable(FiscusRoutes.MANAGE_ACCOUNTS) {
+                        ManageAccountsScreen(
+                            modifier = Modifier.containerTransform(ContainerKeys.MANAGE_ACCOUNTS),
+                            viewModel = viewModel(
+                                factory = ManageViewModelFactory(categoryRepository, accountRepository)
+                            ),
+                            onAccountClick = { id ->
+                                navController.navigate(FiscusRoutes.editAccount(id))
+                            },
+                            onAddAccountClick = {
+                                navController.navigate(FiscusRoutes.NEW_ACCOUNT)
+                            }
+                        )
+                    }
+
+                    fiscusComposable(
+                        route = FiscusRoutes.EDIT_CATEGORY,
+                        arguments = listOf(
+                            navArgument(FiscusRoutes.ID_ARG) { type = NavType.LongType }
+                        )
+                    ) { entry ->
+                        val id = entry.arguments?.getLong(FiscusRoutes.ID_ARG) ?: 0L
+
+                        CategoryEditorScreen(
+                            modifier = Modifier.containerTransform(ContainerKeys.category(id)),
+                            viewModel = viewModel(
+                                factory = CategoryEditorViewModelFactory(
+                                    categoryRepository = categoryRepository,
+                                    initialType = CategoryType.EXPENSE,
+                                    editingId = id
+                                )
+                            ),
+                            onSaved = { _, _ -> navController.popBackStack() },
+                            onDone = { navController.popBackStack() }
+                        )
+                    }
+
+                    fiscusComposable(
+                        route = FiscusRoutes.EDIT_ACCOUNT,
+                        arguments = listOf(
+                            navArgument(FiscusRoutes.ID_ARG) { type = NavType.LongType }
+                        )
+                    ) { entry ->
+                        val id = entry.arguments?.getLong(FiscusRoutes.ID_ARG) ?: 0L
+
+                        AccountEditorScreen(
+                            modifier = Modifier.containerTransform(ContainerKeys.account(id)),
+                            viewModel = viewModel(
+                                factory = AccountEditorViewModelFactory(accountRepository, editingId = id)
+                            ),
+                            onSaved = { navController.popBackStack() },
+                            onDone = { navController.popBackStack() }
+                        )
+                    }
+                }
             }
         }
     }

@@ -32,6 +32,8 @@ import com.prajwalpawar.fiscus.ui.components.FiscusSegmentedListItem
 import com.prajwalpawar.fiscus.ui.components.accountIcon
 import com.prajwalpawar.fiscus.ui.components.accountTypeLabel
 import com.prajwalpawar.fiscus.ui.components.categoryIcon
+import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
+import com.prajwalpawar.fiscus.ui.navigation.containerTransform
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 import com.prajwalpawar.fiscus.util.formatMoney
 
@@ -43,6 +45,8 @@ private data class ManageRow(
     val supporting: String?,
     val trailingText: String?,
     val isAddRow: Boolean,
+    // Pairs this row with the page it opens for the container transform.
+    val transformKey: Any,
     val onClick: () -> Unit
 )
 
@@ -67,6 +71,7 @@ fun ManageCategoriesScreen(
                     .map { (category, usage) ->
                         ManageRow(
                             key = "category-${category.id}",
+                            transformKey = ContainerKeys.category(category.id),
                             icon = categoryIcon(category.iconKey),
                             title = category.name,
                             supporting = usageLabel(usage, category.isDefault),
@@ -76,6 +81,7 @@ fun ManageCategoriesScreen(
                         )
                     } + ManageRow(
                         key = "add-$type",
+                        transformKey = ContainerKeys.newCategory(type.name),
                         icon = Icons.Filled.Add,
                         title = "Add ${label.lowercase()} category",
                         supporting = null,
@@ -88,6 +94,7 @@ fun ManageCategoriesScreen(
             val archivedSection = archived.map { (category, usage) ->
                 ManageRow(
                     key = "category-${category.id}",
+                    transformKey = ContainerKeys.category(category.id),
                     icon = categoryIcon(category.iconKey),
                     title = category.name,
                     supporting = (if (category.type == CategoryType.EXPENSE) "Expense" else "Income") +
@@ -119,6 +126,7 @@ fun ManageAccountsScreen(
 
             fun row(account: AccountBalance) = ManageRow(
                 key = "account-${account.id}",
+                transformKey = ContainerKeys.account(account.id),
                 icon = accountIcon(account.type),
                 title = account.name,
                 supporting = accountTypeLabel(account.type) + " · " +
@@ -130,6 +138,7 @@ fun ManageAccountsScreen(
 
             val activeSection = active.map(::row) + ManageRow(
                 key = "add-account",
+                transformKey = ContainerKeys.NEW_ACCOUNT,
                 icon = Icons.Filled.Add,
                 title = "Add account",
                 supporting = null,
@@ -209,6 +218,7 @@ private fun ManageRowItem(
 ) {
     FiscusSegmentedListItem(
         shapes = ListItemDefaults.segmentedShapes(index = index, count = count),
+        modifier = Modifier.containerTransform(row.transformKey),
         onClick = row.onClick,
         leadingContent = {
             FiscusListIcon(icon = row.icon)

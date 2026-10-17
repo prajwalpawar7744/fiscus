@@ -55,6 +55,8 @@ import com.prajwalpawar.fiscus.ui.components.FiscusDropdownMenu
 import com.prajwalpawar.fiscus.ui.components.FiscusListIcon
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.FiscusSegmentedListItem
+import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
+import com.prajwalpawar.fiscus.ui.navigation.containerTransform
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 
 // A settings row; it receives the corner shapes for its position in the section.
@@ -211,7 +213,8 @@ fun SettingsScreen(
                 description = "Rename, archive or delete",
                 icon = Icons.Default.Category,
                 shapes = shapes,
-                onClick = onCategoriesClick
+                onClick = onCategoriesClick,
+                modifier = Modifier.containerTransform(ContainerKeys.MANAGE_CATEGORIES)
             )
         },
         { shapes ->
@@ -220,7 +223,8 @@ fun SettingsScreen(
                 description = "Rename, archive or delete",
                 icon = Icons.Default.AccountBalanceWallet,
                 shapes = shapes,
-                onClick = onAccountsClick
+                onClick = onAccountsClick,
+                modifier = Modifier.containerTransform(ContainerKeys.MANAGE_ACCOUNTS)
             )
         }
     )
@@ -373,10 +377,12 @@ private fun SettingsInfoItem(
     description: String,
     icon: ImageVector,
     shapes: ListItemShapes,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
 ) {
     FiscusSegmentedListItem(
         shapes = shapes,
+        modifier = modifier,
         onClick = onClick,
         leadingContent = {
             FiscusListIcon(icon = icon)

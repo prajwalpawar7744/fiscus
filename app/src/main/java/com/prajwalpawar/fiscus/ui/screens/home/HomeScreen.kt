@@ -53,6 +53,8 @@ import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.FiscusSegmentedListItem
 import com.prajwalpawar.fiscus.ui.components.FiscusTransactionAmount
 import com.prajwalpawar.fiscus.ui.components.accountIcon
+import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
+import com.prajwalpawar.fiscus.ui.navigation.containerTransform
 import com.prajwalpawar.fiscus.ui.components.categoryIcon
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
@@ -306,11 +308,16 @@ private fun AccountsCarousel(
             contentPadding = PaddingValues(horizontal = FiscusSpacing.md),
             modifier = Modifier.height(FiscusSize.accountCardHeight)
         ) { index ->
+            val account = accounts.getOrNull(index)
+
+            // Each card grows into the page it opens.
             val cardModifier = Modifier
                 .fillMaxSize()
+                .containerTransform(
+                    key = account?.let { ContainerKeys.account(it.id) } ?: ContainerKeys.NEW_ACCOUNT,
+                    clipShape = MaterialTheme.shapes.extraLarge
+                )
                 .maskClip(MaterialTheme.shapes.extraLarge)
-
-            val account = accounts.getOrNull(index)
 
             if (account != null) {
                 AccountCard(
@@ -469,7 +476,9 @@ private fun LazyListScope.recentTransactions(
                 index = index,
                 count = transactions.size,
                 onClick = { onTransactionClick(transaction.id) },
-                modifier = Modifier.padding(horizontal = FiscusSpacing.md)
+                modifier = Modifier
+                    .padding(horizontal = FiscusSpacing.md)
+                    .containerTransform(ContainerKeys.transaction(transaction.id))
             )
         }
     }
