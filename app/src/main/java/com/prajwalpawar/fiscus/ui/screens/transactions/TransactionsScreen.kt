@@ -43,8 +43,7 @@ import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.FiscusConnectedToggleGroup
 import com.prajwalpawar.fiscus.ui.components.FiscusDropdownMenu
 import com.prajwalpawar.fiscus.ui.components.FiscusEmptyState
-import com.prajwalpawar.fiscus.ui.components.FiscusMonthSwitcher
-import com.prajwalpawar.fiscus.ui.components.monthLabel
+import com.prajwalpawar.fiscus.ui.components.FiscusPeriodSwitcher
 import com.prajwalpawar.fiscus.ui.components.FiscusTransactionRow
 import com.prajwalpawar.fiscus.ui.components.transactionsByDay
 import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
@@ -69,17 +68,15 @@ fun TransactionsScreen(
         verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
     ) {
         item(key = "month") {
-            FiscusMonthSwitcher(
-                month = uiState.month,
-                canGoForward = uiState.canGoForward,
-                onPrevious = viewModel::previousMonth,
-                onNext = viewModel::nextMonth
+            FiscusPeriodSwitcher(
+                period = uiState.period,
+                onPeriodChange = viewModel::setPeriod
             )
         }
 
         item(key = "summary") {
             MonthSummary(
-                totals = uiState.monthTotals,
+                totals = uiState.periodTotals,
                 modifier = Modifier.padding(horizontal = FiscusSpacing.md)
             )
         }
@@ -113,8 +110,8 @@ fun TransactionsScreen(
             uiState.transactions.isEmpty() -> item(key = "empty") {
                 FiscusEmptyState(
                     icon = Icons.AutoMirrored.Filled.ReceiptLong,
-                    title = "Nothing in ${monthLabel(uiState.month)}",
-                    message = "Transactions you add for this month will be listed here.",
+                    title = "Nothing in ${uiState.period.label()}",
+                    message = "Transactions dated in this period will be listed here.",
                     modifier = Modifier.fillParentMaxHeight(0.6f)
                 )
             }
@@ -133,7 +130,7 @@ fun TransactionsScreen(
     }
 }
 
-// Whole-month figures, so they don't change as filters narrow the list.
+// Whole-period figures, so they don't change as filters narrow the list.
 @Composable
 private fun MonthSummary(
     totals: PeriodTotals,

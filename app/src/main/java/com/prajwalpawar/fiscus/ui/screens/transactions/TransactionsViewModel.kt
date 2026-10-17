@@ -11,7 +11,7 @@ import com.prajwalpawar.fiscus.data.model.CategoryType
 import com.prajwalpawar.fiscus.data.repository.AccountRepository
 import com.prajwalpawar.fiscus.data.repository.CategoryRepository
 import com.prajwalpawar.fiscus.data.repository.TransactionRepository
-import com.prajwalpawar.fiscus.util.monthRange
+import com.prajwalpawar.fiscus.util.Period
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import java.time.YearMonth
+import java.time.LocalDate
 
 data class TransactionFilters(
     // Null means all types.
@@ -34,38 +34,36 @@ data class TransactionFilters(
 
 data class TransactionsUiState(
     val isLoading: Boolean = true,
-    val month: YearMonth = YearMonth.now(),
-    // Totals for the whole month, regardless of filters.
-    val monthTotals: PeriodTotals = PeriodTotals(),
+    // A month by default; can be a single day or any range.
+    val period: Period = Period.currentMonth(),
+    // Totals for the whole period, regardless of filters.
+    val periodTotals: PeriodTotals = PeriodTotals(),
     val filters: TransactionFilters = TransactionFilters(),
-    // This month's transactions after filters, newest first.
+    // The period's transactions after filters, newest first.
     val transactions: List<TransactionDetails> = emptyList(),
-    // True when the month has transactions but the filters hide them all.
+    // True when the period has transactions but the filters hide them all.
     val filteredOut: Boolean = false,
     val accounts: List<Account> = emptyList(),
     // Categories the category filter can offer for the current type filter.
     val categories: List<Category> = emptyList()
-) {
-    // No browsing into the future.
-    val canGoForward: Boolean get() = month < YearMonth.now()
-}
+)
 
 class TransactionsViewModel(
     transactionRepository: TransactionRepository,
     accountRepository: AccountRepository,
     categoryRepository: CategoryRepository
 ) : ViewModel() {
-    private val month = MutableStateFlow(YearMonth.now())
+    private val period = MutableStateFlow(Period.currentMonth())
     private val filters = MutableStateFlow(TransactionFilters())
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val monthTransactions = month.flatMapLatest {
-        transactionRepository.observeTransactionsInRange(monthRange(it))
+    private val periodTransactions = period.flatMapLatest {
+        transactionRepository.observeTransactionsInRange(it.toDateRange())
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val monthTotals = month.flatMapLatest {
-        transactionRepository.observePeriodTotals(monthRange(it))
+    private val periodTotals = period.flatMapLatest {
+        transactionRepository.observePeriodTotals(it.toDateRange())
     }
 
     private val activeCategories = categoryRepository.categoriesWithUsage.map { all ->
@@ -74,17 +72,17 @@ class TransactionsViewModel(
 
     val uiState: StateFlow<TransactionsUiState> =
         combine(
-            combine(month, monthTotals, monthTransactions, ::Triple),
+            combine(period, periodTotals, periodTransactions, ::Triple),
             filters,
             accountRepository.accounts,
             activeCategories
-        ) { (month, totals, transactions), filters, accounts, categories ->
+        ) { (period, totals, transactions), filters, accounts, categories ->
             val visible = transactions.filter { it.matches(filters) }
 
             TransactionsUiState(
                 isLoading = false,
-                month = month,
-                monthTotals = totals,
+                period = period,
+                periodTotals = totals,
                 filters = filters,
                 transactions = visible,
                 filteredOut = transactions.isNotEmpty() && visible.isEmpty(),
@@ -104,12 +102,9 @@ class TransactionsViewModel(
             initialValue = TransactionsUiState()
         )
 
-    fun previousMonth() {
-        month.update { it.minusMonths(1) }
-    }
-
-    fun nextMonth() {
-        month.update { if (it < YearMonth.now()) it.plusMonths(1) else it }
+    // Ignores periods that start in the future.
+    fun setPeriod(selected: Period) {
+        if (!selected.start.isAfter(LocalDate.now())) period.value = selected
     }
 
     fun setTypeFilter(type: TransactionType?) {

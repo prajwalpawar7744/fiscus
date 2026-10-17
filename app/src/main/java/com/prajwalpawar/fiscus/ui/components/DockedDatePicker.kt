@@ -11,7 +11,9 @@ import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -48,6 +50,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
+// A read-only date field that opens a docked single-date picker below (or above) it.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DockedDatePicker(
@@ -60,10 +63,6 @@ fun DockedDatePicker(
 ) {
     // Kept as a transition state so the popup stays composed while it animates out.
     val pickerVisibility = remember { MutableTransitionState(false) }
-
-    val popupGap = with(LocalDensity.current) {
-        FiscusSpacing.xs.roundToPx()
-    }
 
     // A read-only field never gets a click, so open the picker on any tap of the field.
     val fieldInteractionSource = remember { MutableInteractionSource() }
@@ -108,89 +107,118 @@ fun DockedDatePicker(
             }
         )
 
-        if (pickerVisibility.currentState || pickerVisibility.targetState) {
+        DockedPickerPopup(
+            visibility = pickerVisibility,
+            onDismissRequest = { pickerVisibility.targetState = false }
+        ) {
             key(selectedDateMillis) {
                 val datePickerState = rememberDatePickerState(
                     initialSelectedDateMillis = selectedDateMillis
                 )
 
-                val motionScheme = MaterialTheme.motionScheme
+                DatePicker(
+                    state = datePickerState,
+                    showModeToggle = false,
+                    modifier = Modifier.fillMaxWidth(),
+                    // to get rid of the headline
+                    title = null,
+                    headline = null,
+                )
 
-                Popup(
-                    popupPositionProvider = DockedDatePickerPositionProvider(popupGap),
-                    onDismissRequest = {
+                DockedPickerActions(
+                    onCancel = { pickerVisibility.targetState = false },
+                    confirmEnabled = datePickerState.selectedDateMillis != null,
+                    onConfirm = {
+                        datePickerState.selectedDateMillis?.let(onDateSelected)
                         pickerVisibility.targetState = false
                     }
-                ) {
-                    AnimatedVisibility(
-                        visibleState = pickerVisibility,
-                        enter = fadeIn(motionScheme.defaultEffectsSpec()) +
-                                scaleIn(
-                                    animationSpec = motionScheme.defaultSpatialSpec(),
-                                    initialScale = FiscusMotion.ENTER_SCALE
-                                ),
-                        exit = fadeOut(motionScheme.fastEffectsSpec()) +
-                                scaleOut(
-                                    animationSpec = motionScheme.fastSpatialSpec(),
-                                    targetScale = FiscusMotion.ENTER_SCALE
-                                )
-                    ) {
-                        Surface(
-                            modifier = Modifier
-                                .widthIn(max = FiscusSize.datePickerMaxWidth),
-                            shape = MaterialTheme.shapes.extraLarge,
-                            // Matches the DatePicker's own container so the two read as one surface.
-                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            shadowElevation = FiscusElevation.level2
-                        ) {
-                            // No side padding: DatePicker pads itself and needs its full width.
-                            Column(
-                                modifier = Modifier.padding(
-                                    top = FiscusSpacing.sm,
-                                    bottom = FiscusSpacing.sm
-                                ),
-                                verticalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
-                            ) {
-                                DatePicker(
-                                    state = datePickerState,
-                                    showModeToggle = false,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    // to get rid of the headline
-                                    title = null,
-                                    headline = null,
-                                )
-
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = FiscusSpacing.sm),
-                                    horizontalArrangement = Arrangement.End
-                                ) {
-                                    TextButton(
-                                        onClick = {
-                                            pickerVisibility.targetState = false
-                                        }
-                                    ) {
-                                        Text("Cancel")
-                                    }
-
-                                    TextButton(
-                                        enabled = datePickerState.selectedDateMillis != null,
-                                        onClick = {
-                                            datePickerState.selectedDateMillis?.let(
-                                                onDateSelected
-                                            )
-                                            pickerVisibility.targetState = false
-                                        }
-                                    ) {
-                                        Text("Confirm")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                )
             }
+        }
+    }
+}
+
+// The docked picker surface shared by the date and date-range pickers: anchored to the
+// composable it's placed in, opening below it (or above when there's no room), with an
+// Expressive scale-and-fade in and out. Content stays composed while it animates out.
+@Composable
+internal fun DockedPickerPopup(
+    visibility: MutableTransitionState<Boolean>,
+    onDismissRequest: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    if (!visibility.currentState && !visibility.targetState) return
+
+    val motionScheme = MaterialTheme.motionScheme
+    val popupGap = with(LocalDensity.current) {
+        FiscusSpacing.xs.roundToPx()
+    }
+
+    Popup(
+        popupPositionProvider = DockedPickerPositionProvider(popupGap),
+        onDismissRequest = onDismissRequest
+    ) {
+        AnimatedVisibility(
+            visibleState = visibility,
+            enter = fadeIn(motionScheme.defaultEffectsSpec()) +
+                    scaleIn(
+                        animationSpec = motionScheme.defaultSpatialSpec(),
+                        initialScale = FiscusMotion.ENTER_SCALE
+                    ),
+            exit = fadeOut(motionScheme.fastEffectsSpec()) +
+                    scaleOut(
+                        animationSpec = motionScheme.fastSpatialSpec(),
+                        targetScale = FiscusMotion.ENTER_SCALE
+                    )
+        ) {
+            Surface(
+                modifier = Modifier
+                    .widthIn(max = FiscusSize.datePickerMaxWidth),
+                shape = MaterialTheme.shapes.extraLarge,
+                // Matches the pickers' own container so the two read as one surface.
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                shadowElevation = FiscusElevation.level2
+            ) {
+                // No side padding: the pickers pad themselves and need their full width.
+                Column(
+                    modifier = Modifier.padding(
+                        top = FiscusSpacing.sm,
+                        bottom = FiscusSpacing.sm
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(FiscusSpacing.sm),
+                    content = content
+                )
+            }
+        }
+    }
+}
+
+// Cancel / Confirm along the bottom, with an optional action on the left (e.g. a reset).
+@Composable
+internal fun DockedPickerActions(
+    onCancel: () -> Unit,
+    onConfirm: () -> Unit,
+    confirmEnabled: Boolean,
+    leadingAction: (@Composable () -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = FiscusSpacing.sm),
+        horizontalArrangement = Arrangement.End
+    ) {
+        leadingAction?.invoke()
+        Spacer(Modifier.weight(1f))
+
+        TextButton(onClick = onCancel) {
+            Text("Cancel")
+        }
+
+        TextButton(
+            enabled = confirmEnabled,
+            onClick = onConfirm
+        ) {
+            Text("Confirm")
         }
     }
 }
@@ -204,8 +232,8 @@ private fun formatDate(millis: Long): String {
     }.format(Date(millis))
 }
 
-// To position the date picker above or below depending on the space
-private class DockedDatePickerPositionProvider (
+// To position the picker above or below depending on the space
+private class DockedPickerPositionProvider (
     private val gapInPx: Int
 ): PopupPositionProvider {
     override fun calculatePosition(
@@ -227,10 +255,14 @@ private class DockedDatePickerPositionProvider (
             anchorBounds.bottom + gapInPx
         }
 
-        val x = when (layoutDirection) {
-            LayoutDirection.Ltr -> anchorBounds.left
-            LayoutDirection.Rtl ->
-                anchorBounds.right - popupContentSize.width
+        // Centred under a narrow anchor (a label), aligned to a wide one (a field).
+        val x = if (anchorBounds.width < popupContentSize.width) {
+            anchorBounds.center.x - popupContentSize.width / 2
+        } else {
+            when (layoutDirection) {
+                LayoutDirection.Ltr -> anchorBounds.left
+                LayoutDirection.Rtl -> anchorBounds.right - popupContentSize.width
+            }
         }.coerceIn(
             0,
             (windowSize.width - popupContentSize.width).coerceAtLeast(0)

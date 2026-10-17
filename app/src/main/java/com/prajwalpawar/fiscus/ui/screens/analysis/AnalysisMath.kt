@@ -2,7 +2,9 @@ package com.prajwalpawar.fiscus.ui.screens.analysis
 
 import com.prajwalpawar.fiscus.data.model.CategoryTotal
 import com.prajwalpawar.fiscus.data.model.MonthTotals
+import com.prajwalpawar.fiscus.util.Period
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.time.YearMonth
 
 // Past this many categories the rest fold into one "Other" bar; more bars stop being comparable.
@@ -28,13 +30,11 @@ internal fun percentChange(previous: Long, current: Long): Int? {
     return Math.round((current - previous) * 100.0 / previous).toInt()
 }
 
-// Spending per day. The current month only counts days so far; past months count every day.
-internal fun dailyAverage(total: Long, month: YearMonth, today: LocalDate = LocalDate.now()): Long {
-    val days = when {
-        month == YearMonth.from(today) -> today.dayOfMonth
-        month.isAfter(YearMonth.from(today)) -> return 0L
-        else -> month.lengthOfMonth()
-    }
+// Spending per day over the period's days up to today (future days haven't happened yet).
+internal fun dailyAverage(total: Long, period: Period, today: LocalDate = LocalDate.now()): Long {
+    if (period.start.isAfter(today)) return 0L
+    val lastCounted = if (period.end.isAfter(today)) today else period.end
+    val days = ChronoUnit.DAYS.between(period.start, lastCounted) + 1
     return Math.round(total.toDouble() / days)
 }
 

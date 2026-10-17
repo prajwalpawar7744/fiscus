@@ -7,6 +7,8 @@ import androidx.compose.ui.unit.dp
 object FiscusSize {
     // Matches DatePicker's own minimum width, so it is never squeezed.
     val datePickerMaxWidth: Dp = 360.dp
+    // Tall enough for a month and a half of the range picker's scrolling list.
+    val dateRangePickerMaxHeight: Dp = 520.dp
     val emptyStateShape: Dp = 120.dp
     val emptyStateIcon: Dp = 48.dp
     val listIconContainer: Dp = 40.dp

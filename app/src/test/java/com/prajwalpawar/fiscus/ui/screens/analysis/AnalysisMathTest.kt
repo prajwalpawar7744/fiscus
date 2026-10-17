@@ -4,6 +4,7 @@ import com.prajwalpawar.fiscus.data.model.CategoryTotal
 import com.prajwalpawar.fiscus.data.model.MonthTotals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import com.prajwalpawar.fiscus.util.Period
 import org.junit.Test
 import java.time.LocalDate
 import java.time.YearMonth
@@ -38,12 +39,17 @@ class AnalysisMathTest {
     }
 
     @Test
-    fun dailyAverageCountsDaysSoFarInTheCurrentMonth() {
+    fun dailyAverageCountsOnlyDaysUpToToday() {
         val today = LocalDate.of(2026, 10, 10)
-        assertEquals(100L, dailyAverage(1000, YearMonth.of(2026, 10), today))
+        // Current month: 10 days so far.
+        assertEquals(100L, dailyAverage(1000, Period.month(YearMonth.of(2026, 10)), today))
         // September has 30 days.
-        assertEquals(100L, dailyAverage(3000, YearMonth.of(2026, 9), today))
-        assertEquals(0L, dailyAverage(3000, YearMonth.of(2026, 11), today))
+        assertEquals(100L, dailyAverage(3000, Period.month(YearMonth.of(2026, 9)), today))
+        // A single day and a 5-day range.
+        assertEquals(700L, dailyAverage(700, Period(today, today), today))
+        assertEquals(200L, dailyAverage(1000, Period(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 5)), today))
+        // Entirely in the future.
+        assertEquals(0L, dailyAverage(3000, Period.month(YearMonth.of(2026, 11)), today))
     }
 
     @Test

@@ -41,7 +41,7 @@ import com.prajwalpawar.fiscus.data.model.MonthTotals
 import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.FiscusConnectedToggleGroup
 import com.prajwalpawar.fiscus.ui.components.FiscusListIcon
-import com.prajwalpawar.fiscus.ui.components.FiscusMonthSwitcher
+import com.prajwalpawar.fiscus.ui.components.FiscusPeriodSwitcher
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.FiscusTransactionRow
 import com.prajwalpawar.fiscus.ui.components.categoryIcon
@@ -50,7 +50,9 @@ import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
 import com.prajwalpawar.fiscus.ui.navigation.containerTransform
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
+import com.prajwalpawar.fiscus.util.Period
 import com.prajwalpawar.fiscus.util.formatMoney
+import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
@@ -71,12 +73,10 @@ fun AnalysisScreen(
         contentPadding = PaddingValues(bottom = FiscusSpacing.lg),
         verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
     ) {
-        item(key = "month") {
-            FiscusMonthSwitcher(
-                month = uiState.month,
-                canGoForward = uiState.canGoForward,
-                onPrevious = viewModel::previousMonth,
-                onNext = viewModel::nextMonth
+        item(key = "period") {
+            FiscusPeriodSwitcher(
+                period = uiState.period,
+                onPeriodChange = viewModel::setPeriod
             )
         }
 
@@ -110,7 +110,7 @@ fun AnalysisScreen(
                 type = uiState.categoryType,
                 categories = uiState.categories,
                 total = uiState.categoryTotal,
-                month = uiState.month,
+                period = uiState.period,
                 onTypeSelected = viewModel::setCategoryType,
                 modifier = Modifier.padding(horizontal = FiscusSpacing.md)
             )
@@ -123,7 +123,9 @@ fun AnalysisScreen(
         item(key = "trend") {
             SpendingTrend(
                 trend = uiState.trend,
-                selected = uiState.month,
+                period = uiState.period,
+                periodSpent = uiState.spent,
+                highlighted = uiState.highlightedMonths,
                 onMonthClick = viewModel::selectMonth,
                 modifier = Modifier.padding(horizontal = FiscusSpacing.md)
             )
@@ -174,9 +176,15 @@ private fun HeadlineTiles(
     state: AnalysisUiState,
     modifier: Modifier = Modifier
 ) {
-    val previousMonthName = state.month.minusMonths(1).month
-        .getDisplayName(TextStyle.FULL, Locale.getDefault())
-    val isCurrentMonth = state.month == YearMonth.now()
+    val period = state.period
+    // "September", "the day before", or "the previous 15 days".
+    val previousName = when {
+        period.isWholeMonth -> period.previous().start.month
+            .getDisplayName(TextStyle.FULL, Locale.getDefault())
+        period.isSingleDay -> "the day before"
+        else -> "the previous ${period.dayCount} days"
+    }
+    val includesToday = !LocalDate.now().isBefore(period.start) && !LocalDate.now().isAfter(period.end)
 
     Column(
         modifier = modifier,
@@ -191,19 +199,19 @@ private fun HeadlineTiles(
             )
 
             // The words carry the direction, so it never relies on color.
-            val change = state.changeVsLastMonth
+            val change = state.changeVsPrevious
             StatTile(
-                label = "Vs last month",
+                label = if (period.isWholeMonth) "Vs last month" else "Vs previous period",
                 value = when {
                     change == null -> "—"
                     change > 0 -> "+$change%"
                     else -> "$change%"
                 },
                 caption = when {
-                    change == null -> "Nothing spent in $previousMonthName"
-                    change > 0 -> "More than $previousMonthName"
-                    change < 0 -> "Less than $previousMonthName"
-                    else -> "Same as $previousMonthName"
+                    change == null -> "Nothing spent in $previousName"
+                    change > 0 -> "More than $previousName"
+                    change < 0 -> "Less than $previousName"
+                    else -> "Same as $previousName"
                 },
                 modifier = Modifier.weight(1f)
             )
@@ -213,7 +221,7 @@ private fun HeadlineTiles(
             StatTile(
                 label = "Daily average",
                 value = formatMoney(state.dailyAverage),
-                caption = if (isCurrentMonth) "Per day so far" else "Per day",
+                caption = if (includesToday && !period.isSingleDay) "Per day so far" else "Per day",
                 modifier = Modifier.weight(1f)
             )
 
@@ -222,7 +230,7 @@ private fun HeadlineTiles(
                 label = "Savings rate",
                 value = rate?.let { "$it%" } ?: "—",
                 caption = when {
-                    rate == null -> "No income this month"
+                    rate == null -> "No income in this period"
                     rate < 0 -> "Spent more than earned"
                     else -> "Of income kept"
                 },
@@ -280,7 +288,7 @@ private fun CategoryBreakdown(
     type: TransactionType,
     categories: List<CategoryTotal>,
     total: Long,
-    month: YearMonth,
+    period: Period,
     onTypeSelected: (TransactionType) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -298,9 +306,9 @@ private fun CategoryBreakdown(
         if (categories.isEmpty()) {
             Text(
                 text = if (type == TransactionType.EXPENSE) {
-                    "No expenses in ${monthLabel(month)}"
+                    "No expenses in ${period.label()}"
                 } else {
-                    "No income in ${monthLabel(month)}"
+                    "No income in ${period.label()}"
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -383,17 +391,18 @@ private fun CategoryBar(
     }
 }
 
-// Spending per month with the selected month emphasized and the rest muted, so the
-// one month that matters stands out without needing a second hue.
+// Spending per month with the period's months emphasized and the rest muted, so what
+// matters stands out without needing a second hue.
 @Composable
 private fun SpendingTrend(
     trend: List<MonthTotals>,
-    selected: YearMonth,
+    period: Period,
+    periodSpent: Long,
+    highlighted: Set<YearMonth>,
     onMonthClick: (YearMonth) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val largest = trend.maxOfOrNull { it.expense }?.coerceAtLeast(1L) ?: 1L
-    val selectedSpend = trend.firstOrNull { it.month == selected }?.expense ?: 0L
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -404,9 +413,9 @@ private fun SpendingTrend(
             modifier = Modifier.padding(FiscusSpacing.md),
             verticalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
         ) {
-            // Only the selected month gets a value label; tap another to see it.
+            // Only the period gets a value label; tap a month to see that one.
             Text(
-                text = "${formatMoney(selectedSpend)} in ${monthLabel(selected)}",
+                text = "${formatMoney(periodSpent)} in ${period.label()}",
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -420,7 +429,7 @@ private fun SpendingTrend(
                     TrendColumn(
                         month = month,
                         fraction = month.expense.toFloat() / largest,
-                        isSelected = month.month == selected,
+                        isSelected = month.month in highlighted,
                         onClick = { onMonthClick(month.month) },
                         modifier = Modifier.weight(1f)
                     )
@@ -435,7 +444,7 @@ private fun SpendingTrend(
                     Text(
                         text = month.month.month.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
                         style = MaterialTheme.typography.labelMedium,
-                        color = if (month.month == selected) {
+                        color = if (month.month in highlighted) {
                             MaterialTheme.colorScheme.onSurface
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
