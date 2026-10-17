@@ -36,12 +36,14 @@ data class TransactionForm(
     val accountId: Long? = null,
     val toAccountId: Long? = null,
     val dateMillis: Long = todayAsUtcMillis(),
+    val title: String = "",
     val note: String = ""
 )
 
 // The first thing stopping the form from being submitted, in field order.
 enum class TransactionFormIssue {
     AMOUNT,
+    TITLE,
     CATEGORY,
     ACCOUNT,
     NEEDS_TWO_ACCOUNTS,
@@ -163,6 +165,10 @@ class TransactionViewModel (
         form.update { it.copy(dateMillis = millis) }
     }
 
+    fun setTitle(value: String) {
+        form.update { it.copy(title = value) }
+    }
+
     fun setNote(value: String) {
         form.update { it.copy(note = value) }
     }
@@ -196,6 +202,7 @@ class TransactionViewModel (
 
 private fun TransactionUiState.toTransaction(): Transaction? {
     val amount = amountToMinorUnits(form.amount) ?: return null
+    val title = form.title.trim()
     val note = form.note.trim().ifEmpty { null }
 
     return when (form.type) {
@@ -205,6 +212,7 @@ private fun TransactionUiState.toTransaction(): Transaction? {
             amount = amount,
             categoryId = form.categoryId,
             accountId = selectedAccountId,
+            title = title,
             note = note,
             date = form.dateMillis
         )
@@ -214,6 +222,7 @@ private fun TransactionUiState.toTransaction(): Transaction? {
             amount = amount,
             sourceAccountId = selectedAccountId,
             destinationAccountId = selectedToAccountId,
+            title = title,
             note = note,
             date = form.dateMillis
         )
@@ -232,6 +241,9 @@ internal fun findIssue(
     return when {
         amount == null || amount <= 0L ->
             TransactionFormIssue.AMOUNT
+
+        form.title.isBlank() ->
+            TransactionFormIssue.TITLE
 
         form.type == TransactionType.TRANSFER -> when {
             accountCount < 2 -> TransactionFormIssue.NEEDS_TWO_ACCOUNTS

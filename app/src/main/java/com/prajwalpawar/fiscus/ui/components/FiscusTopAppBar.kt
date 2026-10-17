@@ -1,6 +1,10 @@
 package com.prajwalpawar.fiscus.ui.components
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumFlexibleTopAppBar
@@ -19,8 +23,21 @@ fun FiscusTopAppBar (
     title: String,
     modifier: Modifier = Modifier,
     preference: AppBarPreference,
-    scrollBehavior: TopAppBarScrollBehavior
+    scrollBehavior: TopAppBarScrollBehavior,
+    // Shows a back arrow on pages below the top-level tabs.
+    onNavigateUp: (() -> Unit)? = null
 ) {
+    val navigationIcon: @Composable () -> Unit = {
+        if (onNavigateUp != null) {
+            IconButton(onClick = onNavigateUp) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+        }
+    }
+
     // Keep the default container colors so the bar tints when content scrolls under it.
     val colors = TopAppBarDefaults.topAppBarColors(
         titleContentColor = MaterialTheme.colorScheme.primary
@@ -39,6 +56,7 @@ fun FiscusTopAppBar (
             TopAppBar(
                 title = titleContent,
                 modifier = modifier,
+                navigationIcon = navigationIcon,
                 colors = colors,
                 scrollBehavior = scrollBehavior
             )
@@ -48,6 +66,7 @@ fun FiscusTopAppBar (
             MediumFlexibleTopAppBar(
                 title = titleContent,
                 modifier = modifier,
+                navigationIcon = navigationIcon,
                 colors = colors,
                 scrollBehavior = scrollBehavior
             )
@@ -57,6 +76,7 @@ fun FiscusTopAppBar (
             LargeFlexibleTopAppBar(
                 title = titleContent,
                 modifier = modifier,
+                navigationIcon = navigationIcon,
                 colors = colors,
                 scrollBehavior = scrollBehavior
             )

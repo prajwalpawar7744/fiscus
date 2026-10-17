@@ -52,6 +52,7 @@ data class TransactionEntity (
     val accountId: Long?,
     val sourceAccountId: Long?,
     val destinationAccountId: Long?,
+    val title: String,
     val note: String?,
     val date: Long
 )
@@ -65,6 +66,7 @@ fun TransactionEntity.toTransaction(): Transaction {
         accountId = accountId,
         sourceAccountId = sourceAccountId,
         destinationAccountId = destinationAccountId,
+        title = title,
         note = note,
         date = date
     )
@@ -79,6 +81,7 @@ fun Transaction.toEntity(): TransactionEntity {
         accountId = accountId,
         sourceAccountId = sourceAccountId,
         destinationAccountId = destinationAccountId,
+        title = title,
         note = note,
         date = date
     )

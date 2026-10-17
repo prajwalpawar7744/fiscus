@@ -26,19 +26,28 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
 import com.prajwalpawar.fiscus.data.local.FiscusDatabaseProvider
 import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.AppSettings
+import com.prajwalpawar.fiscus.data.model.CategoryType
+import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.data.repository.AccountRepository
 import com.prajwalpawar.fiscus.data.repository.CategoryRepository
 import com.prajwalpawar.fiscus.data.repository.TransactionRepository
 import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
 import com.prajwalpawar.fiscus.ui.navigation.FiscusDestination
 import com.prajwalpawar.fiscus.ui.navigation.FiscusNavigationBar
+import com.prajwalpawar.fiscus.ui.navigation.FiscusRoutes
+import com.prajwalpawar.fiscus.ui.screens.manage.NewAccountScreen
+import com.prajwalpawar.fiscus.ui.screens.manage.NewAccountViewModelFactory
+import com.prajwalpawar.fiscus.ui.screens.manage.NewCategoryScreen
+import com.prajwalpawar.fiscus.ui.screens.manage.NewCategoryViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.analysis.AnalysisScreen
 import com.prajwalpawar.fiscus.ui.screens.home.HomeScreen
 import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
@@ -121,9 +130,27 @@ fun FiscusApp (
         )
     }
 
-    val onHome = currentDestination
-        ?.route
-        ?.startsWith(FiscusDestination.Home.route) == true
+    // Activity-scoped, so the draft survives visits to other pages.
+    val transactionViewModel: TransactionViewModel = viewModel(
+        factory = transactionViewModelFactory
+    )
+
+    // Where a new account from the sheet should land: the "To" row or the main one.
+    var newAccountIsTransferTarget by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    val route = currentDestination?.route
+
+    val onHome = route?.startsWith(FiscusDestination.Home.route) == true
+
+    // Tabs show the navigation bar; pages opened on top of them show a back arrow instead.
+    val isTopLevel = route == null || listOf(
+        FiscusDestination.Home,
+        FiscusDestination.Transactions,
+        FiscusDestination.Analysis,
+        FiscusDestination.Settings
+    ).any { route.startsWith(it.route) }
 
     val motionScheme = MaterialTheme.motionScheme
 
@@ -154,20 +181,35 @@ fun FiscusApp (
                         ?.route
                         ?.startsWith(FiscusDestination.Settings.route) == true -> {
                         "Settings"
+                    }
+
+                    route?.startsWith(FiscusRoutes.NEW_CATEGORY_BASE) == true -> {
+                        "New category"
+                    }
+
+                    route?.startsWith(FiscusRoutes.NEW_ACCOUNT) == true -> {
+                        "New account"
                     } else -> {
                         "Fiscus"
                     }
                 },
                 preference = settings.appBar,
-                scrollBehavior = scrollBehavior
+                scrollBehavior = scrollBehavior,
+                onNavigateUp = if (isTopLevel) {
+                    null
+                } else {
+                    { navController.navigateUp() }
+                }
             )
         },
         bottomBar = {
-            FiscusNavigationBar(
-                navController = navController,
-                currentDestination = currentDestination,
-                preference = settings.bottomBar
-            )
+            if (isTopLevel) {
+                FiscusNavigationBar(
+                    navController = navController,
+                    currentDestination = currentDestination,
+                    preference = settings.bottomBar
+                )
+            }
         },
         floatingActionButton = {
             if (onHome) {
@@ -221,18 +263,76 @@ fun FiscusApp (
             composable(FiscusDestination.Settings.route) {
                 SettingsScreen()
             }
+
+            composable(
+                route = FiscusRoutes.NEW_CATEGORY,
+                arguments = listOf(
+                    navArgument(FiscusRoutes.TYPE_ARG) {
+                        type = NavType.StringType
+                        defaultValue = CategoryType.EXPENSE.name
+                    }
+                )
+            ) { entry ->
+                val initialType = entry.arguments
+                    ?.getString(FiscusRoutes.TYPE_ARG)
+                    ?.let { runCatching { CategoryType.valueOf(it) }.getOrNull() }
+                    ?: CategoryType.EXPENSE
+
+                NewCategoryScreen(
+                    viewModel = viewModel(
+                        factory = NewCategoryViewModelFactory(categoryRepository, initialType)
+                    ),
+                    onSaved = { id, type ->
+                        // Opened from the sheet: pick the new category in the draft.
+                        if (showAddTransactionSheet) {
+                            transactionViewModel.setTransactionType(
+                                if (type == CategoryType.INCOME) {
+                                    TransactionType.INCOME
+                                } else {
+                                    TransactionType.EXPENSE
+                                }
+                            )
+                            transactionViewModel.selectCategory(id)
+                        }
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(FiscusRoutes.NEW_ACCOUNT) {
+                NewAccountScreen(
+                    viewModel = viewModel(
+                        factory = NewAccountViewModelFactory(accountRepository)
+                    ),
+                    onSaved = { id ->
+                        // Opened from the sheet: pick the new account in the row it came from.
+                        if (showAddTransactionSheet) {
+                            if (newAccountIsTransferTarget) {
+                                transactionViewModel.selectToAccount(id)
+                            } else {
+                                transactionViewModel.selectAccount(id)
+                            }
+                        }
+                        navController.popBackStack()
+                    }
+                )
+            }
         }
     }
 
-    if (showAddTransactionSheet) {
-        val transactionViewModel: TransactionViewModel = viewModel(
-            factory = transactionViewModelFactory
-        )
-
+    // The sheet steps aside while a page is open on top and returns with the draft intact.
+    if (showAddTransactionSheet && isTopLevel) {
         AddTransactionSheet(
             viewModel = transactionViewModel,
             onDismissRequest = {
                 showAddTransactionSheet = false
+            },
+            onAddCategory = { type ->
+                navController.navigate(FiscusRoutes.newCategory(type))
+            },
+            onAddAccount = { asTransferTarget ->
+                newAccountIsTransferTarget = asTransferTarget
+                navController.navigate(FiscusRoutes.NEW_ACCOUNT)
             }
         )
     }

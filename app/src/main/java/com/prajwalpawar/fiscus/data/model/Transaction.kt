@@ -9,6 +9,7 @@ data class Transaction (
     val accountId: Long? = null,
     val sourceAccountId: Long? = null,
     val destinationAccountId: Long? = null,
+    val title: String,
     val note: String? = null,
     val date: Long
 )

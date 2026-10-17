@@ -48,6 +48,9 @@ class TransactionRepository (
         require(transaction.amount > 0L) {
             "Transaction amount must be greater than zero."
         }
+        require(transaction.title.isNotBlank()) {
+            "A transaction requires a title."
+        }
 
         when (transaction.type) {
             TransactionType.EXPENSE,

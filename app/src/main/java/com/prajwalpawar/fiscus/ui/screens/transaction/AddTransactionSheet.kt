@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,6 +51,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -61,6 +65,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
@@ -69,11 +75,14 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.prajwalpawar.fiscus.data.model.Account
-import com.prajwalpawar.fiscus.data.model.AccountType
+import com.prajwalpawar.fiscus.data.model.CategoryType
 import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.DockedDatePicker
 import com.prajwalpawar.fiscus.ui.components.FiscusConnectedToggleGroup
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
+import com.prajwalpawar.fiscus.ui.components.FiscusSubmitButton
+import com.prajwalpawar.fiscus.ui.components.accountIcon
+import com.prajwalpawar.fiscus.ui.components.categoryIcon
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 import java.util.Currency
 import kotlinx.coroutines.launch
@@ -84,6 +93,8 @@ import java.util.Locale
 fun AddTransactionSheet(
     viewModel: TransactionViewModel,
     onDismissRequest: () -> Unit,
+    onAddCategory: (CategoryType) -> Unit,
+    onAddAccount: (asTransferTarget: Boolean) -> Unit,
     modifier: Modifier = Modifier,
     // A form has no useful half-open state, so open straight to full height.
     sheetState: SheetState = rememberModalBottomSheetState(
@@ -106,7 +117,17 @@ fun AddTransactionSheet(
             onAccountSelected = viewModel::selectAccount,
             onToAccountSelected = viewModel::selectToAccount,
             onDateSelected = viewModel::setDate,
+            onTitleChange = viewModel::setTitle,
             onNoteChange = viewModel::setNote,
+            onAddCategory = {
+                val type = if (uiState.form.type == TransactionType.INCOME) {
+                    CategoryType.INCOME
+                } else {
+                    CategoryType.EXPENSE
+                }
+                onAddCategory(type)
+            },
+            onAddAccount = onAddAccount,
             onSubmit = {
                 viewModel.saveTransaction {
                     // Slide the sheet away before removing it.
@@ -129,7 +150,10 @@ private fun AddTransactionContent(
     onAccountSelected: (Long) -> Unit,
     onToAccountSelected: (Long) -> Unit,
     onDateSelected: (Long) -> Unit,
+    onTitleChange: (String) -> Unit,
     onNoteChange: (String) -> Unit,
+    onAddCategory: () -> Unit,
+    onAddAccount: (asTransferTarget: Boolean) -> Unit,
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -173,8 +197,30 @@ private fun AddTransactionContent(
             onAmountChange = onAmountChange
         )
 
+        OutlinedTextField(
+            value = form.title,
+            onValueChange = onTitleChange,
+            modifier = inset.fillMaxWidth(),
+            label = {
+                Text("Title")
+            },
+            placeholder = {
+                Text("e.g. Lunch with friends")
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = ImeAction.Next
+            )
+        )
+
         if (form.type != TransactionType.TRANSFER) {
-            ChipSection(title = "Category", titleModifier = inset) {
+            ChipSection(
+                title = "Category",
+                titleModifier = inset,
+                addDescription = "Add category",
+                onAddClick = onAddCategory
+            ) {
                 items(
                     items = uiState.categories,
                     key = { it.id }
@@ -211,16 +257,19 @@ private fun AddTransactionContent(
             titleModifier = inset,
             accounts = uiState.accounts,
             selectedAccountId = uiState.selectedAccountId,
-            onAccountSelected = onAccountSelected
+            onAccountSelected = onAccountSelected,
+            onAddClick = { onAddAccount(false) }
         )
 
-        if (isTransfer && uiState.toAccounts.isNotEmpty()) {
+        // Shown even when empty, so a second account can be added right here.
+        if (isTransfer) {
             AccountChipSection(
                 title = "To",
                 titleModifier = inset,
                 accounts = uiState.toAccounts,
                 selectedAccountId = uiState.selectedToAccountId,
-                onAccountSelected = onToAccountSelected
+                onAccountSelected = onToAccountSelected,
+                onAddClick = { onAddAccount(true) }
             )
         }
 
@@ -245,41 +294,20 @@ private fun AddTransactionContent(
             maxLines = 4
         )
 
-        val buttonHeight = ButtonDefaults.MediumContainerHeight
-
-        Button(
+        FiscusSubmitButton(
+            text = "Add transaction",
+            icon = Icons.Filled.Add,
+            enabled = uiState.canSubmit,
             onClick = onSubmit,
             modifier = inset
-                .fillMaxWidth()
-                .heightIn(min = buttonHeight),
-            enabled = uiState.canSubmit,
-            shapes = ButtonDefaults.shapes(),
-            contentPadding = ButtonDefaults.contentPaddingFor(
-                buttonHeight = buttonHeight,
-                hasStartIcon = true
-            )
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Add,
-                contentDescription = null,
-                modifier = Modifier.size(ButtonDefaults.iconSizeFor(buttonHeight))
-            )
-
-            Spacer(
-                modifier = Modifier.width(ButtonDefaults.iconSpacingFor(buttonHeight))
-            )
-
-            Text(
-                text = "Add transaction",
-                style = ButtonDefaults.textStyleFor(buttonHeight)
-            )
-        }
+        )
 
         // Explain a disabled button instead of leaving the user to guess.
         val hint = when {
             uiState.saveFailed -> "Couldn't save the transaction. Try again."
             else -> when (uiState.issue) {
                 TransactionFormIssue.AMOUNT -> "Enter an amount to continue"
+                TransactionFormIssue.TITLE -> "Add a title to continue"
                 TransactionFormIssue.CATEGORY -> "Choose a category to continue"
                 TransactionFormIssue.ACCOUNT -> "Choose an account to continue"
                 TransactionFormIssue.NEEDS_TWO_ACCOUNTS -> "Transfers need at least two accounts"
@@ -378,9 +406,15 @@ private fun AccountChipSection(
     titleModifier: Modifier,
     accounts: List<Account>,
     selectedAccountId: Long?,
-    onAccountSelected: (Long) -> Unit
+    onAccountSelected: (Long) -> Unit,
+    onAddClick: () -> Unit
 ) {
-    ChipSection(title = title, titleModifier = titleModifier) {
+    ChipSection(
+        title = title,
+        titleModifier = titleModifier,
+        addDescription = "Add account",
+        onAddClick = onAddClick
+    ) {
         items(
             items = accounts,
             key = { it.id }
@@ -414,6 +448,8 @@ private fun AccountChipSection(
 private fun ChipSection(
     title: String,
     titleModifier: Modifier,
+    addDescription: String,
+    onAddClick: () -> Unit,
     chips: LazyListScope.() -> Unit
 ) {
     Column(
@@ -427,9 +463,31 @@ private fun ChipSection(
         // One scrolling row; the padding sits inside the list so chips scroll to the sheet edge.
         LazyRow(
             contentPadding = PaddingValues(horizontal = FiscusSpacing.md),
-            horizontalArrangement = Arrangement.spacedBy(FiscusSpacing.sm),
-            content = chips
-        )
+            horizontalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
+        ) {
+            chips()
+
+            // An action, not a choice, so it's an assist chip rather than a filter chip.
+            // No key: a keyed chip would hold the scroll position when it's the only item
+            // during loading, leaving the row scrolled to the end.
+            item {
+                AssistChip(
+                    onClick = onAddClick,
+                    label = {
+                        Text("Add")
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier.semantics {
+                        contentDescription = addDescription
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -438,33 +496,4 @@ private fun localCurrencySymbol(): String {
     return runCatching {
         Currency.getInstance(Locale.getDefault()).symbol
     }.getOrDefault("¤")
-}
-
-private fun categoryIcon(iconKey: String): ImageVector {
-    return when (iconKey) {
-        "restaurant" -> Icons.Filled.Restaurant
-        "directions_car" -> Icons.Filled.DirectionsCar
-        "shopping_bag" -> Icons.Filled.ShoppingBag
-        "receipt" -> Icons.Filled.Receipt
-        "health" -> Icons.Filled.Favorite
-        "school" -> Icons.Filled.School
-        "movie" -> Icons.Filled.Movie
-        "home" -> Icons.Filled.Home
-        "payments" -> Icons.Filled.Payments
-        "business" -> Icons.Filled.Business
-        "trending_up" -> Icons.Filled.TrendingUp
-        "card_giftcard" -> Icons.Filled.CardGiftcard
-        "category" -> Icons.Filled.Category
-        else -> Icons.Filled.Category
-    }
-}
-
-private fun accountIcon(type: AccountType): ImageVector {
-    return when (type) {
-        AccountType.CASH -> Icons.Filled.Payments
-        AccountType.BANK -> Icons.Filled.AccountBalance
-        AccountType.CREDIT_CARD -> Icons.Filled.CreditCard
-        AccountType.E_WALLET -> Icons.Filled.AccountBalanceWallet
-        AccountType.OTHER -> Icons.Filled.Savings
-    }
 }

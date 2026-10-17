@@ -15,7 +15,7 @@ import com.prajwalpawar.fiscus.data.local.entity.TransactionEntity
         CategoryEntity::class,
         AccountEntity::class
                ],
-    // Reset to 1 before release: the old v1 schema never reached users.
+    // Stays at 1 until release; the schema is changed in place before then.
     version = 1,
     exportSchema = true
 )
