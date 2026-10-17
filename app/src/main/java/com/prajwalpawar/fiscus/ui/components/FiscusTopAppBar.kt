@@ -1,16 +1,15 @@
 package com.prajwalpawar.fiscus.ui.components
 
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.prajwalpawar.fiscus.data.model.AppBarPreference
 
@@ -22,20 +21,23 @@ fun FiscusTopAppBar (
     preference: AppBarPreference,
     scrollBehavior: TopAppBarScrollBehavior
 ) {
+    // Keep the default container colors so the bar tints when content scrolls under it.
     val colors = TopAppBarDefaults.topAppBarColors(
-        containerColor = MaterialTheme.colorScheme.surface,
-        scrolledContainerColor = MaterialTheme.colorScheme.surface
+        titleContentColor = MaterialTheme.colorScheme.primary
     )
+
+    // The bars pick the title size for each state; overriding it clips the collapsed title.
+    val titleContent: @Composable () -> Unit = {
+        Text(
+            text = title,
+            fontWeight = FontWeight.Bold
+        )
+    }
 
     when (preference) {
         AppBarPreference.SMALL -> {
             TopAppBar(
-                title = {
-                    AppBarTitle(
-                        title,
-                        style = MaterialTheme.typography.headlineMedium
-                    )
-                },
+                title = titleContent,
                 modifier = modifier,
                 colors = colors,
                 scrollBehavior = scrollBehavior
@@ -43,13 +45,8 @@ fun FiscusTopAppBar (
         }
 
         AppBarPreference.MEDIUM -> {
-            MediumTopAppBar(
-                title = {
-                    AppBarTitle(
-                        title,
-                        style = MaterialTheme.typography.headlineLarge
-                    )
-                },
+            MediumFlexibleTopAppBar(
+                title = titleContent,
                 modifier = modifier,
                 colors = colors,
                 scrollBehavior = scrollBehavior
@@ -57,30 +54,12 @@ fun FiscusTopAppBar (
         }
 
         AppBarPreference.LARGE -> {
-            LargeTopAppBar(
-                title = {
-                    AppBarTitle(
-                        title,
-                        style = MaterialTheme.typography.displayMedium
-                    )
-                },
+            LargeFlexibleTopAppBar(
+                title = titleContent,
                 modifier = modifier,
                 colors = colors,
                 scrollBehavior = scrollBehavior
             )
         }
     }
-}
-
-@Composable
-private fun AppBarTitle (
-    title: String,
-    style: TextStyle
-) {
-    Text(
-        text = title,
-        style = style,
-        color = MaterialTheme.colorScheme.primary,
-        fontWeight = FontWeight.Bold
-    )
 }

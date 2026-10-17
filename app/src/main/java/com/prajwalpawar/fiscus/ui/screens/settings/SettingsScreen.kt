@@ -130,10 +130,12 @@ fun SettingsScreen(
                 label = "App bar scroll",
                 icon = Icons.Default.SwapVert,
                 selectedValue = settings.appBarScroll,
-                values = listOf(
+                values = listOfNotNull(
                     AppBarScrollPreference.PINNED to "Pinned",
                     AppBarScrollPreference.ENTER_ALWAYS to "Always returns",
-                    AppBarScrollPreference.EXIT_UNTIL_COLLAPSED to "Collapse"
+                    // A small app bar has nothing to collapse.
+                    (AppBarScrollPreference.EXIT_UNTIL_COLLAPSED to "Collapse")
+                        .takeIf { settings.appBar != AppBarPreference.SMALL }
                 ),
                 index = 3,
                 count = 4,

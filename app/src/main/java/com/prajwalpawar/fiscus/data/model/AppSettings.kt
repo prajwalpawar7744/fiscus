@@ -28,6 +28,5 @@ data class AppSettings (
     val theme: ThemePreference = ThemePreference.SYSTEM,
     val appBar: AppBarPreference = AppBarPreference.SMALL,
     val bottomBar: BottomBarPreference = BottomBarPreference.SHOW_LABELS,
-    val appBarScroll: AppBarScrollPreference =
-        AppBarScrollPreference.EXIT_UNTIL_COLLAPSED
+    val appBarScroll: AppBarScrollPreference = AppBarScrollPreference.PINNED
 )

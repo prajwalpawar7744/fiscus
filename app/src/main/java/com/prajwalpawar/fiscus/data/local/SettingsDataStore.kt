@@ -59,8 +59,18 @@ class SettingsDataStore (
                         AppBarScrollPreference.valueOf(value)
                     }.getOrNull()
                 }
-                ?: AppBarScrollPreference.EXIT_UNTIL_COLLAPSED,
-        )
+                ?: AppBarScrollPreference.PINNED,
+        ).let { settings ->
+            // A small app bar has nothing to collapse, so treat collapse as pinned.
+            if (
+                settings.appBar == AppBarPreference.SMALL &&
+                settings.appBarScroll == AppBarScrollPreference.EXIT_UNTIL_COLLAPSED
+            ) {
+                settings.copy(appBarScroll = AppBarScrollPreference.PINNED)
+            } else {
+                settings
+            }
+        }
     }
 
     suspend fun setTheme(theme: ThemePreference) {
