@@ -2,7 +2,4 @@
 <!-- Splash colours before Android 12: no wallpaper palette, so the brand colours. -->
 <resources>
     <color name="splash_background">#FBF6F0</color>
-    <color name="splash_icon_background">#4A2E20</color>
-    <color name="splash_icon">#F3E4CB</color>
-    <color name="splash_coin">#E3A45A</color>
 </resources>
