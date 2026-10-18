@@ -131,6 +131,7 @@ Follow (and Fiscus does):
 - Files go through the system picker (`CreateDocument` / `OpenDocument`) — no storage permission, still no internet.
 - Backup checkpoints the WAL (`PRAGMA wal_checkpoint(FULL)`) before copying the DB file.
 - Restore reads the whole zip first (a broken file changes nothing), then closes Room (`FiscusDatabaseProvider.close()`), deletes `fiscus.db` + `-wal`/`-shm`/`-journal`, writes the backup's DB and **restarts the app** (`util/restartApp`) so nothing keeps the old instance. Older-version backups upgrade through the migrations on open; a backup with a newer `databaseVersion` is refused.
+- Feedback (per M3 dialog/snackbar guidance): a backup shows a `LoadingIndicator` on its row and a "Backup saved" snackbar — nothing blocks; restore/wipe show a non-dismissable busy dialog until the restart; any failure (not a backup, newer version, I/O) is a dialog, never a snackbar.
 - **Wipe data** = fresh install: deletes the DB files, clears `SettingsDataStore` and the profile photo, restarts; the seeder recreates the defaults.
 - **When the schema changes**, backups need nothing extra — but every migration must exist, since restores of old backups rely on them. If settings keys are added, add them to `toJson`/`toSettings` (unknown values fall back to defaults).
 

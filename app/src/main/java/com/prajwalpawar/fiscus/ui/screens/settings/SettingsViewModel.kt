@@ -25,9 +25,14 @@ import kotlinx.coroutines.launch
 
 // Backup / restore / wipe progress for the Data section.
 data class DataUiState(
+    // Restore or wipe running: the app is blocked until it restarts.
     val isBusy: Boolean = false,
-    // One-off result to show in a snackbar.
+    // A backup is being written; shown inline on the Back up row, nothing is blocked.
+    val isBackingUp: Boolean = false,
+    // One-off confirmation, shown in a snackbar.
     val message: String? = null,
+    // Something failed and the user needs to know why; shown in a dialog.
+    val error: String? = null,
     // A chosen backup file waiting for the user to pick what to restore.
     val pendingRestore: PendingRestore? = null,
     // Data was replaced; the app restarts to load it.
@@ -45,6 +50,7 @@ class SettingsViewModel(
     val dataState: StateFlow<DataUiState> = data.asStateFlow()
 
     fun backup(uri: Uri, parts: Set<BackupPart>) = runDataTask(
+        blocking = false,
         success = "Backup saved"
     ) {
         backupManager.backup(uri, parts)
@@ -78,19 +84,35 @@ class SettingsViewModel(
         data.update { it.copy(message = null) }
     }
 
-    private fun runDataTask(success: String? = null, task: suspend () -> Unit) {
-        if (data.value.isBusy) return
+    fun errorShown() {
+        data.update { it.copy(error = null) }
+    }
+
+    // [blocking]: restore and wipe block the app; a backup only shows progress on its row.
+    private fun runDataTask(
+        blocking: Boolean = true,
+        success: String? = null,
+        task: suspend () -> Unit
+    ) {
+        if (data.value.isBusy || data.value.isBackingUp) return
         viewModelScope.launch {
-            data.update { it.copy(isBusy = true) }
-            val message = try {
+            data.update { if (blocking) it.copy(isBusy = true) else it.copy(isBackingUp = true) }
+            val error = try {
                 task()
-                success
+                null
             } catch (e: BackupException) {
                 e.message
             } catch (e: Exception) {
                 "Something went wrong. Nothing was changed."
             }
-            data.update { it.copy(isBusy = false, message = message ?: it.message) }
+            data.update {
+                it.copy(
+                    isBusy = false,
+                    isBackingUp = false,
+                    message = if (error == null) success ?: it.message else it.message,
+                    error = error
+                )
+            }
         }
     }
 

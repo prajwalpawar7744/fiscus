@@ -3,6 +3,7 @@ package com.prajwalpawar.fiscus.ui.screens.settings
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.compose.material3.LoadingIndicator
 import java.time.LocalDate
 import com.prajwalpawar.fiscus.util.restartApp
 import com.prajwalpawar.fiscus.data.backup.BackupPart
@@ -318,10 +319,16 @@ fun SettingsScreen(
         { shapes ->
             SettingsInfoItem(
                 label = "Back up",
-                description = "Save your data to a file",
+                description = if (dataState.isBackingUp) "Saving…" else "Save your data to a file",
                 icon = Icons.Rounded.Backup,
                 shapes = shapes,
-                onClick = { backupDialog = true }
+                onClick = { if (!dataState.isBackingUp) backupDialog = true },
+                // A quick save: progress stays on the row instead of blocking the app.
+                trailingContent = if (dataState.isBackingUp) {
+                    { LoadingIndicator(modifier = Modifier.size(FiscusSize.listIconContainer)) }
+                } else {
+                    null
+                }
             )
         },
         { shapes ->
@@ -380,6 +387,11 @@ fun SettingsScreen(
 
     if (dataState.isBusy || dataState.restartNeeded) {
         DataBusyDialog()
+    }
+
+    // Failures need reading and acting on, so they get a dialog, not a snackbar.
+    dataState.error?.let { error ->
+        DataErrorDialog(message = error, onDismiss = viewModel::errorShown)
     }
 
     val aboutRows = listOf<SettingsRow>(
@@ -548,12 +560,14 @@ private fun SettingsInfoItem(
     icon: ImageVector,
     shapes: ListItemShapes,
     onClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    trailingContent: (@Composable () -> Unit)? = null
 ) {
     FiscusSegmentedListItem(
         shapes = shapes,
         modifier = modifier,
         onClick = onClick,
+        trailingContent = trailingContent,
         leadingContent = {
             FiscusListIcon(icon = icon)
         },

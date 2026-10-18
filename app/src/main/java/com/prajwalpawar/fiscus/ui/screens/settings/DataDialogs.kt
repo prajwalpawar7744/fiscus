@@ -9,6 +9,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.DeleteForever
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -149,7 +150,7 @@ internal fun WipeDataDialog(
     )
 }
 
-// Shown while a backup, restore or wipe runs; it can't be dismissed.
+// Shown while a restore or wipe runs (the app restarts after); it can't be dismissed.
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun DataBusyDialog() {
@@ -159,5 +160,25 @@ internal fun DataBusyDialog() {
         icon = { LoadingIndicator() },
         text = { Text("Working on it…") },
         confirmButton = {}
+    )
+}
+
+// A backup, restore or wipe failed; the message says why and what to do.
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+internal fun DataErrorDialog(
+    message: String,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Rounded.ErrorOutline, contentDescription = null) },
+        title = { Text("Couldn't finish") },
+        text = { Text(message) },
+        confirmButton = {
+            TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
+                Text("OK")
+            }
+        }
     )
 }
