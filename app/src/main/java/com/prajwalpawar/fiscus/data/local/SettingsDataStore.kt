@@ -140,4 +140,21 @@ class SettingsDataStore(
             preferences[Keys.profilePhotoVersion] = version
         }
     }
+
+    // Replaces every setting at once (restoring a backup).
+    suspend fun replaceAppearance(settings: AppSettings) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[Keys.theme] = settings.theme.name
+            preferences[Keys.dynamicColor] = settings.dynamicColor
+            preferences[Keys.iconShape] = settings.iconShape.name
+            preferences[Keys.appBar] = settings.appBar.name
+            preferences[Keys.bottomBar] = settings.bottomBar.name
+            preferences[Keys.appBarScroll] = settings.appBarScroll.name
+        }
+    }
+
+    // Back to defaults (wiping data).
+    suspend fun clear() {
+        context.settingsDataStore.edit { it.clear() }
+    }
 }

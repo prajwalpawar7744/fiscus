@@ -16,8 +16,13 @@ import kotlin.math.min
 class ProfilePhotoStore(
     private val context: Context
 ) {
-    private val file: File
+    // Read by backups; restores write it through [saveBytes].
+    val file: File
         get() = File(context.filesDir, FILE_NAME)
+
+    suspend fun saveBytes(bytes: ByteArray) = withContext(Dispatchers.IO) {
+        file.writeBytes(bytes)
+    }
 
     suspend fun save(uri: Uri): Boolean = withContext(Dispatchers.IO) {
         runCatching {

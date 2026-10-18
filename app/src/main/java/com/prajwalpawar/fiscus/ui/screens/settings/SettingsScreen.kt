@@ -3,6 +3,20 @@ package com.prajwalpawar.fiscus.ui.screens.settings
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import java.time.LocalDate
+import com.prajwalpawar.fiscus.util.restartApp
+import com.prajwalpawar.fiscus.data.backup.BackupPart
+import androidx.compose.ui.Alignment
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material.icons.rounded.Restore
+import androidx.compose.material.icons.rounded.DeleteForever
+import androidx.compose.material.icons.rounded.Backup
+import androidx.compose.foundation.layout.Box
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -83,6 +97,7 @@ fun SettingsScreen(
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // Wallpaper-based color only exists on Android 12+.
     val dynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
@@ -270,6 +285,103 @@ fun SettingsScreen(
     // Read from the installed package, so it always matches build.gradle's version.
     val version = remember(context) { appVersion(context) }
 
+    val dataState by viewModel.dataState.collectAsStateWithLifecycle()
+    var backupDialog by rememberSaveable { mutableStateOf(false) }
+    var wipeDialog by rememberSaveable { mutableStateOf(false) }
+    // Parts chosen in the backup dialog, waiting for the user to pick where to save.
+    var partsToBackUp by remember { mutableStateOf(emptySet<BackupPart>()) }
+
+    // The system file picker: no storage permission, and the user picks where it goes.
+    val createBackupFile = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/octet-stream")
+    ) { uri ->
+        if (uri != null) viewModel.backup(uri, partsToBackUp)
+    }
+    val openBackupFile = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) viewModel.inspectBackup(uri)
+    }
+
+    // Restored or wiped data is only loaded fresh by restarting the app.
+    LaunchedEffect(dataState.restartNeeded) {
+        if (dataState.restartNeeded) restartApp(context)
+    }
+    LaunchedEffect(dataState.message) {
+        dataState.message?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.messageShown()
+        }
+    }
+
+    val dataRows = listOf<SettingsRow>(
+        { shapes ->
+            SettingsInfoItem(
+                label = "Back up",
+                description = "Save your data to a file",
+                icon = Icons.Rounded.Backup,
+                shapes = shapes,
+                onClick = { backupDialog = true }
+            )
+        },
+        { shapes ->
+            SettingsInfoItem(
+                label = "Restore",
+                description = "Bring back data from a backup file",
+                icon = Icons.Rounded.Restore,
+                shapes = shapes,
+                onClick = { openBackupFile.launch(arrayOf("*/*")) }
+            )
+        },
+        { shapes ->
+            SettingsInfoItem(
+                label = "Wipe data",
+                description = "Delete everything and start fresh",
+                icon = Icons.Rounded.DeleteForever,
+                shapes = shapes,
+                onClick = { wipeDialog = true }
+            )
+        }
+    )
+
+    if (backupDialog) {
+        BackupPartsDialog(
+            restoring = false,
+            available = BackupPart.entries.toSet(),
+            createdAt = null,
+            onConfirm = { parts ->
+                backupDialog = false
+                partsToBackUp = parts
+                createBackupFile.launch("fiscus-backup-${LocalDate.now()}.fiscus")
+            },
+            onDismiss = { backupDialog = false }
+        )
+    }
+
+    dataState.pendingRestore?.let { pending ->
+        BackupPartsDialog(
+            restoring = true,
+            available = pending.info.parts,
+            createdAt = pending.info.createdAt,
+            onConfirm = viewModel::restore,
+            onDismiss = viewModel::cancelRestore
+        )
+    }
+
+    if (wipeDialog) {
+        WipeDataDialog(
+            onConfirm = {
+                wipeDialog = false
+                viewModel.wipe()
+            },
+            onDismiss = { wipeDialog = false }
+        )
+    }
+
+    if (dataState.isBusy || dataState.restartNeeded) {
+        DataBusyDialog()
+    }
+
     val aboutRows = listOf<SettingsRow>(
         { shapes ->
             SettingsInfoItem(
@@ -305,19 +417,27 @@ fun SettingsScreen(
         }
     )
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = FiscusSpacing.md,
-            end = FiscusSpacing.md,
-            bottom = FiscusSpacing.lg
-        ),
-        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
-    ) {
-        settingsSection("Profile", profileRows)
-        settingsSection("Appearance", appearanceRows)
-        settingsSection("Manage", manageRows)
-        settingsSection("About", aboutRows)
+    Box(modifier = modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = FiscusSpacing.md,
+                end = FiscusSpacing.md,
+                bottom = FiscusSpacing.lg
+            ),
+            verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
+        ) {
+            settingsSection("Profile", profileRows)
+            settingsSection("Appearance", appearanceRows)
+            settingsSection("Manage", manageRows)
+            settingsSection("Data", dataRows)
+            settingsSection("About", aboutRows)
+        }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 

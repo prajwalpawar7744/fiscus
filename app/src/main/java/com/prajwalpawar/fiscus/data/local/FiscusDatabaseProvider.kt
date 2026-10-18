@@ -39,4 +39,13 @@ object FiscusDatabaseProvider {
                 .also { database = it }
         }
     }
+
+    // Closes the database so its file can be replaced or deleted (restore, wipe).
+    // The app restarts right after, so nothing uses the closed instance.
+    fun close() {
+        synchronized(this) {
+            database?.close()
+            database = null
+        }
+    }
 }
