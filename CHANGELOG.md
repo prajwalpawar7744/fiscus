@@ -4,6 +4,36 @@ All notable changes to Fiscus are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.1.0-beta.3] - 2026-10-19
+
+### Added
+
+- **Split a transaction into items**: for an expense or income, tap "Split into items" and
+  add each item with its quantity and price (decimals allowed, like 1.5 kg). The amount
+  becomes the total of the items. You'll see the items on the transaction's details, and
+  they come back when you edit it.
+- **Back up your data** from Settings → Data. Choose what to include (transactions,
+  accounts and categories; settings; your profile) and where to save the file, such as
+  Downloads or Drive.
+- **Restore a backup**: pick a Fiscus backup file and choose which parts to bring back.
+  Backups from earlier versions of Fiscus work too.
+- **Wipe data**: delete everything and start over as if Fiscus were freshly installed.
+
+### Changed
+
+- Fiscus updates its stored data to a new format the first time you open this version, to
+  make room for items. Your existing transactions are kept.
+
+### Known limitations
+
+- English only, with amounts in your phone's currency.
+- Backups are only made when you ask; there are no automatic backups yet.
+- Restoring a backup or wiping data restarts the app.
+- Once you've opened this version, installing an older version of Fiscus over it erases
+  your data. Back up first if you ever need to go back.
+- Unsaved transaction drafts are lost if Android closes the app in the background.
+- The Home screen's month doesn't change at midnight on the 1st until you reopen it.
+
 ## [0.1.0-beta.2]
 
 ### Added
@@ -100,5 +130,6 @@ access and no account.
 - Unsaved transaction drafts are lost if Android closes the app in the background.
 - The Home screen's month doesn't change at midnight on the 1st until you reopen it.
 
+[0.1.0-beta.3]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.2...v0.1.0-beta.3
 [0.1.0-beta.2]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.1...v0.1.0-beta.2
 [0.1.0-beta.1]: https://github.com/prajwalpawar7744/fiscus/releases/tag/v0.1.0-beta.1
