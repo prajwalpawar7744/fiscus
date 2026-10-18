@@ -21,7 +21,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8 strips unused code (most of Compose and the extended icon set) and resources.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

@@ -8,6 +8,20 @@ object FiscusDatabaseSeeder {
         seedDefaultAccount(db)
     }
 
+    // A database can exist without ever being created here (an Auto Backup restore, or
+    // one left empty), so defaults are also filled in on open, but only into empty
+    // tables: anything the user renamed or archived is never re-added.
+    fun seedEmptyTables(db: SupportSQLiteDatabase) {
+        if (isEmpty(db, "categories")) seedDefaultCategories(db)
+        if (isEmpty(db, "accounts")) seedDefaultAccount(db)
+    }
+
+    private fun isEmpty(db: SupportSQLiteDatabase, table: String): Boolean {
+        db.query("SELECT EXISTS(SELECT 1 FROM $table)").use { cursor ->
+            return cursor.moveToFirst() && cursor.getInt(0) == 0
+        }
+    }
+
     private fun seedDefaultCategories(
         db: SupportSQLiteDatabase
     ) {

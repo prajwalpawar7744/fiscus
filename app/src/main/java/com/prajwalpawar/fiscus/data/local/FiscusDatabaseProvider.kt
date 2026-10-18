@@ -15,6 +15,11 @@ object FiscusDatabaseProvider {
             super.onCreate(db)
             FiscusDatabaseSeeder.seed(db)
         }
+
+        override fun onOpen(db: SupportSQLiteDatabase) {
+            super.onOpen(db)
+            FiscusDatabaseSeeder.seedEmptyTables(db)
+        }
     }
 
     fun getDatabase(
