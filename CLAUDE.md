@@ -59,7 +59,7 @@ util              Money.kt (formatMoney, currencySymbol), DateRanges.kt
 - **Auto Backup restores the DB on reinstall** (`allowBackup=true`, extraction rules are still the empty sample). Older-schema restores upgrade through the migrations. `fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)` wipes data only on a downgrade (installing an older build over a newer one). Clearing data with `pm clear` does not trigger a restore; uninstall + reinstall can.
 - Defaults (14 categories, "Cash" as the default account) are seeded in `RoomDatabase.Callback.onCreate`, and again in `onOpen` via `FiscusDatabaseSeeder.seedEmptyTables` — but only into a table that is completely empty. An Auto Backup restore at install brings back an existing database, so `onCreate` never runs for it; without the `onOpen` check a restored empty database had no defaults. Never re-seed into a table with rows (it would re-add renamed or archived items).
 - Transactions: `title` is required; EXPENSE/INCOME need `categoryId` + `accountId`; TRANSFER needs `sourceAccountId` + `destinationAccountId` (different) and no category. `TransactionRepository.validate` enforces it.
-- Balances: opening balance + income − expense + transfers in − transfers out (SQL in `AccountDao.observeAccountBalances`). Credit-card spending goes negative and lowers the total, which is intended. Archived accounts are excluded from Home's total.
+- Balances: opening balance (set in the account editor; text with optional leading "-" for money owed) + income − expense + transfers in − transfers out (SQL in `AccountDao.observeAccountBalances`). Credit-card spending goes negative and lowers the total, which is intended. Archived accounts are excluded from Home's total.
 - Categories/accounts: **archive** (hidden from pickers, history keeps names) and **delete only when unused and not default** (repository `require`s). Can't archive the last active account or the last active category of a type. A category's type is locked once transactions use it. Duplicate names are checked case-insensitively (the DB unique index is case-sensitive).
 - FK behaviour: accounts `RESTRICT`, categories `SET_NULL`.
 
@@ -128,7 +128,6 @@ Release facts to keep straight:
 
 ## Open items
 
-- Account opening balance can't be set in the UI (DB supports it).
 - Month on Home is fixed when it opens (`shortcut:` in `HomeViewModel`).
 - Draft isn't kept across process death.
 - Clean-up: move strings to `strings.xml`.

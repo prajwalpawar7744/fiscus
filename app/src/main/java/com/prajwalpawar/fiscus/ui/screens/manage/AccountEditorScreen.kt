@@ -24,6 +24,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.prajwalpawar.fiscus.data.model.AccountType
 import com.prajwalpawar.fiscus.ui.components.FiscusChipIcon
@@ -31,6 +32,7 @@ import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.accountIcon
 import com.prajwalpawar.fiscus.ui.components.accountTypeLabel
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
+import com.prajwalpawar.fiscus.util.currencySymbol
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -98,6 +100,33 @@ fun AccountEditorScreen(
                 imeAction = ImeAction.Done
             ),
             // Done closes the keyboard so the type choices are visible.
+            keyboardActions = KeyboardActions(
+                onDone = { focusManager.clearFocus() }
+            )
+        )
+
+        OutlinedTextField(
+            value = uiState.openingBalance,
+            onValueChange = viewModel::setOpeningBalance,
+            modifier = Modifier.fillMaxWidth(),
+            label = {
+                Text("Opening balance")
+            },
+            prefix = {
+                Text(currencySymbol())
+            },
+            placeholder = {
+                Text("0")
+            },
+            supportingText = {
+                Text("What the account held before your first transaction here. Use − for money owed.")
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                // Phone layout has a minus key, which number pads often lack.
+                keyboardType = KeyboardType.Phone,
+                imeAction = ImeAction.Done
+            ),
             keyboardActions = KeyboardActions(
                 onDone = { focusManager.clearFocus() }
             )

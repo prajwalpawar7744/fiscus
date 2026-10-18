@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.prajwalpawar.fiscus.data.model.Account
 import com.prajwalpawar.fiscus.data.model.AccountType
 import com.prajwalpawar.fiscus.data.repository.AccountRepository
+import com.prajwalpawar.fiscus.ui.screens.transaction.amountToMinorUnits
+import com.prajwalpawar.fiscus.ui.screens.transaction.isAmountInput
+import com.prajwalpawar.fiscus.ui.screens.transaction.minorUnitsToAmountInput
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,6 +19,8 @@ import kotlinx.coroutines.launch
 data class AccountEditorUiState(
     val name: String = "",
     val type: AccountType = AccountType.BANK,
+    // Typed text; a leading "-" means money owed (e.g. a credit card's existing debt).
+    val openingBalance: String = "",
     val isDuplicate: Boolean = false,
     val isSaving: Boolean = false,
     // False only while an existing account is being loaded.
@@ -50,6 +55,7 @@ class AccountEditorViewModel(
         state.value = AccountEditorUiState(
             name = account.name,
             type = account.type,
+            openingBalance = if (account.openingBalance == 0L) "" else minorUnitsToAmountInput(account.openingBalance),
             isLoaded = true,
             manage = ItemManageState(
                 isArchived = account.isArchived,
@@ -64,6 +70,12 @@ class AccountEditorViewModel(
         state.update { it.copy(name = name, isDuplicate = false) }
     }
 
+    fun setOpeningBalance(value: String) {
+        if (isAmountInput(value.removePrefix("-"))) {
+            state.update { it.copy(openingBalance = value) }
+        }
+    }
+
     fun setType(type: AccountType) {
         state.update { it.copy(type = type) }
     }
@@ -73,6 +85,7 @@ class AccountEditorViewModel(
         if (!current.canSave) return
 
         val name = current.name.trim()
+        val openingBalance = amountToMinorUnits(current.openingBalance) ?: 0L
 
         viewModelScope.launch {
             state.update { it.copy(isSaving = true) }
@@ -90,12 +103,13 @@ class AccountEditorViewModel(
                         accountRepository.updateAccount(
                             existing.copy(
                                 name = name,
-                                type = current.type
+                                type = current.type,
+                                openingBalance = openingBalance
                             )
                         )
                         existing.id
                     } else {
-                        accountRepository.addAccount(Account(name = name, type = current.type))
+                        accountRepository.addAccount(Account(name = name, type = current.type, openingBalance = openingBalance))
                     }
                 } catch (e: SQLiteConstraintException) {
                     // Matches an archived account with the same name.
