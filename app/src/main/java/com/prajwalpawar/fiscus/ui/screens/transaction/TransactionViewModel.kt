@@ -6,6 +6,7 @@ import com.prajwalpawar.fiscus.data.model.Account
 import com.prajwalpawar.fiscus.data.model.Category
 import com.prajwalpawar.fiscus.data.model.CategoryType
 import com.prajwalpawar.fiscus.data.model.Transaction
+import com.prajwalpawar.fiscus.data.model.TransactionItem
 import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.data.repository.AccountRepository
 import com.prajwalpawar.fiscus.data.repository.CategoryRepository
@@ -38,12 +39,43 @@ data class TransactionForm(
     val dateMillis: Long = todayAsUtcMillis(),
     val title: String = "",
     val note: String = "",
+    // Itemised breakdown (expense/income only). When not empty, the amount is their sum.
+    val items: List<ItemDraft> = emptyList(),
     // Set when the sheet is editing an existing transaction instead of adding one.
     val editingId: Long? = null
-)
+) {
+    // Items only count where they're allowed; a transfer keeps them in the draft unused.
+    val usesItems: Boolean get() = items.isNotEmpty() && type != TransactionType.TRANSFER
+
+    // The amount text the form submits: typed, or the items' sum.
+    val effectiveAmount: String
+        get() = if (usesItems) {
+            items.sumOf { it.total() ?: 0L }.let { if (it == 0L) "" else minorUnitsToAmountInput(it) }
+        } else {
+            amount
+        }
+}
+
+// One item row as typed. [key] keeps rows stable in the list while editing.
+data class ItemDraft(
+    val key: Long,
+    val name: String = "",
+    val quantity: String = "1",
+    val price: String = ""
+) {
+    // The line total in hundredths, or null while quantity or price isn't a number yet.
+    fun total(): Long? {
+        val quantity = amountToMinorUnits(quantity)?.takeIf { it > 0L } ?: return null
+        val price = amountToMinorUnits(price)?.takeIf { it > 0L } ?: return null
+        return TransactionItem(name, quantity, price).total
+    }
+
+    val isComplete: Boolean get() = name.isNotBlank() && total() != null
+}
 
 // The first thing stopping the form from being submitted, in field order.
 enum class TransactionFormIssue {
+    ITEMS,
     AMOUNT,
     TITLE,
     CATEGORY,
@@ -151,6 +183,34 @@ class TransactionViewModel(
         }
     }
 
+    private var nextItemKey = 0L
+
+    fun addItem() {
+        form.update { it.copy(items = it.items + ItemDraft(key = nextItemKey++)) }
+    }
+
+    fun updateItem(key: Long, transform: (ItemDraft) -> ItemDraft) {
+        form.update { current ->
+            current.copy(items = current.items.map { item ->
+                if (item.key != key) {
+                    item
+                } else {
+                    // Quantity and price follow the same rules as the amount field.
+                    val updated = transform(item)
+                    item.copy(
+                        name = updated.name,
+                        quantity = updated.quantity.takeIf(::isAmountInput) ?: item.quantity,
+                        price = updated.price.takeIf(::isAmountInput) ?: item.price
+                    )
+                }
+            })
+        }
+    }
+
+    fun removeItem(key: Long) {
+        form.update { current -> current.copy(items = current.items.filterNot { it.key == key }) }
+    }
+
     fun selectCategory(id: Long) {
         form.update { it.copy(categoryId = id) }
     }
@@ -199,6 +259,14 @@ class TransactionViewModel(
                 dateMillis = transaction.date,
                 title = transaction.title,
                 note = transaction.note.orEmpty(),
+                items = transaction.items.map { item ->
+                    ItemDraft(
+                        key = nextItemKey++,
+                        name = item.name,
+                        quantity = minorUnitsToAmountInput(item.quantity),
+                        price = minorUnitsToAmountInput(item.unitPrice)
+                    )
+                },
                 editingId = id
             )
             onLoaded()
@@ -251,7 +319,18 @@ class TransactionViewModel(
 }
 
 private fun TransactionUiState.toTransaction(): Transaction? {
-    val amount = amountToMinorUnits(form.amount) ?: return null
+    val amount = amountToMinorUnits(form.effectiveAmount) ?: return null
+    val items = if (form.usesItems) {
+        form.items.map { item ->
+            TransactionItem(
+                name = item.name.trim(),
+                quantity = amountToMinorUnits(item.quantity) ?: return null,
+                unitPrice = amountToMinorUnits(item.price) ?: return null
+            )
+        }
+    } else {
+        emptyList()
+    }
     val title = form.title.trim()
     val note = form.note.trim().ifEmpty { null }
 
@@ -264,7 +343,8 @@ private fun TransactionUiState.toTransaction(): Transaction? {
             accountId = selectedAccountId,
             title = title,
             note = note,
-            date = form.dateMillis
+            date = form.dateMillis,
+            items = items
         )
 
         TransactionType.TRANSFER -> Transaction(
@@ -286,9 +366,12 @@ internal fun findIssue(
     selectedAccountId: Long?,
     selectedToAccountId: Long?
 ): TransactionFormIssue? {
-    val amount = amountToMinorUnits(form.amount)
+    val amount = amountToMinorUnits(form.effectiveAmount)
 
     return when {
+        form.usesItems && form.items.any { !it.isComplete } ->
+            TransactionFormIssue.ITEMS
+
         amount == null || amount <= 0L ->
             TransactionFormIssue.AMOUNT
 

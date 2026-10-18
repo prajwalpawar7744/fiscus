@@ -4,7 +4,9 @@ import androidx.room.withTransaction
 import com.prajwalpawar.fiscus.data.local.FiscusDatabase
 import com.prajwalpawar.fiscus.data.local.dao.TransactionDao
 import com.prajwalpawar.fiscus.data.local.dao.TransactionDetailsRow
+import com.prajwalpawar.fiscus.data.local.dao.TransactionItemDao
 import com.prajwalpawar.fiscus.data.local.entity.toEntity
+import com.prajwalpawar.fiscus.data.local.entity.toItem
 import com.prajwalpawar.fiscus.data.local.entity.toTransaction
 import com.prajwalpawar.fiscus.data.model.CategoryTotal
 import com.prajwalpawar.fiscus.data.model.DayTotals
@@ -12,6 +14,7 @@ import com.prajwalpawar.fiscus.data.model.MonthTotals
 import com.prajwalpawar.fiscus.data.model.PeriodTotals
 import com.prajwalpawar.fiscus.data.model.Transaction
 import com.prajwalpawar.fiscus.data.model.TransactionDetails
+import com.prajwalpawar.fiscus.data.model.TransactionItem
 import com.prajwalpawar.fiscus.data.model.TransactionType
 import com.prajwalpawar.fiscus.util.DateRange
 import com.prajwalpawar.fiscus.util.storedDateToLocalDate
@@ -21,7 +24,8 @@ import java.time.YearMonth
 
 class TransactionRepository(
     private val database: FiscusDatabase,
-    private val transactionDao: TransactionDao
+    private val transactionDao: TransactionDao,
+    private val itemDao: TransactionItemDao = database.transactionItemDao()
 ) {
     val transactions: Flow<List<Transaction>> =
         transactionDao.observeTransactions().map { transaction ->
@@ -102,23 +106,38 @@ class TransactionRepository(
     }
 
     suspend fun getTransaction(id: Long): Transaction? {
-        return transactionDao.getTransaction(id)?.toTransaction()
+        val transaction = transactionDao.getTransaction(id)?.toTransaction() ?: return null
+        return transaction.copy(items = itemDao.getItems(id).map { it.toItem() })
+    }
+
+    fun observeItems(transactionId: Long): Flow<List<TransactionItem>> {
+        return itemDao.observeItems(transactionId).map { rows -> rows.map { it.toItem() } }
     }
 
     suspend fun addTransaction(transaction: Transaction): Long {
         validate(transaction)
 
         return database.withTransaction {
-            transactionDao.insertTransaction(transaction.toEntity())
+            val id = transactionDao.insertTransaction(transaction.toEntity())
+            saveItems(id, transaction.items)
+            id
         }
     }
-
 
     suspend fun updateTransaction(transaction: Transaction) {
         validate(transaction)
 
         database.withTransaction {
             transactionDao.updateTransaction(transaction.toEntity())
+            // Items are replaced as a whole: simpler than diffing, and the list is short.
+            itemDao.deleteItems(transaction.id)
+            saveItems(transaction.id, transaction.items)
+        }
+    }
+
+    private suspend fun saveItems(transactionId: Long, items: List<TransactionItem>) {
+        if (items.isNotEmpty()) {
+            itemDao.insertItems(items.mapIndexed { index, item -> item.toEntity(transactionId, index) })
         }
     }
 
@@ -152,6 +171,17 @@ class TransactionRepository(
         }
         require(transaction.title.isNotBlank()) {
             "A transaction requires a title."
+        }
+        if (transaction.items.isNotEmpty()) {
+            require(transaction.type != TransactionType.TRANSFER) {
+                "A transfer cannot have items."
+            }
+            require(transaction.items.all { it.name.isNotBlank() && it.quantity > 0L && it.unitPrice > 0L }) {
+                "Every item needs a name, a quantity and a price."
+            }
+            require(transaction.amount == transaction.items.sumOf { it.total }) {
+                "An itemised transaction's amount must equal the sum of its items."
+            }
         }
 
         when (transaction.type) {

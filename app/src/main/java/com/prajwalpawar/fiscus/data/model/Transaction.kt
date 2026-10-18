@@ -11,5 +11,7 @@ data class Transaction(
     val destinationAccountId: Long? = null,
     val title: String,
     val note: String? = null,
-    val date: Long
+    val date: Long,
+    // Empty unless itemised; then amount is the sum of the items' totals.
+    val items: List<TransactionItem> = emptyList()
 )

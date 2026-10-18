@@ -5,6 +5,9 @@ package com.prajwalpawar.fiscus.ui.screens.transaction
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import com.prajwalpawar.fiscus.util.formatMoney
+import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
+import com.prajwalpawar.fiscus.data.model.TransactionItem
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -94,6 +97,7 @@ fun TransactionDetailsScreen(
         ) {
             DetailsHero(details)
             DetailsList(details)
+            if (uiState.items.isNotEmpty()) ItemsList(uiState.items)
         }
 
         // Expressive floating toolbar: the main action (Edit) is its FAB, the rest sit inside.
@@ -288,5 +292,43 @@ private fun transactionIcon(details: TransactionDetails): ImageVector {
         Icons.Rounded.SwapHoriz
     } else {
         categoryIcon(details.categoryIconKey ?: "category")
+    }
+}
+
+// The itemised breakdown: one static segmented row per item, quantity × price and total.
+@Composable
+private fun ItemsList(items: List<TransactionItem>) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
+    ) {
+        FiscusSectionHeader(
+            title = "${items.size} ${if (items.size == 1) "item" else "items"}",
+            modifier = Modifier.padding(bottom = FiscusSpacing.xs)
+        )
+
+        items.forEachIndexed { index, item ->
+            FiscusSegmentedListItem(
+                shapes = ListItemDefaults.segmentedShapes(index = index, count = items.size),
+                supportingContent = {
+                    Text(
+                        text = "${minorUnitsToAmountInput(item.quantity)} × ${formatMoney(item.unitPrice)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                trailingContent = {
+                    Text(
+                        text = formatMoney(item.total),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                },
+                content = {
+                    Text(
+                        text = item.name,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            )
+        }
     }
 }

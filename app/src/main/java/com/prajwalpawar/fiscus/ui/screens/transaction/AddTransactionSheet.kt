@@ -1,6 +1,19 @@
 package com.prajwalpawar.fiscus.ui.screens.transaction
 
 import androidx.compose.foundation.layout.Arrangement
+import com.prajwalpawar.fiscus.util.formatMoney
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.Alignment
+import androidx.compose.runtime.key
+import androidx.compose.material3.Surface
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -96,6 +109,9 @@ fun AddTransactionSheet(
             onDateSelected = viewModel::setDate,
             onTitleChange = viewModel::setTitle,
             onNoteChange = viewModel::setNote,
+            onAddItem = viewModel::addItem,
+            onItemChange = viewModel::updateItem,
+            onRemoveItem = viewModel::removeItem,
             onAddCategory = {
                 val type = if (uiState.form.type == TransactionType.INCOME) {
                     CategoryType.INCOME
@@ -129,6 +145,9 @@ private fun AddTransactionContent(
     onDateSelected: (Long) -> Unit,
     onTitleChange: (String) -> Unit,
     onNoteChange: (String) -> Unit,
+    onAddItem: () -> Unit,
+    onItemChange: (key: Long, transform: (ItemDraft) -> ItemDraft) -> Unit,
+    onRemoveItem: (key: Long) -> Unit,
     onAddCategory: () -> Unit,
     onAddAccount: (asTransferTarget: Boolean) -> Unit,
     onSubmit: () -> Unit,
@@ -170,8 +189,10 @@ private fun AddTransactionContent(
 
         AmountField(
             modifier = inset,
-            amount = form.amount,
-            onAmountChange = onAmountChange
+            amount = form.effectiveAmount,
+            onAmountChange = onAmountChange,
+            // With items, the amount is their sum and can't be typed over.
+            readOnly = form.usesItems
         )
 
         OutlinedTextField(
@@ -192,6 +213,14 @@ private fun AddTransactionContent(
         )
 
         if (form.type != TransactionType.TRANSFER) {
+            ItemsSection(
+                items = form.items,
+                onAddItem = onAddItem,
+                onItemChange = onItemChange,
+                onRemoveItem = onRemoveItem,
+                modifier = inset
+            )
+
             ChipSection(
                 title = "Category",
                 titleModifier = inset,
@@ -279,6 +308,7 @@ private fun AddTransactionContent(
         val hint = when {
             uiState.saveFailed -> "Couldn't save the transaction. Try again."
             else -> when (uiState.issue) {
+                TransactionFormIssue.ITEMS -> "Give every item a name, quantity and price"
                 TransactionFormIssue.AMOUNT -> "Enter an amount to continue"
                 TransactionFormIssue.TITLE -> "Add a title to continue"
                 TransactionFormIssue.CATEGORY -> "Choose a category to continue"
@@ -309,7 +339,8 @@ private fun AddTransactionContent(
 private fun AmountField(
     amount: String,
     onAmountChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    readOnly: Boolean = false
 ) {
     val mutedColor = MaterialTheme.colorScheme.onSurfaceVariant
     val transformation = remember(mutedColor) {
@@ -332,6 +363,7 @@ private fun AmountField(
             textAlign = TextAlign.Center
         ),
         singleLine = true,
+        readOnly = readOnly,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Decimal
         ),
@@ -460,3 +492,135 @@ private fun ChipSection(
     }
 }
 
+
+// Optional breakdown: each item is name, quantity × price; the amount becomes their sum.
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ItemsSection(
+    items: List<ItemDraft>,
+    onAddItem: () -> Unit,
+    onItemChange: (key: Long, transform: (ItemDraft) -> ItemDraft) -> Unit,
+    onRemoveItem: (key: Long) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
+    ) {
+        FiscusSectionHeader(title = if (items.isEmpty()) "Items (optional)" else "Items")
+
+        items.forEachIndexed { index, item ->
+            key(item.key) {
+                ItemRow(
+                    item = item,
+                    position = index + 1,
+                    shape = ListItemDefaults.segmentedShapes(index = index, count = items.size).shape,
+                    onChange = { transform -> onItemChange(item.key, transform) },
+                    onRemove = { onRemoveItem(item.key) }
+                )
+            }
+        }
+
+        OutlinedButton(
+            onClick = onAddItem,
+            shapes = ButtonDefaults.shapes(),
+            modifier = Modifier.padding(top = FiscusSpacing.xs)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Add,
+                contentDescription = null,
+                modifier = Modifier.size(ButtonDefaults.IconSize)
+            )
+            Text(
+                text = if (items.isEmpty()) "Split into items" else "Add item",
+                modifier = Modifier.padding(start = ButtonDefaults.IconSpacing)
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ItemRow(
+    item: ItemDraft,
+    position: Int,
+    shape: Shape,
+    onChange: ((ItemDraft) -> ItemDraft) -> Unit,
+    onRemove: () -> Unit
+) {
+    Surface(
+        shape = shape,
+        color = MaterialTheme.colorScheme.surfaceContainer
+    ) {
+        Column(
+            modifier = Modifier.padding(FiscusSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    value = item.name,
+                    onValueChange = { name -> onChange { it.copy(name = name) } },
+                    modifier = Modifier.weight(1f),
+                    label = { Text("Item $position") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Sentences,
+                        imeAction = ImeAction.Next
+                    )
+                )
+
+                IconButton(
+                    onClick = onRemove,
+                    shapes = IconButtonDefaults.shapes()
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = "Remove item $position"
+                    )
+                }
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
+            ) {
+                OutlinedTextField(
+                    value = item.quantity,
+                    onValueChange = { quantity -> onChange { it.copy(quantity = quantity) } },
+                    modifier = Modifier.weight(1f),
+                    label = { Text("Qty") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal,
+                        imeAction = ImeAction.Next
+                    )
+                )
+
+                OutlinedTextField(
+                    value = item.price,
+                    onValueChange = { price -> onChange { it.copy(price = price) } },
+                    modifier = Modifier.weight(2f),
+                    label = { Text("Price each") },
+                    prefix = { Text(currencySymbol()) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal,
+                        imeAction = ImeAction.Next
+                    )
+                )
+            }
+
+            item.total()?.let { total ->
+                Text(
+                    text = "= ${formatMoney(total)}",
+                    style = MaterialTheme.typography.titleSmallEmphasized,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = FiscusSpacing.sm)
+                )
+            }
+        }
+    }
+}

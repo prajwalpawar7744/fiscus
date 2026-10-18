@@ -63,6 +63,10 @@ android {
     buildFeatures {
         compose = true
     }
+    // Migration tests read the exported schema JSON files.
+    sourceSets {
+        getByName("androidTest").assets.directories.add("$projectDir/schemas")
+    }
 }
 
 // Room writes each database version's schema here, so migrations can be tested.
@@ -84,6 +88,7 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.room.testing)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
