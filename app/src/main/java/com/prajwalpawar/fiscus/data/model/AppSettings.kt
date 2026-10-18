@@ -39,5 +39,8 @@ data class AppSettings(
     val iconShape: IconShapePreference = IconShapePreference.COOKIE,
     val appBar: AppBarPreference = AppBarPreference.SMALL,
     val bottomBar: BottomBarPreference = BottomBarPreference.SHOW_LABELS,
-    val appBarScroll: AppBarScrollPreference = AppBarScrollPreference.PINNED
+    val appBarScroll: AppBarScrollPreference = AppBarScrollPreference.PINNED,
+    val profileName: String = "",
+    // Changes each time a profile photo is saved (0 = none), so the avatar reloads the file.
+    val profilePhotoVersion: Long = 0L
 )

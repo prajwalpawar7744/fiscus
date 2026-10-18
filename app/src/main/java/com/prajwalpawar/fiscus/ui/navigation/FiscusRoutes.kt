@@ -9,6 +9,7 @@ object FiscusRoutes {
 
     const val MANAGE_CATEGORIES = "categories"
     const val MANAGE_ACCOUNTS = "accounts"
+    const val PROFILE = "profile"
 
     // Not under "transactions/", which would read as the Transactions tab itself.
     const val TRANSACTION_SEARCH = "search"

@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material.icons.filled.WebAsset
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.ListItemShapes
@@ -54,20 +55,23 @@ import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.BottomBarPreference
 import com.prajwalpawar.fiscus.data.model.IconShapePreference
 import com.prajwalpawar.fiscus.data.model.ThemePreference
+import com.prajwalpawar.fiscus.ui.components.FiscusAvatar
 import com.prajwalpawar.fiscus.ui.components.FiscusDropdownMenu
 import com.prajwalpawar.fiscus.ui.components.FiscusListIcon
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.FiscusSegmentedListItem
 import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
 import com.prajwalpawar.fiscus.ui.navigation.containerTransform
+import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 
 // A settings row; it receives the corner shapes for its position in the section.
 private typealias SettingsRow = @Composable (shapes: ListItemShapes) -> Unit
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SettingsScreen(
+    onProfileClick: () -> Unit,
     onCategoriesClick: () -> Unit,
     onAccountsClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -82,6 +86,37 @@ fun SettingsScreen(
 
     // Wallpaper-based color only exists on Android 12+.
     val dynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
+    val profileRows = listOf<SettingsRow>(
+        { shapes ->
+            FiscusSegmentedListItem(
+                shapes = shapes,
+                modifier = Modifier.containerTransform(ContainerKeys.PROFILE),
+                onClick = onProfileClick,
+                leadingContent = {
+                    FiscusAvatar(
+                        name = settings.profileName,
+                        photoVersion = settings.profilePhotoVersion,
+                        size = FiscusSize.avatarRow,
+                        initialStyle = MaterialTheme.typography.titleLargeEmphasized
+                    )
+                },
+                content = {
+                    Text(
+                        text = settings.profileName.ifEmpty { "Add your name" },
+                        style = MaterialTheme.typography.titleMediumEmphasized
+                    )
+                },
+                supportingContent = {
+                    Text(
+                        text = "Name and profile photo",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            )
+        }
+    )
 
     val appearanceRows = listOfNotNull<SettingsRow>(
         { shapes ->
@@ -279,6 +314,7 @@ fun SettingsScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
     ) {
+        settingsSection("Profile", profileRows)
         settingsSection("Appearance", appearanceRows)
         settingsSection("Manage", manageRows)
         settingsSection("About", aboutRows)

@@ -65,7 +65,9 @@ import com.prajwalpawar.fiscus.ui.screens.manage.CategoryEditorViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.manage.ManageAccountsScreen
 import com.prajwalpawar.fiscus.ui.screens.manage.ManageCategoriesScreen
 import com.prajwalpawar.fiscus.ui.screens.manage.ManageViewModelFactory
+import com.prajwalpawar.fiscus.ui.screens.settings.ProfileScreen
 import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
+import com.prajwalpawar.fiscus.ui.screens.settings.SettingsViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.transaction.AddTransactionSheet
 import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionDetailsScreen
 import com.prajwalpawar.fiscus.ui.screens.transaction.TransactionDetailsViewModelFactory
@@ -239,6 +241,10 @@ fun FiscusApp(
                             "Accounts"
                         }
 
+                        route == FiscusRoutes.PROFILE -> {
+                            "Profile"
+                        }
+
                         route?.startsWith(FiscusRoutes.TRANSACTION_DETAILS_BASE) == true -> {
                             "Transaction"
                         }
@@ -383,6 +389,9 @@ fun FiscusApp(
 
                     fiscusComposable(FiscusDestination.Settings.route) {
                         SettingsScreen(
+                            onProfileClick = {
+                                navController.navigate(FiscusRoutes.PROFILE)
+                            },
                             onCategoriesClick = {
                                 navController.navigate(FiscusRoutes.MANAGE_CATEGORIES)
                             },
@@ -480,6 +489,16 @@ fun FiscusApp(
                                 }
                             },
                             onDeleted = { navController.popBackStack() }
+                        )
+                    }
+
+                    fiscusComposable(FiscusRoutes.PROFILE) {
+                        ProfileScreen(
+                            modifier = Modifier.containerTransform(ContainerKeys.PROFILE),
+                            viewModel = viewModel(
+                                factory = SettingsViewModelFactory(LocalContext.current)
+                            ),
+                            onSaved = { navController.popBackStack() }
                         )
                     }
 

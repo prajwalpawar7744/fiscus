@@ -3,6 +3,7 @@ package com.prajwalpawar.fiscus.data.local
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.prajwalpawar.fiscus.data.model.AppBarPreference
@@ -28,6 +29,8 @@ class SettingsDataStore(
         val appBar = stringPreferencesKey("app_bar")
         val bottomBar = stringPreferencesKey("bottom_bar")
         val appBarScroll = stringPreferencesKey("app_bar_scroll")
+        val profileName = stringPreferencesKey("profile_name")
+        val profilePhotoVersion = longPreferencesKey("profile_photo_version")
     }
 
     val settings: Flow<AppSettings> = context.settingsDataStore.data.map { preferences ->
@@ -73,6 +76,10 @@ class SettingsDataStore(
                     }.getOrNull()
                 }
                 ?: AppBarScrollPreference.PINNED,
+
+            profileName = preferences[Keys.profileName].orEmpty(),
+
+            profilePhotoVersion = preferences[Keys.profilePhotoVersion] ?: 0L,
         ).let { settings ->
             // A small app bar has nothing to collapse, so treat collapse as pinned.
             if (
@@ -119,6 +126,18 @@ class SettingsDataStore(
     suspend fun setAppBarScroll(appBarScroll: AppBarScrollPreference) {
         context.settingsDataStore.edit { preferences ->
             preferences[Keys.appBarScroll] = appBarScroll.name
+        }
+    }
+
+    suspend fun setProfileName(name: String) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[Keys.profileName] = name
+        }
+    }
+
+    suspend fun setProfilePhotoVersion(version: Long) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[Keys.profilePhotoVersion] = version
         }
     }
 }

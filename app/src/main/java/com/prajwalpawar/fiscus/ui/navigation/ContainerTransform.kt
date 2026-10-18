@@ -33,6 +33,7 @@ object ContainerKeys {
     fun newCategory(type: String) = "category-new-$type"
     const val MANAGE_CATEGORIES = "manage-categories"
     const val MANAGE_ACCOUNTS = "manage-accounts"
+    const val PROFILE = "profile"
 }
 
 // Material container transform: the element tagged with [key] on the current page grows

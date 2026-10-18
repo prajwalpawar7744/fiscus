@@ -3,6 +3,7 @@ package com.prajwalpawar.fiscus.ui.screens.settings
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.prajwalpawar.fiscus.data.local.ProfilePhotoStore
 import com.prajwalpawar.fiscus.data.local.SettingsDataStore
 
 class SettingsViewModelFactory(
@@ -14,7 +15,8 @@ class SettingsViewModelFactory(
     ): T {
         if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
             return SettingsViewModel(
-                settingsDataStore = SettingsDataStore(context.applicationContext)
+                settingsDataStore = SettingsDataStore(context.applicationContext),
+                profilePhotoStore = ProfilePhotoStore(context.applicationContext)
             ) as T
         }
 

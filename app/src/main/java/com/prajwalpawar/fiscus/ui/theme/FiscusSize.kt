@@ -14,6 +14,10 @@ object FiscusSize {
     val emptyStateIcon: Dp = 48.dp
     val listIconContainer: Dp = 40.dp
 
+    // Profile picture: the Settings row and the Profile page hero.
+    val avatarRow: Dp = 56.dp
+    val avatarHero: Dp = 160.dp
+
     // Direction arrow beside a transaction amount, sized to sit with titleSmall text.
     val amountArrow: Dp = 18.dp
 
