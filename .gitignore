@@ -16,3 +16,8 @@ local.properties
 
 # Kotlin compiler caches and crash logs
 .kotlin/
+
+# Release signing secrets
+keystore.properties
+*.jks
+*.keystore

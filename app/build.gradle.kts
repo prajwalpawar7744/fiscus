@@ -1,7 +1,16 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+}
+
+// Release signing: keystore path and passwords live in the git-ignored keystore.properties
+// at the project root. Without it, release builds come out unsigned.
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
 }
 
 android {
@@ -19,8 +28,25 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        // Only once keystore.properties points at a real keystore file.
+        val keystore = keystoreProperties.getProperty("storeFile")
+            ?.takeIf { it.isNotBlank() }
+            ?.let { rootProject.file(it) }
+            ?.takeIf { it.exists() }
+        if (keystore != null) {
+            create("release") {
+                storeFile = keystore
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.findByName("release")
             // R8 strips unused code (most of Compose and the extended icon set) and resources.
             isMinifyEnabled = true
             isShrinkResources = true
