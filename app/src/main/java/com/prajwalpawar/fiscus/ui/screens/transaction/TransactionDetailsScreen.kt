@@ -1,5 +1,8 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.prajwalpawar.fiscus.ui.screens.transaction
 
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,12 +14,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Notes
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.automirrored.rounded.Notes
+import androidx.compose.material.icons.rounded.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.CalendarToday
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -93,23 +96,30 @@ fun TransactionDetailsScreen(
             DetailsList(details)
         }
 
-        // Expressive floating toolbar for the page's actions.
+        // Expressive floating toolbar: the main action (Edit) is its FAB, the rest sit inside.
         HorizontalFloatingToolbar(
             expanded = true,
+            floatingActionButton = {
+                FloatingToolbarDefaults.VibrantFloatingActionButton(
+                    onClick = { onEditClick(details.id) }
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Edit,
+                        contentDescription = "Edit"
+                    )
+                }
+            },
+            colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = FloatingToolbarDefaults.ScreenOffset)
         ) {
-            IconButton(onClick = { onEditClick(details.id) }) {
+            IconButton(
+                onClick = { confirmDelete = true },
+                shapes = IconButtonDefaults.shapes()
+            ) {
                 Icon(
-                    imageVector = Icons.Filled.Edit,
-                    contentDescription = "Edit"
-                )
-            }
-
-            IconButton(onClick = { confirmDelete = true }) {
-                Icon(
-                    imageVector = Icons.Filled.Delete,
+                    imageVector = Icons.Rounded.Delete,
                     contentDescription = "Delete"
                 )
             }
@@ -121,7 +131,7 @@ fun TransactionDetailsScreen(
             onDismissRequest = { confirmDelete = false },
             icon = {
                 Icon(
-                    imageVector = Icons.Filled.Delete,
+                    imageVector = Icons.Rounded.Delete,
                     contentDescription = null
                 )
             },
@@ -133,6 +143,7 @@ fun TransactionDetailsScreen(
             },
             confirmButton = {
                 TextButton(
+                    shapes = ButtonDefaults.shapes(),
                     onClick = {
                         confirmDelete = false
                         viewModel.delete(onDeleted)
@@ -145,7 +156,7 @@ fun TransactionDetailsScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { confirmDelete = false }) {
+                TextButton(onClick = { confirmDelete = false }, shapes = ButtonDefaults.shapes()) {
                     Text("Cancel")
                 }
             }
@@ -210,14 +221,14 @@ private fun DetailsList(details: TransactionDetails) {
                     DetailRow(
                         "From",
                         details.sourceAccountName.orEmpty(),
-                        Icons.Filled.AccountBalanceWallet
+                        Icons.Rounded.AccountBalanceWallet
                     )
                 )
                 add(
                     DetailRow(
                         "To",
                         details.destinationAccountName.orEmpty(),
-                        Icons.Filled.AccountBalanceWallet
+                        Icons.Rounded.AccountBalanceWallet
                     )
                 )
             }
@@ -234,7 +245,7 @@ private fun DetailsList(details: TransactionDetails) {
                     DetailRow(
                         "Account",
                         details.accountName.orEmpty(),
-                        Icons.Filled.AccountBalanceWallet
+                        Icons.Rounded.AccountBalanceWallet
                     )
                 )
             }
@@ -245,11 +256,11 @@ private fun DetailsList(details: TransactionDetails) {
                 label = "Date",
                 value = storedDateToLocalDate(details.date)
                     .format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)),
-                icon = Icons.Filled.CalendarToday
+                icon = Icons.Rounded.CalendarToday
             )
         )
 
-        details.note?.let { add(DetailRow("Note", it, Icons.AutoMirrored.Filled.Notes)) }
+        details.note?.let { add(DetailRow("Note", it, Icons.AutoMirrored.Rounded.Notes)) }
     }
 
     Column(
@@ -274,7 +285,7 @@ private fun DetailsList(details: TransactionDetails) {
 
 private fun transactionIcon(details: TransactionDetails): ImageVector {
     return if (details.type == TransactionType.TRANSFER) {
-        Icons.Filled.SwapHoriz
+        Icons.Rounded.SwapHoriz
     } else {
         categoryIcon(details.categoryIconKey ?: "category")
     }

@@ -9,8 +9,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -82,7 +82,7 @@ fun ManageCategoriesScreen(
                     } + ManageRow(
                     key = "add-$type",
                     transformKey = ContainerKeys.newCategory(type.name),
-                    icon = Icons.Filled.Add,
+                    icon = Icons.Rounded.Add,
                     title = "Add ${label.lowercase()} category",
                     supporting = null,
                     trailingText = null,
@@ -139,7 +139,7 @@ fun ManageAccountsScreen(
             val activeSection = active.map(::row) + ManageRow(
                 key = "add-account",
                 transformKey = ContainerKeys.NEW_ACCOUNT,
-                icon = Icons.Filled.Add,
+                icon = Icons.Rounded.Add,
                 title = "Add account",
                 supporting = null,
                 trailingText = null,
@@ -247,7 +247,7 @@ private fun ManageRowItem(
                     )
                 } else {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                         contentDescription = null
                     )
                 }

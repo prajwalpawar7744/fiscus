@@ -2,7 +2,7 @@ package com.prajwalpawar.fiscus.ui.components
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.CheckableDropdownMenuItem
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuPopup
@@ -58,7 +58,7 @@ fun <T> FiscusDropdownMenu(
                     checked = item == selectedItem,
                     checkedLeadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.Check,
+                            imageVector = Icons.Rounded.Check,
                             contentDescription = null
                         )
                     },

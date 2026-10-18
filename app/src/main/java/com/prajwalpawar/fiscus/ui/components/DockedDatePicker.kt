@@ -1,5 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.prajwalpawar.fiscus.ui.components
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.fadeIn
@@ -18,7 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.rounded.DateRange
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -94,13 +99,14 @@ fun DockedDatePicker(
             interactionSource = fieldInteractionSource,
             trailingIcon = {
                 IconButton(
+                    shapes = IconButtonDefaults.shapes(),
                     enabled = enabled,
                     onClick = {
                         pickerVisibility.targetState = !pickerVisibility.targetState
                     }
                 ) {
                     Icon(
-                        imageVector = Icons.Default.DateRange,
+                        imageVector = Icons.Rounded.DateRange,
                         contentDescription = "Select $label"
                     )
                 }
@@ -210,11 +216,13 @@ internal fun DockedPickerActions(
         leadingAction?.invoke()
         Spacer(Modifier.weight(1f))
 
-        TextButton(onClick = onCancel) {
+        TextButton(onClick = onCancel, shapes = ButtonDefaults.shapes()) {
             Text("Cancel")
         }
 
         TextButton(
+
+            shapes = ButtonDefaults.shapes(),
             enabled = confirmEnabled,
             onClick = onConfirm
         ) {

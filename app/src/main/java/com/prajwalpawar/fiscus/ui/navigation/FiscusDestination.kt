@@ -1,10 +1,10 @@
 package com.prajwalpawar.fiscus.ui.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.rounded.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.BarChart
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Home
@@ -20,7 +20,7 @@ sealed class FiscusDestination(
     data object Home : FiscusDestination(
         route = "home",
         label = "Home",
-        selectedIcon = Icons.Filled.Home,
+        selectedIcon = Icons.Rounded.Home,
         unselectedIcon = Icons.Outlined.Home
 
     )
@@ -28,7 +28,7 @@ sealed class FiscusDestination(
     data object Transactions : FiscusDestination(
         route = "transactions",
         label = "Transactions",
-        selectedIcon = Icons.Filled.AccountBalanceWallet,
+        selectedIcon = Icons.Rounded.AccountBalanceWallet,
         unselectedIcon = Icons.Outlined.AccountBalanceWallet
 
     )
@@ -36,14 +36,14 @@ sealed class FiscusDestination(
     data object Analysis : FiscusDestination(
         route = "analysis",
         label = "Analysis",
-        selectedIcon = Icons.Filled.BarChart,
+        selectedIcon = Icons.Rounded.BarChart,
         unselectedIcon = Icons.Outlined.BarChart
     )
 
     data object Settings : FiscusDestination(
         route = "settings",
         label = "Settings",
-        selectedIcon = Icons.Filled.Settings,
+        selectedIcon = Icons.Rounded.Settings,
         unselectedIcon = Icons.Outlined.Settings
     )
 }

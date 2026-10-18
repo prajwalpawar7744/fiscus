@@ -15,9 +15,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
@@ -96,7 +96,7 @@ fun ProfileScreen(
                 shapes = ButtonDefaults.shapes()
             ) {
                 Icon(
-                    imageVector = Icons.Default.PhotoLibrary,
+                    imageVector = Icons.Rounded.PhotoLibrary,
                     contentDescription = null,
                     modifier = Modifier.size(ButtonDefaults.IconSize)
                 )
@@ -112,7 +112,7 @@ fun ProfileScreen(
                     shapes = ButtonDefaults.shapes()
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Delete,
+                        imageVector = Icons.Rounded.Delete,
                         contentDescription = null,
                         modifier = Modifier.size(ButtonDefaults.IconSize)
                     )
@@ -139,7 +139,7 @@ fun ProfileScreen(
 
         FiscusSubmitButton(
             text = "Save",
-            icon = Icons.Default.Check,
+            icon = Icons.Rounded.Check,
             // Always enabled: the photo is saved on pick, so Save may just confirm and close.
             enabled = true,
             onClick = save

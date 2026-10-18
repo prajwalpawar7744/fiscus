@@ -427,7 +427,7 @@ private fun SpendingTrend(
             // Only the period gets a value label; tap a column to open that day or month.
             Text(
                 text = "${formatMoney(periodSpent)} in ${period.label()}",
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMediumEmphasized
             )
 
             Row(

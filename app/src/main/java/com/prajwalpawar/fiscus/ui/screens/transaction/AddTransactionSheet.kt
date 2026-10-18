@@ -13,8 +13,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -269,7 +269,7 @@ private fun AddTransactionContent(
 
         FiscusSubmitButton(
             text = if (form.editingId != null) "Save changes" else "Add transaction",
-            icon = if (form.editingId != null) Icons.Filled.Check else Icons.Filled.Add,
+            icon = if (form.editingId != null) Icons.Rounded.Check else Icons.Rounded.Add,
             enabled = uiState.canSubmit,
             onClick = onSubmit,
             modifier = inset
@@ -447,7 +447,7 @@ private fun ChipSection(
                     },
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Filled.Add,
+                            imageVector = Icons.Rounded.Add,
                             contentDescription = null
                         )
                     },

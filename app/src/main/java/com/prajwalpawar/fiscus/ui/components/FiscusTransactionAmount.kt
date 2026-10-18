@@ -4,9 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.rounded.ArrowDownward
+import androidx.compose.material.icons.rounded.ArrowUpward
+import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -47,9 +47,9 @@ fun FiscusTransactionAmount(
             // The arrow replaces the sign, so it carries the meaning for screen readers.
             Icon(
                 imageVector = when (type) {
-                    TransactionType.INCOME -> Icons.Filled.ArrowUpward
-                    TransactionType.EXPENSE -> Icons.Filled.ArrowDownward
-                    TransactionType.TRANSFER -> Icons.Filled.SwapHoriz
+                    TransactionType.INCOME -> Icons.Rounded.ArrowUpward
+                    TransactionType.EXPENSE -> Icons.Rounded.ArrowDownward
+                    TransactionType.TRANSFER -> Icons.Rounded.SwapHoriz
                 },
                 contentDescription = when (type) {
                     TransactionType.INCOME -> "Income"

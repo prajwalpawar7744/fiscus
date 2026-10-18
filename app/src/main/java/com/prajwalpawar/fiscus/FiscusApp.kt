@@ -1,13 +1,17 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.prajwalpawar.fiscus
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -270,6 +274,7 @@ fun FiscusApp(
                     actions = {
                         if (onHome) {
                             IconButton(
+                                shapes = IconButtonDefaults.shapes(),
                                 onClick = { navController.navigate(FiscusRoutes.PROFILE) },
                                 modifier = Modifier.containerTransform(ContainerKeys.PROFILE)
                             ) {
@@ -284,10 +289,11 @@ fun FiscusApp(
                         }
                         if (onTransactions) {
                             IconButton(
+                                shapes = IconButtonDefaults.shapes(),
                                 onClick = { navController.navigate(FiscusRoutes.TRANSACTION_SEARCH) }
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.Search,
+                                    imageVector = Icons.Rounded.Search,
                                     contentDescription = "Search transactions"
                                 )
                             }
@@ -315,7 +321,7 @@ fun FiscusApp(
                     icon = {
                         // The text names the action; collapsed, the icon needs its own label.
                         Icon(
-                            imageVector = Icons.Default.Add,
+                            imageVector = Icons.Rounded.Add,
                             contentDescription = if (fabExpanded) null else "Add transaction"
                         )
                     },

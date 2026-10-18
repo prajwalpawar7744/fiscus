@@ -1,5 +1,8 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.prajwalpawar.fiscus.ui.screens.transactions
 
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,9 +16,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ReceiptLong
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.FilterListOff
+import androidx.compose.material.icons.automirrored.rounded.ReceiptLong
+import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.FilterListOff
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
@@ -108,7 +111,7 @@ fun TransactionsScreen(
 
             uiState.transactions.isEmpty() -> item(key = "empty") {
                 FiscusEmptyState(
-                    icon = Icons.AutoMirrored.Filled.ReceiptLong,
+                    icon = Icons.AutoMirrored.Rounded.ReceiptLong,
                     title = "Nothing in ${uiState.period.label()}",
                     message = "Transactions dated in this period will be listed here.",
                     modifier = Modifier.fillParentMaxHeight(0.6f)
@@ -256,7 +259,7 @@ private fun FiltersBar(
                     onClick = onClear,
                     label = { Text("Clear") },
                     leadingIcon = {
-                        Icon(Icons.Filled.FilterListOff, contentDescription = null)
+                        Icon(Icons.Rounded.FilterListOff, contentDescription = null)
                     }
                 )
             }
@@ -282,7 +285,7 @@ private fun <T : Any> MenuFilterChip(
             onClick = { expanded = true },
             label = { Text(selected?.let(optionLabel) ?: label) },
             trailingIcon = {
-                Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+                Icon(Icons.Rounded.ArrowDropDown, contentDescription = null)
             }
         )
 
@@ -322,7 +325,7 @@ private fun NoMatches(onClear: () -> Unit) {
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
         )
-        TextButton(onClick = onClear) {
+        TextButton(onClick = onClear, shapes = ButtonDefaults.shapes()) {
             Text("Clear filters")
         }
     }

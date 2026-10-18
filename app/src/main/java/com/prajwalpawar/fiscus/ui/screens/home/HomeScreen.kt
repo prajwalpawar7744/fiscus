@@ -1,5 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.prajwalpawar.fiscus.ui.screens.home
 
+import androidx.compose.material.icons.automirrored.rounded.ReceiptLong
+import com.prajwalpawar.fiscus.ui.components.FiscusEmptyState
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,9 +21,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.TrendingDown
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.rounded.TrendingDown
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -29,7 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -173,7 +178,7 @@ private fun MonthSummary(
             SummaryTile(
                 label = "Income",
                 amount = totals.income,
-                icon = Icons.AutoMirrored.Filled.TrendingUp,
+                icon = Icons.AutoMirrored.Rounded.TrendingUp,
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 modifier = Modifier.weight(1f)
@@ -182,7 +187,7 @@ private fun MonthSummary(
             SummaryTile(
                 label = "Spent",
                 amount = totals.expense,
-                icon = Icons.AutoMirrored.Filled.TrendingDown,
+                icon = Icons.AutoMirrored.Rounded.TrendingDown,
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.weight(1f)
@@ -291,9 +296,11 @@ private fun AccountsCarousel(
         val itemCount = accounts.size + 1
         val carouselState = rememberCarouselState { itemCount }
 
-        HorizontalMultiBrowseCarousel(
+        // Uncontained: M3 says multi-browse is for visual items, not text-heavy cards
+        // (it shrinks items and crops their text); uncontained keeps every card full size.
+        HorizontalUncontainedCarousel(
             state = carouselState,
-            preferredItemWidth = FiscusSize.accountCardWidth,
+            itemWidth = FiscusSize.accountCardWidth,
             itemSpacing = FiscusSpacing.sm,
             contentPadding = PaddingValues(horizontal = FiscusSpacing.md),
             modifier = Modifier.height(FiscusSize.accountCardHeight)
@@ -381,7 +388,7 @@ private fun AddAccountCard(
             .padding(FiscusSpacing.md),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        FiscusListIcon(icon = Icons.Filled.Add)
+        FiscusListIcon(icon = Icons.Rounded.Add)
 
         Text(
             text = "Add account",
@@ -412,7 +419,7 @@ private fun LazyListScope.recentTransactions(
             )
 
             if (recent.isNotEmpty()) {
-                TextButton(onClick = onSeeAllClick) {
+                TextButton(onClick = onSeeAllClick, shapes = ButtonDefaults.shapes()) {
                     Text("See all")
                 }
             }
@@ -421,20 +428,11 @@ private fun LazyListScope.recentTransactions(
 
     if (recent.isEmpty()) {
         item(key = "recentEmpty") {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = FiscusSpacing.md),
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surfaceContainer
-            ) {
-                Text(
-                    text = "No transactions yet. Tap Add transaction to record your first one.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(FiscusSpacing.md)
-                )
-            }
+            FiscusEmptyState(
+                icon = Icons.AutoMirrored.Rounded.ReceiptLong,
+                title = "No transactions yet",
+                message = "Tap Add transaction to record your first one."
+            )
         }
         return
     }

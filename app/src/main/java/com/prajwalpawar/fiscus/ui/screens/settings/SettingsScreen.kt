@@ -13,20 +13,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.CallToAction
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Interests
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.SwapVert
-import androidx.compose.material.icons.filled.Wallpaper
-import androidx.compose.material.icons.filled.WebAsset
+import androidx.compose.material.icons.rounded.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.CallToAction
+import androidx.compose.material.icons.rounded.Category
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Code
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Interests
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.SwapVert
+import androidx.compose.material.icons.rounded.Wallpaper
+import androidx.compose.material.icons.rounded.WebAsset
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -122,7 +122,7 @@ fun SettingsScreen(
         { shapes ->
             SettingsSelectionItem(
                 label = "Theme",
-                icon = Icons.Default.Palette,
+                icon = Icons.Rounded.Palette,
                 selectedValue = settings.theme,
                 values = listOf(
                     ThemePreference.SYSTEM to "System",
@@ -143,7 +143,7 @@ fun SettingsScreen(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer
                     ),
                     leadingContent = {
-                        FiscusListIcon(icon = Icons.Default.Wallpaper)
+                        FiscusListIcon(icon = Icons.Rounded.Wallpaper)
                     },
                     supportingContent = {
                         Text(
@@ -160,7 +160,7 @@ fun SettingsScreen(
                             thumbContent = if (settings.dynamicColor) {
                                 {
                                     Icon(
-                                        imageVector = Icons.Default.Check,
+                                        imageVector = Icons.Rounded.Check,
                                         contentDescription = null,
                                         modifier = Modifier.size(SwitchDefaults.IconSize)
                                     )
@@ -184,7 +184,7 @@ fun SettingsScreen(
             SettingsSelectionItem(
                 label = "Icon shape",
                 // The row's own badge previews the chosen shape.
-                icon = Icons.Default.Interests,
+                icon = Icons.Rounded.Interests,
                 selectedValue = settings.iconShape,
                 values = listOf(
                     IconShapePreference.CIRCLE to "Circle",
@@ -201,7 +201,7 @@ fun SettingsScreen(
         { shapes ->
             SettingsSelectionItem(
                 label = "App bar",
-                icon = Icons.Default.WebAsset,
+                icon = Icons.Rounded.WebAsset,
                 selectedValue = settings.appBar,
                 values = listOf(
                     AppBarPreference.SMALL to "Small",
@@ -215,7 +215,7 @@ fun SettingsScreen(
         { shapes ->
             SettingsSelectionItem(
                 label = "Bottom bar",
-                icon = Icons.Default.CallToAction,
+                icon = Icons.Rounded.CallToAction,
                 selectedValue = settings.bottomBar,
                 values = listOf(
                     BottomBarPreference.SHOW_LABELS to "Show labels",
@@ -229,7 +229,7 @@ fun SettingsScreen(
         { shapes ->
             SettingsSelectionItem(
                 label = "App bar scroll",
-                icon = Icons.Default.SwapVert,
+                icon = Icons.Rounded.SwapVert,
                 selectedValue = settings.appBarScroll,
                 values = listOfNotNull(
                     AppBarScrollPreference.PINNED to "Pinned",
@@ -249,7 +249,7 @@ fun SettingsScreen(
             SettingsInfoItem(
                 label = "Categories",
                 description = "Rename, archive or delete",
-                icon = Icons.Default.Category,
+                icon = Icons.Rounded.Category,
                 shapes = shapes,
                 onClick = onCategoriesClick,
                 modifier = Modifier.containerTransform(ContainerKeys.MANAGE_CATEGORIES)
@@ -259,7 +259,7 @@ fun SettingsScreen(
             SettingsInfoItem(
                 label = "Accounts",
                 description = "Rename, archive or delete",
-                icon = Icons.Default.AccountBalanceWallet,
+                icon = Icons.Rounded.AccountBalanceWallet,
                 shapes = shapes,
                 onClick = onAccountsClick,
                 modifier = Modifier.containerTransform(ContainerKeys.MANAGE_ACCOUNTS)
@@ -275,7 +275,7 @@ fun SettingsScreen(
             SettingsInfoItem(
                 label = "Version",
                 description = version,
-                icon = Icons.Default.Info,
+                icon = Icons.Rounded.Info,
                 shapes = shapes
             )
         },
@@ -283,7 +283,7 @@ fun SettingsScreen(
             SettingsInfoItem(
                 label = "Developer",
                 description = "Prajwal Pawar",
-                icon = Icons.Default.Person,
+                icon = Icons.Rounded.Person,
                 shapes = shapes
             )
         },
@@ -291,7 +291,7 @@ fun SettingsScreen(
             SettingsInfoItem(
                 label = "GitHub",
                 description = "View source code",
-                icon = Icons.Default.Code,
+                icon = Icons.Rounded.Code,
                 shapes = shapes,
                 onClick = {
                     context.startActivity(
@@ -383,9 +383,9 @@ private fun <T> SettingsSelectionItem(
             trailingContent = {
                 Icon(
                     imageVector = if (expanded) {
-                        Icons.Default.KeyboardArrowUp
+                        Icons.Rounded.KeyboardArrowUp
                     } else {
-                        Icons.Default.KeyboardArrowDown
+                        Icons.Rounded.KeyboardArrowDown
                     },
                     contentDescription = if (expanded) {
                         "Hide $label options"

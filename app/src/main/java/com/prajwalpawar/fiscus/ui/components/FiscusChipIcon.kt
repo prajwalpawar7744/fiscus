@@ -2,7 +2,7 @@ package com.prajwalpawar.fiscus.ui.components
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -20,7 +20,7 @@ fun FiscusChipIcon(
         label = "chipIcon"
     ) { isSelected ->
         Icon(
-            imageVector = if (isSelected) Icons.Filled.Check else icon,
+            imageVector = if (isSelected) Icons.Rounded.Check else icon,
             contentDescription = null
         )
     }

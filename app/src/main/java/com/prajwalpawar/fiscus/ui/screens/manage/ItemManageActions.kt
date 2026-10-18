@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.prajwalpawar.fiscus.ui.screens.manage
 
 import androidx.compose.foundation.layout.Arrangement
@@ -6,9 +8,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Unarchive
+import androidx.compose.material.icons.rounded.Archive
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Unarchive
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -60,7 +62,7 @@ fun ItemManageActions(
             modifier = Modifier.fillMaxWidth()
         ) {
             Icon(
-                imageVector = if (state.isArchived) Icons.Filled.Unarchive else Icons.Filled.Archive,
+                imageVector = if (state.isArchived) Icons.Rounded.Unarchive else Icons.Rounded.Archive,
                 contentDescription = null
             )
             Spacer(Modifier.width(ButtonDefaults.IconSpacing))
@@ -77,7 +79,7 @@ fun ItemManageActions(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Delete,
+                    imageVector = Icons.Rounded.Delete,
                     contentDescription = null
                 )
                 Spacer(Modifier.width(ButtonDefaults.IconSpacing))
@@ -101,7 +103,7 @@ fun ItemManageActions(
             onDismissRequest = { confirmDelete = false },
             icon = {
                 Icon(
-                    imageVector = Icons.Filled.Delete,
+                    imageVector = Icons.Rounded.Delete,
                     contentDescription = null
                 )
             },
@@ -113,6 +115,7 @@ fun ItemManageActions(
             },
             confirmButton = {
                 TextButton(
+                    shapes = ButtonDefaults.shapes(),
                     onClick = {
                         confirmDelete = false
                         onDelete()
@@ -125,7 +128,7 @@ fun ItemManageActions(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { confirmDelete = false }) {
+                TextButton(onClick = { confirmDelete = false }, shapes = ButtonDefaults.shapes()) {
                     Text("Cancel")
                 }
             }

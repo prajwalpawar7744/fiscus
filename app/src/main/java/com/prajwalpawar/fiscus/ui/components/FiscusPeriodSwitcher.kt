@@ -1,5 +1,8 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.prajwalpawar.fiscus.ui.components
 
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -8,9 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -44,9 +47,9 @@ fun FiscusPeriodSwitcher(
             .padding(horizontal = FiscusSpacing.xs, vertical = FiscusSpacing.sm),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = { onPeriodChange(period.previous()) }) {
+        IconButton(onClick = { onPeriodChange(period.previous()) }, shapes = IconButtonDefaults.shapes()) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
                 contentDescription = "Previous period"
             )
         }
@@ -71,7 +74,7 @@ fun FiscusPeriodSwitcher(
                 )
                 Spacer(Modifier.width(FiscusSpacing.xs))
                 Icon(
-                    imageVector = Icons.Filled.ArrowDropDown,
+                    imageVector = Icons.Rounded.ArrowDropDown,
                     contentDescription = "Choose dates"
                 )
             }
@@ -86,11 +89,13 @@ fun FiscusPeriodSwitcher(
         }
 
         IconButton(
+
+            shapes = IconButtonDefaults.shapes(),
             onClick = { onPeriodChange(period.next()) },
             enabled = period.canGoForward()
         ) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                 contentDescription = "Next period"
             )
         }
