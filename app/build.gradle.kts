@@ -12,8 +12,9 @@ android {
         applicationId = "com.prajwalpawar.fiscus"
         minSdk = 26
         targetSdk = 36
+        // Bump versionCode for every build you hand out; versionName follows SemVer.
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.1.0-beta.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -50,7 +51,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.compose.material3)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

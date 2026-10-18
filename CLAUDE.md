@@ -1,6 +1,6 @@
 # Fiscus
 
-Personal finance manager for Android. Kotlin + Jetpack Compose, designed in **Material 3 Expressive**. Single `app` module, package `com.prajwalpawar.fiscus`. Not released yet.
+Personal finance manager for Android. Kotlin + Jetpack Compose, designed in **Material 3 Expressive**. Single `app` module, package `com.prajwalpawar.fiscus`. In public beta (first release `0.1.0-beta.1`). Fully offline: no `INTERNET` permission, no accounts, all data on the device.
 
 ## Build, test, run
 
@@ -55,8 +55,8 @@ util              Money.kt (formatMoney, currencySymbol), DateRanges.kt
 
 - **Money is `Long` hundredths** (12.50 → 1250). Input allows ≤12 integer digits and ≤2 decimals (`isAmountInput`). Convert with `amountToMinorUnits` / `minorUnitsToAmountInput` (both tested).
 - **Dates are the local calendar day stored as UTC-midnight millis** (DatePicker works in UTC). Use `monthRange()` / `storedDateToLocalDate()`; never build ranges from the device time zone.
-- **Schema stays at `version = 1` until release.** Change entities in place, no migrations; regenerate `app/schemas/.../1.json` (KSP writes it). After any schema change the dev phone's DB has a stale identity hash → tell the user to run `adb shell pm clear com.prajwalpawar.fiscus`.
-- **Auto Backup restores the DB on reinstall** (`allowBackup=true`, extraction rules are still the empty sample). A restored DB from a newer/older schema crashes Room. `fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)` handles newer-schema restores (marked "revisit before release"). Clearing data with `pm clear` does not trigger a restore; uninstall + reinstall can.
+- **Schema 1 shipped with 0.1.0-beta.1 — it is frozen.** Real users now have this database, so never edit entities in place again: every schema change bumps `version` in `FiscusDatabase` and adds a migration (prefer `AutoMigration(from, to)`; write a `Migration` for anything it can't infer), keeps the exported `app/schemas/.../N.json` files committed, and gets a migration test. Wiping data (`pm clear`) is no longer an acceptable fix.
+- **Auto Backup restores the DB on reinstall** (`allowBackup=true`, extraction rules are still the empty sample). Older-schema restores upgrade through the migrations. `fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)` wipes data only on a downgrade (installing an older build over a newer one). Clearing data with `pm clear` does not trigger a restore; uninstall + reinstall can.
 - Defaults are seeded in `RoomDatabase.Callback.onCreate` (14 categories, "Cash" account as default).
 - Transactions: `title` is required; EXPENSE/INCOME need `categoryId` + `accountId`; TRANSFER needs `sourceAccountId` + `destinationAccountId` (different) and no category. `TransactionRepository.validate` enforces it.
 - Balances: opening balance + income − expense + transfers in − transfers out (SQL in `AccountDao.observeAccountBalances`). Credit-card spending goes negative and lowers the total, which is intended. Archived accounts are excluded from Home's total.
@@ -92,9 +92,9 @@ util              Money.kt (formatMoney, currencySymbol), DateRanges.kt
 - **Home**: total balance hero, this month's Income/Spent tiles, wavy progress of spent vs income (hidden when no income), accounts carousel (`HorizontalMultiBrowseCarousel`, last card "Add account", tap a card to edit), last 10 transactions grouped by day with "See all". Month shown as the app bar subtitle.
 - **Add transaction sheet**: type toggle → amount hero (currency symbol + "0" drawn inside the field via `VisualTransformation`) → title → category / account chip rows (edge-to-edge `LazyRow`, "Add" assist chip last, unkeyed) → date → note → submit, with a hint naming the first missing field. Draft lives in `TransactionViewModel` (survives rotation and dismiss, not process death). Edit mode (`startEditing`) sets aside any unfinished add draft and restores it afterwards.
 - **Transaction details**: hero, segmented details, `HorizontalFloatingToolbar` with Edit / Delete (confirm). Live — edits show immediately.
-- **Settings**: Appearance (theme, dynamic color, icon shape, app bar size, bottom bar labels, app bar scroll), Manage (Categories, Accounts), About. "Collapse" scroll is hidden and read as Pinned when the app bar is Small.
+- **Settings**: Appearance (theme, dynamic color, icon shape, app bar size, bottom bar labels, app bar scroll), Manage (Categories, Accounts), About (Version — read from the installed package, Developer, GitHub). "Collapse" scroll is hidden and read as Pinned when the app bar is Small.
 - **Periods**: Transactions and Analysis each keep their own `Period` (`util/Period.kt`: start/end dates, inclusive; a whole month by default, or a single day, or any range). `FiscusPeriodSwitcher` shows ‹ label ▾ ›: arrows step by the period's own length (month → month, day → day, 15 days → 15 days) and never past today; tapping the label opens `DockedDateRangePicker` anchored under it (tap a date twice for a single day; future dates disabled; "This month" resets). Use `period.toDateRange()` for queries and `period.label()` for text.
-- **Transactions**: period by period (see Periods), Income/Spent/Net summary computed from the rows shown (so it follows filters, with a "N matching transactions" line), filters (type as a connected button group; Account and Category filter chips with menus; Clear), list grouped by day. Deleting happens only from the details page (swipe-to-delete was removed: its red background showed through the container transform). Uses the app's normal title bar (so the app bar size/scroll settings apply) with a **search icon** that opens the Search page (`search` route): its own search field as the header, focused on arrival, results across all months (title or note, `LIKE` with escaped wildcards) that container-transform into details. The app title bar is hidden only on the Search page. (A search icon can't open `ExpandedFullScreenContainedSearchBar`: it grows out of an on-screen search field's position, which only `SearchBar`/`AppBarWithSearch` record.) Filtering happens in `TransactionsViewModel` over the month's rows; the summary ignores filters.
+- **Transactions**: period by period (see Periods), Income/Spent/Net summary computed from the rows shown (so it follows filters, with a "N matching transactions" line), filters (type as a connected button group; Account and Category filter chips with menus; Clear), list grouped by day. Deleting happens only from the details page (swipe-to-delete was removed: its red background showed through the container transform). Uses the app's normal title bar (so the app bar size/scroll settings apply) with a **search icon** that opens the Search page (`search` route): its own search field as the header, focused on arrival, results across all months (title or note, `LIKE` with escaped wildcards) that container-transform into details. The app title bar is hidden only on the Search page. (A search icon can't open `ExpandedFullScreenContainedSearchBar`: it grows out of an on-screen search field's position, which only `SearchBar`/`AppBarWithSearch` record.) Filtering happens in `TransactionsViewModel` over the period's rows.
 - **Analysis**: same period switcher; 2×2 stat tiles (Spent + income, change vs the same-length previous period in words — "vs last month" for whole months — daily average over the period's days up to today, and savings rate); "By category" ranked by amount, each row a `LinearWavyProgressIndicator` meter of the category's share of the total (full track = 100%), with an Expense/Income toggle (top 6 + "Other"); a trend that adapts to the period (`trendScale` in `AnalysisMath.kt`): hidden for a single day, the 6-month context with the month emphasised for a whole month, daily columns for ranges up to 31 days, monthly columns (edge months counting only in-range days) for longer ranges; tapping a column opens that day or month. For a single day the daily-average tile becomes a transaction count; "Biggest expenses" (top 5, rows open details). Maths is pure and unit-tested in `AnalysisMath.kt`; monthly grouping uses SQLite `strftime` in UTC, matching the UTC-midnight date storage.
 
 ## Known bugs and workarounds
@@ -107,15 +107,34 @@ util              Money.kt (formatMoney, currencySymbol), DateRanges.kt
 - A full-text `MediumTopAppBar`/`LargeTopAppBar` title style override clipped the collapsed title — let the flexible bars choose title styles.
 - Possible issue (unconfirmed): after a force-stop + relaunch the add-transaction sheet was seen already open. May have been the user tapping; check `showAddTransactionSheet` restoration if it recurs.
 
+## Releasing
+
+Every build handed to testers or users goes through these steps:
+
+1. **Version** in `app/build.gradle.kts`: bump `versionCode` by 1 (Android refuses an update with an equal or lower code) and set `versionName` by SemVer (`0.1.0-beta.1` → `-beta.2` …, `0.1.0` when stable).
+2. **Changelog**: add a section to `CHANGELOG.md` (Keep a Changelog, written for users, not developers) with *Added / Changed / Fixed* and a *Known limitations* list, plus the compare link at the bottom.
+3. **Schema check**: if any entity changed since the last release, the database version must be bumped with a migration and a migration test (see Data rules). Never ship an in-place schema change.
+4. **Tests**: `./gradlew :app:testDebugUnitTest`, then `./gradlew :app:connectedDebugAndroidTest` on the phone — ask the user first, it uninstalls the app.
+5. **Build** a signed release: `./gradlew :app:bundleRelease` (`.aab` for Play testing tracks) or `./gradlew :app:assembleRelease` (APK for a GitHub release). Install the signed release build on the phone and smoke-test it — R8/release-only problems don't show up in debug.
+6. **Tag and publish**: `git tag -a vX.Y.Z[-beta.N] -m "Fiscus X.Y.Z[-beta.N]"` and push the tag; attach the APK and the changelog section to the GitHub release (or upload the `.aab` and a ≤500-character "What's new").
+
+Release facts to keep straight:
+
+- **Signing keystore** (`fiscus-release.jks`) and its passwords live outside git, read from a git-ignored `keystore.properties`. Losing it means no more updates to existing installs — keep it backed up. Never commit it or print its passwords.
+- **Play Data safety**: no data collected or shared, no internet access.
+- **App icon**: adaptive vector icon in `res/drawable/ic_launcher_{background,foreground,monochrome}.xml` + `res/mipmap-anydpi/` (no PNG mipmaps; minSdk 26 always uses the adaptive icon). An "F" of rounded bars whose arms step down like a bar chart (#F3E4CB beige) with a caramel coin (#E3A45A) on espresso brown (#4A2E20), kept inside the 66dp safe zone; the monochrome layer gives Android 13+ themed icons. The 512×512 Play listing icon is `app/src/main/ic_launcher-playstore.png` — re-export it if the icon changes.
+- **Splash screen** (`Theme.Fiscus.Starting`, parent `Theme.SplashScreen.IconBackground`): `drawable/ic_splash_icon.xml` (the icon's F + coin) on an icon-background circle over a background, all from `splash_colors.xml`. On Android 12+ (`values-v31` / `values-night-v31`) those are the system wallpaper palette (`system_neutral1_*`, `system_accent1_*`, `system_accent3_*`, matching surface / primary container / on primary container / tertiary); before 12 they fall back to the brand brown and beige. It follows the system wallpaper even if the in-app Dynamic color setting is off, because it shows before settings load. If the icon shape changes, update `ic_splash_icon.xml` too.
+- **Release setup still missing** (do before the first public build): the release `signingConfig`, R8 (`isMinifyEnabled` / `isShrinkResources`, then test the signed release on device), and explicit backup rules.
+
 ## Open items
 
 - Account opening balance can't be set in the UI (DB supports it).
 - Month on Home is fixed when it opens (`shortcut:` in `HomeViewModel`).
 - Draft isn't kept across process death.
-- Clean-up: move strings to `strings.xml`; `material3` is declared twice in `app/build.gradle.kts`; `.kotlin/errors/*.log` are committed — add `.kotlin/` to `.gitignore` and untrack.
-- Before release: decide backup rules (`data_extraction_rules.xml`, `backup_rules.xml`), revisit the destructive downgrade fallback, and start real migrations from schema 1.
+- Clean-up: move strings to `strings.xml`.
 
 ## Working with the user
 
+- **Releases** follow the *Releasing* section above.
 - Commit messages: Conventional Commits, `type(scope): summary` (scopes used: theme, settings, transaction, home, manage, navigation, ui, state, db). The user commits themselves; suggest a message when work is done.
 - Prefers being asked before larger design decisions; explains choices in Material 3 Expressive terms.

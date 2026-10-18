@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+: splash colours from the wallpaper palette, matching Material You roles
+     (surface, primary container, on primary container, tertiary). -->
+<resources>
+    <color name="splash_background">@android:color/system_neutral1_10</color>
+    <color name="splash_icon_background">@android:color/system_accent1_100</color>
+    <color name="splash_icon">@android:color/system_accent1_700</color>
+    <color name="splash_coin">@android:color/system_accent3_600</color>
+</resources>
