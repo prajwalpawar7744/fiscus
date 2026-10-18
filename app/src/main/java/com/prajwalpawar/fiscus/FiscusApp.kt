@@ -24,6 +24,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.prajwalpawar.fiscus.ui.theme.FiscusSize
+import com.prajwalpawar.fiscus.ui.components.FiscusAvatar
+import java.time.LocalTime
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -196,7 +201,7 @@ fun FiscusApp(
                 FiscusTopAppBar(
                     title = when {
                         onHome -> {
-                            "Home"
+                            greeting(settings.profileName)
                         }
 
                         currentDestination
@@ -263,6 +268,20 @@ fun FiscusApp(
                         { navController.navigateUp() }
                     },
                     actions = {
+                        if (onHome) {
+                            IconButton(
+                                onClick = { navController.navigate(FiscusRoutes.PROFILE) },
+                                modifier = Modifier.containerTransform(ContainerKeys.PROFILE)
+                            ) {
+                                FiscusAvatar(
+                                    name = settings.profileName,
+                                    photoVersion = settings.profilePhotoVersion,
+                                    size = FiscusSize.listIconContainer,
+                                    initialStyle = MaterialTheme.typography.titleMediumEmphasized,
+                                    modifier = Modifier.semantics { contentDescription = "Profile" }
+                                )
+                            }
+                        }
                         if (onTransactions) {
                             IconButton(
                                 onClick = { navController.navigate(FiscusRoutes.TRANSACTION_SEARCH) }
@@ -607,4 +626,16 @@ fun FiscusApp(
             }
         )
     }
+}
+
+// "Good morning, Prajwal" — first name only, so it fits the app bar.
+private fun greeting(name: String): String {
+    val partOfDay = when (LocalTime.now().hour) {
+        in 5..11 -> "Good morning"
+        in 12..16 -> "Good afternoon"
+        in 17..20 -> "Good evening"
+        else -> "Good night"
+    }
+    val firstName = name.trim().substringBefore(' ')
+    return if (firstName.isEmpty()) partOfDay else "$partOfDay, $firstName"
 }
