@@ -4,6 +4,43 @@ All notable changes to Fiscus are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.1.0-beta.2]
+
+### Added
+
+- **Your profile**: add your name and a profile photo in Settings → Profile. The photo
+  is picked with Android's photo picker (no permissions needed) and stays on your phone.
+- **A personal greeting** on Home: "Good morning", "Good afternoon", "Good evening" or
+  "Good night" with your name, and your profile photo in the top corner.
+- **Opening balance** for accounts: set how much an account held before you started
+  using Fiscus. Start it with "−" for money already owed, such as a credit card.
+
+### Changed
+
+- **New app icon**, also shown on the splash screen.
+- The splash screen now takes its background from your wallpaper colours on Android 12
+  and newer.
+- With Dynamic color turned off, Fiscus now uses a clean black-and-white (monochrome)
+  theme.
+- A refreshed Material 3 Expressive look: softer rounded icons, buttons that change
+  shape when pressed, and Edit as a floating button on a transaction's details.
+- Account cards on Home are always shown full size, so names and balances are never cut
+  off.
+- Home shows a friendlier message when you have no transactions yet.
+
+### Fixed
+
+- The ready-made categories and Cash account were missing when Android restored an
+  earlier backup during install.
+
+### Known limitations
+
+- English only, with amounts in your phone's currency.
+- There's no export or backup inside the app yet. Android's own device backup may
+  restore your data on a new phone.
+- Unsaved transaction drafts are lost if Android closes the app in the background.
+- The Home screen's month doesn't change at midnight on the 1st until you reopen it.
+
 ## [0.1.0-beta.1] - 2026-10-18
 
 The first public beta. Fiscus is a personal finance manager designed with
@@ -63,4 +100,5 @@ access and no account.
 - Unsaved transaction drafts are lost if Android closes the app in the background.
 - The Home screen's month doesn't change at midnight on the 1st until you reopen it.
 
+[0.1.0-beta.2]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.1...v0.1.0-beta.2
 [0.1.0-beta.1]: https://github.com/prajwalpawar7744/fiscus/releases/tag/v0.1.0-beta.1
