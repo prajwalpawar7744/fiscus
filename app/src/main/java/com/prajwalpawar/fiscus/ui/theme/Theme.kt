@@ -2,6 +2,7 @@ package com.prajwalpawar.fiscus.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -11,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
 import com.prajwalpawar.fiscus.data.model.IconShapePreference
+import com.prajwalpawar.fiscus.data.model.PalettePreference
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -19,6 +21,7 @@ fun FiscusTheme(
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     iconShape: IconShapePreference = IconShapePreference.COOKIE,
+    palette: PalettePreference = PalettePreference.MONOCHROME,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -27,9 +30,8 @@ fun FiscusTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        // Brand colours when Dynamic color is off or unavailable.
-        darkTheme -> FiscusDarkColorScheme
-        else -> FiscusLightColorScheme
+        // The chosen palette when Dynamic color is off or unavailable.
+        else -> palette.colorScheme(darkTheme)
     }
 
     // Shapes, motion and typography (system font) use the Expressive defaults.
@@ -41,4 +43,13 @@ fun FiscusTheme(
             content = content
         )
     }
+}
+
+fun PalettePreference.colorScheme(darkTheme: Boolean): ColorScheme = when (this) {
+    PalettePreference.MONOCHROME -> if (darkTheme) FiscusDarkColorScheme else FiscusLightColorScheme
+    PalettePreference.BLUE -> if (darkTheme) BlueDarkColorScheme else BlueLightColorScheme
+    PalettePreference.GREEN -> if (darkTheme) GreenDarkColorScheme else GreenLightColorScheme
+    PalettePreference.PURPLE -> if (darkTheme) PurpleDarkColorScheme else PurpleLightColorScheme
+    PalettePreference.ROSE -> if (darkTheme) RoseDarkColorScheme else RoseLightColorScheme
+    PalettePreference.AMBER -> if (darkTheme) AmberDarkColorScheme else AmberLightColorScheme
 }

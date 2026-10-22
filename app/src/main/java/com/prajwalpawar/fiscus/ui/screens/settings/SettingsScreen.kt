@@ -196,6 +196,18 @@ fun SettingsScreen(
         } else {
             null
         },
+        // Only matters when the wallpaper colours aren't in use.
+        if (!dynamicColorSupported || !settings.dynamicColor) {
+            { shapes ->
+                PaletteRow(
+                    selected = settings.palette,
+                    shapes = shapes,
+                    onSelected = viewModel::setPalette
+                )
+            }
+        } else {
+            null
+        },
         { shapes ->
             SettingsSelectionItem(
                 label = "Icon shape",

@@ -11,6 +11,7 @@ import com.prajwalpawar.fiscus.data.model.AppBarScrollPreference
 import com.prajwalpawar.fiscus.data.model.AppSettings
 import com.prajwalpawar.fiscus.data.model.BottomBarPreference
 import com.prajwalpawar.fiscus.data.model.IconShapePreference
+import com.prajwalpawar.fiscus.data.model.PalettePreference
 import com.prajwalpawar.fiscus.data.model.ThemePreference
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -26,6 +27,7 @@ class SettingsDataStore(
         val theme = stringPreferencesKey("theme")
         val dynamicColor = booleanPreferencesKey("dynamic_color")
         val iconShape = stringPreferencesKey("icon_shape")
+        val palette = stringPreferencesKey("palette")
         val appBar = stringPreferencesKey("app_bar")
         val bottomBar = stringPreferencesKey("bottom_bar")
         val appBarScroll = stringPreferencesKey("app_bar_scroll")
@@ -44,6 +46,14 @@ class SettingsDataStore(
                 ?: ThemePreference.SYSTEM,
 
             dynamicColor = preferences[Keys.dynamicColor] ?: true,
+
+            palette = preferences[Keys.palette]
+                ?.let { value ->
+                    runCatching {
+                        PalettePreference.valueOf(value)
+                    }.getOrNull()
+                }
+                ?: PalettePreference.MONOCHROME,
 
             iconShape = preferences[Keys.iconShape]
                 ?.let { value ->
@@ -105,6 +115,12 @@ class SettingsDataStore(
         }
     }
 
+    suspend fun setPalette(palette: PalettePreference) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[Keys.palette] = palette.name
+        }
+    }
+
     suspend fun setIconShape(iconShape: IconShapePreference) {
         context.settingsDataStore.edit { preferences ->
             preferences[Keys.iconShape] = iconShape.name
@@ -146,6 +162,7 @@ class SettingsDataStore(
         context.settingsDataStore.edit { preferences ->
             preferences[Keys.theme] = settings.theme.name
             preferences[Keys.dynamicColor] = settings.dynamicColor
+            preferences[Keys.palette] = settings.palette.name
             preferences[Keys.iconShape] = settings.iconShape.name
             preferences[Keys.appBar] = settings.appBar.name
             preferences[Keys.bottomBar] = settings.bottomBar.name

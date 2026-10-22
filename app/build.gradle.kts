@@ -45,6 +45,13 @@ android {
     }
 
     buildTypes {
+        // Installs beside the release app (different package and signature), so a signed
+        // release and a debug build can both be on the phone.
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            resValue("string", "app_name", "Fiscus Debug")
+        }
         release {
             signingConfig = signingConfigs.findByName("release")
             // R8 strips unused code (most of Compose and the extended icon set) and resources.
@@ -62,6 +69,8 @@ android {
     }
     buildFeatures {
         compose = true
+        // For the debug build's own app name.
+        resValues = true
     }
     // Migration tests read the exported schema JSON files.
     sourceSets {

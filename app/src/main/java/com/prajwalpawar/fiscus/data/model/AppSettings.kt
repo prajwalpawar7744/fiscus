@@ -24,6 +24,16 @@ enum class AppBarScrollPreference {
     EXIT_UNTIL_COLLAPSED
 }
 
+// The colours used when Dynamic color is off or unavailable.
+enum class PalettePreference {
+    MONOCHROME,
+    BLUE,
+    GREEN,
+    PURPLE,
+    ROSE,
+    AMBER
+}
+
 enum class IconShapePreference {
     CIRCLE,
     SQUARE,
@@ -36,6 +46,7 @@ enum class IconShapePreference {
 data class AppSettings(
     val theme: ThemePreference = ThemePreference.SYSTEM,
     val dynamicColor: Boolean = true,
+    val palette: PalettePreference = PalettePreference.MONOCHROME,
     val iconShape: IconShapePreference = IconShapePreference.COOKIE,
     val appBar: AppBarPreference = AppBarPreference.SMALL,
     val bottomBar: BottomBarPreference = BottomBarPreference.SHOW_LABELS,

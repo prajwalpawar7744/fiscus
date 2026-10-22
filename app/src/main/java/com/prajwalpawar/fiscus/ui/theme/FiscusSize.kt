@@ -18,6 +18,11 @@ object FiscusSize {
     val avatarRow: Dp = 56.dp
     val avatarHero: Dp = 160.dp
 
+    // Settings → Palette swatches, and the check badge on the chosen one.
+    val paletteSwatch: Dp = 48.dp
+    val paletteSwatchCheck: Dp = 24.dp
+    val paletteSwatchCheckIcon: Dp = 16.dp
+
     // Direction arrow beside a transaction amount, sized to sit with titleSmall text.
     val amountArrow: Dp = 18.dp
 

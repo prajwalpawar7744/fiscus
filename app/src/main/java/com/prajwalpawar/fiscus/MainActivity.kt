@@ -71,7 +71,8 @@ class MainActivity : ComponentActivity() {
                 FiscusTheme(
                     darkTheme = darkTheme,
                     dynamicColor = loadedSettings.dynamicColor,
-                    iconShape = loadedSettings.iconShape
+                    iconShape = loadedSettings.iconShape,
+                    palette = loadedSettings.palette
                 ) {
                     FiscusApp(settings = loadedSettings)
                 }

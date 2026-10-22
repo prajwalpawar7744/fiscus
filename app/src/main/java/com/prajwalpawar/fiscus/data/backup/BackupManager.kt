@@ -191,6 +191,7 @@ class BackupManager(
     private fun AppSettings.toJson(): JSONObject = JSONObject()
         .put("theme", theme.name)
         .put("dynamicColor", dynamicColor)
+        .put("palette", palette.name)
         .put("iconShape", iconShape.name)
         .put("appBar", appBar.name)
         .put("bottomBar", bottomBar.name)
@@ -202,6 +203,7 @@ class BackupManager(
         return AppSettings(
             theme = enumOr(optString("theme"), defaults.theme),
             dynamicColor = optBoolean("dynamicColor", defaults.dynamicColor),
+            palette = enumOr(optString("palette"), defaults.palette),
             iconShape = enumOr(optString("iconShape"), defaults.iconShape),
             appBar = enumOr(optString("appBar"), defaults.appBar),
             bottomBar = enumOr(optString("bottomBar"), defaults.bottomBar),
