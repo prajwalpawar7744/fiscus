@@ -157,12 +157,26 @@ Follow (and Fiscus does):
 
 Every build handed to testers or users goes through these steps:
 
-1. **Version** in `app/build.gradle.kts`: bump `versionCode` by 1 (Android refuses an update with an equal or lower code) and set `versionName` by SemVer (`0.1.0-beta.1` → `-beta.2` …, `0.1.0` when stable).
+1. **Version** in `app/build.gradle.kts`: bump `versionCode` by 1 (Android refuses an update with an equal or lower code) and set `versionName` by SemVer (`0.1.0-beta.1` → `-beta.2` …, `0.1.0` when stable). Which pre-release label to use (see *Release stages* below): **Fiscus currently ships only betas** — keep using `-beta.N` until the user decides to go stable.
 2. **Changelog**: add a section to `CHANGELOG.md` (Keep a Changelog, written for users, not developers) with *Added / Changed / Fixed* and a *Known limitations* list, plus the compare link at the bottom.
 3. **Schema check**: if any entity changed since the last release, the database version must be bumped with a migration and a migration test (see Data rules). Never ship an in-place schema change.
 4. **Tests**: `./gradlew :app:testDebugUnitTest`, then `./gradlew :app:connectedDebugAndroidTest` on the phone — ask the user first, it uninstalls the app.
 5. **Build** a signed release: `./gradlew :app:bundleRelease` (`.aab` for Play testing tracks) or `./gradlew :app:assembleRelease` (APK for a GitHub release). Install the signed release build on the phone and smoke-test it — R8/release-only problems don't show up in debug.
 6. **Tag and publish**: `git tag -a vX.Y.Z[-beta.N] -m "Fiscus X.Y.Z[-beta.N]"` and push the tag; attach the APK and the changelog section to the GitHub release (or upload the `.aab` and a ≤500-character "What's new").
+
+### Release stages
+
+| Stage | Version | When to use it | Expect |
+|---|---|---|---|
+| **Alpha** | `X.Y.Z-alpha.N` | Features still being built or changing shape; only for you and a few close testers. | Things may break, change or be removed; data loss is possible. |
+| **Beta** | `X.Y.Z-beta.N` | Feature set for the version is mostly in place; real people use it day to day and report bugs. | Mostly works; rough edges and known limitations. Data must survive updates (migrations, no wipes). |
+| **Release (stable)** | `X.Y.Z` | Tested, no known serious bugs, data format settled; for everyone. | Reliable; only bug-fix (`X.Y.Z+1`) or feature (`X.Y+1.0`) updates follow. |
+
+- **Fiscus uses beta only.** It went straight to `0.1.0-beta.1` (no alpha), and every build handed out is the next `-beta.N`. Don't introduce alpha builds or a stable `0.1.0` unless the user asks.
+- SemVer ordering: `alpha` < `beta` < stable, so `0.1.0-beta.3` < `0.1.0`. Going stable means dropping the suffix (`0.1.0`), not bumping the number.
+- Before `1.0.0`, the version means "still early": `0.x` releases may still change things in breaking ways.
+- `versionCode` keeps going up by 1 across every stage, whatever the label.
+- Debug builds add `-debug` automatically (`versionNameSuffix`); never put that in a release.
 
 Release facts to keep straight:
 
