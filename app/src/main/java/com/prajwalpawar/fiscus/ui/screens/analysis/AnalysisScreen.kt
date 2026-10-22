@@ -1,5 +1,9 @@
 package com.prajwalpawar.fiscus.ui.screens.analysis
 
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.runtime.getValue
+import com.prajwalpawar.fiscus.ui.components.LateralPeriodContent
+import com.prajwalpawar.fiscus.ui.components.fiscusAnimateItem
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,12 +26,10 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -67,95 +69,102 @@ fun AnalysisScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = FiscusSpacing.lg),
-        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
-    ) {
-        item(key = "period") {
-            FiscusPeriodSwitcher(
-                period = uiState.period,
-                onPeriodChange = viewModel::setPeriod
-            )
-        }
+    Column(modifier = modifier.fillMaxSize()) {
+        // Stays put while the period's content slides (M3 lateral transition).
+        FiscusPeriodSwitcher(
+            period = uiState.period,
+            onPeriodChange = viewModel::setPeriod
+        )
 
-        if (uiState.isLoading) {
-            item(key = "loading") {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(FiscusSpacing.xl),
-                    contentAlignment = Alignment.Center
-                ) {
-                    LoadingIndicator()
+        LateralPeriodContent(
+            state = uiState,
+            period = { it.period },
+            modifier = Modifier.weight(1f)
+        ) { state ->
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = FiscusSpacing.lg),
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
+            ) {
+                if (state.isLoading) {
+                    item(key = "loading") {
+                        Box(
+                            modifier = fiscusAnimateItem()
+                                .fillMaxWidth()
+                                .padding(FiscusSpacing.xl),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LoadingIndicator()
+                        }
+                    }
+                    return@LazyColumn
                 }
-            }
-            return@LazyColumn
-        }
 
-        item(key = "tiles") {
-            HeadlineTiles(
-                state = uiState,
-                modifier = Modifier.padding(horizontal = FiscusSpacing.md)
-            )
-        }
+                item(key = "tiles") {
+                    HeadlineTiles(
+                        state = state,
+                        modifier = Modifier.padding(horizontal = FiscusSpacing.md)
+                    )
+                }
 
-        item(key = "categoriesHeader") {
-            SectionHeader("By category")
-        }
+                item(key = "categoriesHeader") {
+                    SectionHeader("By category")
+                }
 
-        item(key = "categories") {
-            CategoryBreakdown(
-                type = uiState.categoryType,
-                categories = uiState.categories,
-                total = uiState.categoryTotal,
-                period = uiState.period,
-                onTypeSelected = viewModel::setCategoryType,
-                modifier = Modifier.padding(horizontal = FiscusSpacing.md)
-            )
-        }
+                item(key = "categories") {
+                    CategoryBreakdown(
+                        type = state.categoryType,
+                        categories = state.categories,
+                        total = state.categoryTotal,
+                        period = state.period,
+                        onTypeSelected = viewModel::setCategoryType,
+                        modifier = Modifier.padding(horizontal = FiscusSpacing.md)
+                    )
+                }
 
-        // A single day has no trend: the tiles already say everything a one-column chart would.
-        uiState.trendScale?.let { scale ->
-            item(key = "trendHeader") {
-                SectionHeader(
-                    if (scale == TrendScale.DAILY) "Spending by day" else "Spending by month"
-                )
-            }
+                // A single day has no trend: the tiles already say everything a one-column chart would.
+                state.trendScale?.let { scale ->
+                    item(key = "trendHeader") {
+                        SectionHeader(
+                            if (scale == TrendScale.DAILY) "Spending by day" else "Spending by month"
+                        )
+                    }
 
-            item(key = "trend") {
-                SpendingTrend(
-                    buckets = uiState.trend,
-                    scale = scale,
-                    period = uiState.period,
-                    periodSpent = uiState.spent,
-                    onBucketClick = viewModel::setPeriod,
-                    modifier = Modifier.padding(horizontal = FiscusSpacing.md)
-                )
-            }
-        }
+                    item(key = "trend") {
+                        SpendingTrend(
+                            buckets = state.trend,
+                            scale = scale,
+                            period = state.period,
+                            periodSpent = state.spent,
+                            onBucketClick = viewModel::setPeriod,
+                            modifier = Modifier.padding(horizontal = FiscusSpacing.md)
+                        )
+                    }
+                }
 
-        if (uiState.largestExpenses.isNotEmpty()) {
-            item(key = "largestHeader") {
-                SectionHeader("Biggest expenses")
-            }
+                if (state.largestExpenses.isNotEmpty()) {
+                    item(key = "largestHeader") {
+                        SectionHeader("Biggest expenses")
+                    }
 
-            itemsIndexed(
-                items = uiState.largestExpenses,
-                key = { _, transaction -> transaction.id }
-            ) { index, transaction ->
-                FiscusTransactionRow(
-                    transaction = transaction,
-                    shapes = ListItemDefaults.segmentedShapes(
-                        index = index,
-                        count = uiState.largestExpenses.size
-                    ),
-                    onClick = { onTransactionClick(transaction.id) },
-                    showDate = true,
-                    modifier = Modifier
-                        .padding(horizontal = FiscusSpacing.md)
-                        .containerTransform(ContainerKeys.transaction(transaction.id))
-                )
+                    itemsIndexed(
+                        items = state.largestExpenses,
+                        key = { _, transaction -> transaction.id }
+                    ) { index, transaction ->
+                        FiscusTransactionRow(
+                            transaction = transaction,
+                            shapes = ListItemDefaults.segmentedShapes(
+                                index = index,
+                                count = state.largestExpenses.size
+                            ),
+                            onClick = { onTransactionClick(transaction.id) },
+                            showDate = true,
+                            modifier = fiscusAnimateItem()
+                                .padding(horizontal = FiscusSpacing.md)
+                                .containerTransform(ContainerKeys.transaction(transaction.id))
+                        )
+                    }
+                }
             }
         }
     }

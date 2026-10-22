@@ -2,6 +2,10 @@
 
 package com.prajwalpawar.fiscus.ui.components
 
+import androidx.compose.ui.Alignment
+import com.prajwalpawar.fiscus.ui.theme.FiscusReducedMotion
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.expandVertically
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.IconButtonDefaults
@@ -9,8 +13,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
@@ -47,7 +49,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import com.prajwalpawar.fiscus.ui.theme.FiscusElevation
-import com.prajwalpawar.fiscus.ui.theme.FiscusMotion
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 import java.text.SimpleDateFormat
@@ -160,22 +161,28 @@ internal fun DockedPickerPopup(
         FiscusSpacing.xs.roundToPx()
     }
 
+    val reducedMotion = FiscusReducedMotion.enabled
+
     Popup(
         popupPositionProvider = DockedPickerPositionProvider(popupGap),
         onDismissRequest = onDismissRequest
     ) {
         AnimatedVisibility(
             visibleState = visibility,
-            enter = fadeIn(motionScheme.defaultEffectsSpec()) +
-                    scaleIn(
-                        animationSpec = motionScheme.defaultSpatialSpec(),
-                        initialScale = FiscusMotion.ENTER_SCALE
-                    ),
-            exit = fadeOut(motionScheme.fastEffectsSpec()) +
-                    scaleOut(
-                        animationSpec = motionScheme.fastSpatialSpec(),
-                        targetScale = FiscusMotion.ENTER_SCALE
-                    )
+            // M3 enter/exit: a popup under its field expands downward along one axis;
+            // no scaling (it implies an elevation change). Reduced motion: fade only.
+            enter = if (reducedMotion) {
+                fadeIn(motionScheme.fastEffectsSpec())
+            } else {
+                expandVertically(motionScheme.defaultSpatialSpec(), expandFrom = Alignment.Top) +
+                    fadeIn(motionScheme.fastEffectsSpec())
+            },
+            exit = if (reducedMotion) {
+                fadeOut(motionScheme.fastEffectsSpec())
+            } else {
+                shrinkVertically(motionScheme.fastSpatialSpec(), shrinkTowards = Alignment.Top) +
+                    fadeOut(motionScheme.fastEffectsSpec())
+            }
         ) {
             Surface(
                 modifier = Modifier

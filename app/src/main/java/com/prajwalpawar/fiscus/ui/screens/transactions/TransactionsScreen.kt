@@ -2,6 +2,11 @@
 
 package com.prajwalpawar.fiscus.ui.screens.transactions
 
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import com.prajwalpawar.fiscus.ui.components.LateralPeriodContent
+import com.prajwalpawar.fiscus.ui.components.fiscusAnimateItem
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -24,16 +29,13 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -63,70 +65,79 @@ fun TransactionsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = FiscusSize.fabClearance),
-        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
-    ) {
-        item(key = "month") {
-            FiscusPeriodSwitcher(
-                period = uiState.period,
-                onPeriodChange = viewModel::setPeriod
-            )
-        }
+    Column(modifier = modifier.fillMaxSize()) {
+        // Stays put while the period's content slides (M3 lateral transition).
+        FiscusPeriodSwitcher(
+            period = uiState.period,
+            onPeriodChange = viewModel::setPeriod
+        )
 
-        item(key = "summary") {
-            PeriodSummary(
-                totals = uiState.totals,
-                isFiltered = uiState.filters.isActive,
-                modifier = Modifier.padding(horizontal = FiscusSpacing.md)
-            )
-        }
-
-        item(key = "filters") {
-            FiltersBar(
-                state = uiState,
-                onTypeSelected = viewModel::setTypeFilter,
-                onAccountSelected = viewModel::setAccountFilter,
-                onCategorySelected = viewModel::setCategoryFilter,
-                onClear = viewModel::clearFilters
-            )
-        }
-
-        when {
-            uiState.isLoading -> item(key = "loading") {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(FiscusSpacing.xl),
-                    contentAlignment = Alignment.Center
-                ) {
-                    LoadingIndicator()
+        LateralPeriodContent(
+            state = uiState,
+            period = { it.period },
+            modifier = Modifier.weight(1f)
+        ) { state ->
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = FiscusSize.fabClearance),
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
+            ) {
+                item(key = "summary") {
+                    PeriodSummary(
+                        totals = state.totals,
+                        isFiltered = state.filters.isActive,
+                        modifier = Modifier.padding(horizontal = FiscusSpacing.md)
+                    )
                 }
-            }
 
-            uiState.filteredOut -> item(key = "filteredOut") {
-                NoMatches(onClear = viewModel::clearFilters)
-            }
+                item(key = "filters") {
+                    FiltersBar(
+                        state = state,
+                        onTypeSelected = viewModel::setTypeFilter,
+                        onAccountSelected = viewModel::setAccountFilter,
+                        onCategorySelected = viewModel::setCategoryFilter,
+                        onClear = viewModel::clearFilters
+                    )
+                }
 
-            uiState.transactions.isEmpty() -> item(key = "empty") {
-                FiscusEmptyState(
-                    icon = Icons.AutoMirrored.Rounded.ReceiptLong,
-                    title = "Nothing in ${uiState.period.label()}",
-                    message = "Transactions dated in this period will be listed here.",
-                    modifier = Modifier.fillParentMaxHeight(0.6f)
-                )
-            }
+                when {
+                    state.isLoading -> item(key = "loading") {
+                        Box(
+                            modifier = fiscusAnimateItem()
+                                .fillMaxWidth()
+                                .padding(FiscusSpacing.xl),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LoadingIndicator()
+                        }
+                    }
 
-            else -> transactionsByDay(uiState.transactions) { transaction, shapes ->
-                FiscusTransactionRow(
-                    transaction = transaction,
-                    shapes = shapes,
-                    onClick = { onTransactionClick(transaction.id) },
-                    modifier = Modifier
-                        .padding(horizontal = FiscusSpacing.md)
-                        .containerTransform(ContainerKeys.transaction(transaction.id))
-                )
+                    state.filteredOut -> item(key = "filteredOut") {
+                        Box(fiscusAnimateItem()) {
+                            NoMatches(onClear = viewModel::clearFilters)
+                        }
+                    }
+
+                    state.transactions.isEmpty() -> item(key = "empty") {
+                        FiscusEmptyState(
+                            icon = Icons.AutoMirrored.Rounded.ReceiptLong,
+                            title = "Nothing in ${state.period.label()}",
+                            message = "Transactions dated in this period will be listed here.",
+                            modifier = fiscusAnimateItem().fillParentMaxHeight(0.6f)
+                        )
+                    }
+
+                    else -> transactionsByDay(state.transactions) { transaction, shapes ->
+                        FiscusTransactionRow(
+                            transaction = transaction,
+                            shapes = shapes,
+                            onClick = { onTransactionClick(transaction.id) },
+                            modifier = Modifier
+                                .padding(horizontal = FiscusSpacing.md)
+                                .containerTransform(ContainerKeys.transaction(transaction.id))
+                        )
+                    }
+                }
             }
         }
     }

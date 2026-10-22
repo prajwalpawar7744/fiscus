@@ -18,22 +18,20 @@ import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.prajwalpawar.fiscus.ui.theme.FiscusReducedMotion
 
 // Provided around the NavHost and by each destination, so any row or page can opt in
 // to the container transform without passing scopes through every screen.
 val LocalSharedTransitionScope = compositionLocalOf<SharedTransitionScope?> { null }
 val LocalNavAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilityScope?> { null }
 
-// Keys pairing a tapped row or card with the page it opens.
+// Keys pairing a tapped row or card with the page it opens. M3 keeps the container
+// transform for hero moments: a transaction row opening its details, and an account card
+// on Home growing into its page. Other pages use forward/backward (FiscusTransitions).
 object ContainerKeys {
     fun transaction(id: Long) = "transaction-$id"
     fun account(id: Long) = "account-$id"
-    fun category(id: Long) = "category-$id"
     const val NEW_ACCOUNT = "account-new"
-    fun newCategory(type: String) = "category-new-$type"
-    const val MANAGE_CATEGORIES = "manage-categories"
-    const val MANAGE_ACCOUNTS = "manage-accounts"
-    const val PROFILE = "profile"
 }
 
 // Material container transform: the element tagged with [key] on the current page grows
@@ -47,6 +45,8 @@ fun Modifier.containerTransform(
 ): Modifier {
     val sharedScope = LocalSharedTransitionScope.current ?: return this
     val visibilityScope = LocalNavAnimatedVisibilityScope.current ?: return this
+    // With "Remove animations" on, pages just fade (M3 reduced motion).
+    if (FiscusReducedMotion.enabled) return this
     val motionScheme = MaterialTheme.motionScheme
     val containerColor = MaterialTheme.colorScheme.surface
 

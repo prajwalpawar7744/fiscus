@@ -1,5 +1,6 @@
 package com.prajwalpawar.fiscus.ui.screens.manage
 
+import com.prajwalpawar.fiscus.ui.theme.FiscusReducedMotion
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -73,11 +74,15 @@ fun ItemEditorLayout(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                // Pop the new icon in when the choice changes.
+                // Pop the new icon in when the choice changes (a fade with reduced motion).
+                val reducedMotion = FiscusReducedMotion.enabled
                 AnimatedContent(
                     targetState = previewIcon,
                     transitionSpec = {
-                        (fadeIn(motionScheme.defaultEffectsSpec()) +
+                        if (reducedMotion) {
+                            fadeIn(motionScheme.defaultEffectsSpec()) togetherWith
+                                fadeOut(motionScheme.fastEffectsSpec())
+                        } else (fadeIn(motionScheme.defaultEffectsSpec()) +
                                 scaleIn(
                                     animationSpec = motionScheme.defaultSpatialSpec(),
                                     initialScale = FiscusMotion.ENTER_SCALE

@@ -2,6 +2,16 @@
 
 package com.prajwalpawar.fiscus.ui.screens.home
 
+import com.prajwalpawar.fiscus.ui.theme.FiscusMotion
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.runtime.getValue
+import com.prajwalpawar.fiscus.ui.components.fiscusAnimateItem
 import androidx.compose.material.icons.automirrored.rounded.ReceiptLong
 import com.prajwalpawar.fiscus.ui.components.FiscusEmptyState
 import androidx.compose.material3.ButtonDefaults
@@ -9,7 +19,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -29,7 +38,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -37,7 +45,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -72,54 +79,61 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    if (uiState.isLoading) {
-        Box(
-            modifier = modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            LoadingIndicator()
-        }
-        return
-    }
-
-    LazyColumn(
+    // The wavy loading indicator until data arrives, then the content fades in quickly.
+    AnimatedContent(
+        targetState = uiState.isLoading,
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = FiscusSize.fabClearance),
-        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
-    ) {
-        item(key = "balance") {
-            BalanceHero(
-                total = uiState.totalBalance,
-                accountCount = uiState.accounts.size,
-                modifier = Modifier.padding(horizontal = FiscusSpacing.md)
-            )
+        transitionSpec = {
+            fadeIn(tween(FiscusMotion.FADE_IN_MILLIS)) togetherWith
+                fadeOut(tween(FiscusMotion.FADE_OUT_MILLIS))
+        },
+        label = "homeLoading"
+    ) { loading ->
+        if (loading) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                LoadingIndicator()
+            }
+            return@AnimatedContent
         }
-
-        item(key = "month") {
-            MonthSummary(
-                totals = uiState.monthTotals,
-                spentShare = uiState.spentShareOfIncome,
-                modifier = Modifier.padding(
-                    start = FiscusSpacing.md,
-                    end = FiscusSpacing.md,
-                    top = FiscusSpacing.md
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = FiscusSize.fabClearance),
+            verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
+        ) {
+            item(key = "balance") {
+                BalanceHero(
+                    total = uiState.totalBalance,
+                    accountCount = uiState.accounts.size,
+                    modifier = Modifier.padding(horizontal = FiscusSpacing.md)
                 )
+            }
+
+            item(key = "month") {
+                MonthSummary(
+                    totals = uiState.monthTotals,
+                    spentShare = uiState.spentShareOfIncome,
+                    modifier = Modifier.padding(
+                        start = FiscusSpacing.md,
+                        end = FiscusSpacing.md,
+                        top = FiscusSpacing.md
+                    )
+                )
+            }
+
+            item(key = "accounts") {
+                AccountsCarousel(
+                    accounts = uiState.accounts,
+                    onAddAccountClick = onAddAccountClick,
+                    onAccountClick = onAccountClick
+                )
+            }
+
+            recentTransactions(
+                recent = uiState.recent,
+                onSeeAllClick = onSeeAllClick,
+                onTransactionClick = onTransactionClick
             )
         }
-
-        item(key = "accounts") {
-            AccountsCarousel(
-                accounts = uiState.accounts,
-                onAddAccountClick = onAddAccountClick,
-                onAccountClick = onAccountClick
-            )
-        }
-
-        recentTransactions(
-            recent = uiState.recent,
-            onSeeAllClick = onSeeAllClick,
-            onTransactionClick = onTransactionClick
-        )
     }
 }
 
@@ -431,7 +445,8 @@ private fun LazyListScope.recentTransactions(
             FiscusEmptyState(
                 icon = Icons.AutoMirrored.Rounded.ReceiptLong,
                 title = "No transactions yet",
-                message = "Tap Add transaction to record your first one."
+                message = "Tap Add transaction to record your first one.",
+                modifier = fiscusAnimateItem()
             )
         }
         return

@@ -1,5 +1,9 @@
 package com.prajwalpawar.fiscus.ui.screens.manage
 
+import androidx.compose.ui.Alignment
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.runtime.getValue
+import com.prajwalpawar.fiscus.ui.components.fiscusAnimateItem
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,12 +19,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -32,8 +33,6 @@ import com.prajwalpawar.fiscus.ui.components.FiscusSegmentedListItem
 import com.prajwalpawar.fiscus.ui.components.accountIcon
 import com.prajwalpawar.fiscus.ui.components.accountTypeLabel
 import com.prajwalpawar.fiscus.ui.components.categoryIcon
-import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
-import com.prajwalpawar.fiscus.ui.navigation.containerTransform
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 import com.prajwalpawar.fiscus.util.formatMoney
 
@@ -46,7 +45,6 @@ private data class ManageRow(
     val trailingText: String?,
     val isAddRow: Boolean,
     // Pairs this row with the page it opens for the container transform.
-    val transformKey: Any,
     val onClick: () -> Unit
 )
 
@@ -71,7 +69,6 @@ fun ManageCategoriesScreen(
                     .map { (category, usage) ->
                         ManageRow(
                             key = "category-${category.id}",
-                            transformKey = ContainerKeys.category(category.id),
                             icon = categoryIcon(category.iconKey),
                             title = category.name,
                             supporting = usageLabel(usage, category.isDefault),
@@ -81,7 +78,6 @@ fun ManageCategoriesScreen(
                         )
                     } + ManageRow(
                     key = "add-$type",
-                    transformKey = ContainerKeys.newCategory(type.name),
                     icon = Icons.Rounded.Add,
                     title = "Add ${label.lowercase()} category",
                     supporting = null,
@@ -94,7 +90,6 @@ fun ManageCategoriesScreen(
             val archivedSection = archived.map { (category, usage) ->
                 ManageRow(
                     key = "category-${category.id}",
-                    transformKey = ContainerKeys.category(category.id),
                     icon = categoryIcon(category.iconKey),
                     title = category.name,
                     supporting = (if (category.type == CategoryType.EXPENSE) "Expense" else "Income") +
@@ -126,7 +121,6 @@ fun ManageAccountsScreen(
 
             fun row(account: AccountBalance) = ManageRow(
                 key = "account-${account.id}",
-                transformKey = ContainerKeys.account(account.id),
                 icon = accountIcon(account.type),
                 title = account.name,
                 supporting = accountTypeLabel(account.type) + " · " +
@@ -138,7 +132,6 @@ fun ManageAccountsScreen(
 
             val activeSection = active.map(::row) + ManageRow(
                 key = "add-account",
-                transformKey = ContainerKeys.NEW_ACCOUNT,
                 icon = Icons.Rounded.Add,
                 title = "Add account",
                 supporting = null,
@@ -205,7 +198,10 @@ private fun LazyListScope.manageSection(
     }
 
     itemsIndexed(rows, key = { _, row -> row.key }) { index, row ->
-        ManageRowItem(row = row, index = index, count = rows.size)
+        // Archiving or restoring moves the row between sections smoothly.
+        Box(fiscusAnimateItem()) {
+            ManageRowItem(row = row, index = index, count = rows.size)
+        }
     }
 }
 
@@ -218,7 +214,6 @@ private fun ManageRowItem(
 ) {
     FiscusSegmentedListItem(
         shapes = ListItemDefaults.segmentedShapes(index = index, count = count),
-        modifier = Modifier.containerTransform(row.transformKey),
         onClick = row.onClick,
         leadingContent = {
             FiscusListIcon(icon = row.icon)

@@ -1,5 +1,6 @@
 package com.prajwalpawar.fiscus.ui.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -107,7 +108,7 @@ fun LazyListScope.transactionsByDay(
                     text = transactionDayLabel(day),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
+                    modifier = fiscusAnimateItem()
                         .padding(
                             start = FiscusSpacing.md,
                             top = FiscusSpacing.sm,
@@ -121,10 +122,13 @@ fun LazyListScope.transactionsByDay(
                 items = dayTransactions,
                 key = { _, transaction -> transaction.id }
             ) { index, transaction ->
-                row(
-                    transaction,
-                    ListItemDefaults.segmentedShapes(index = index, count = dayTransactions.size)
-                )
+                // Rows slide into place when filters, periods or new transactions change the list.
+                Box(fiscusAnimateItem()) {
+                    row(
+                        transaction,
+                        ListItemDefaults.segmentedShapes(index = index, count = dayTransactions.size)
+                    )
+                }
             }
         }
 }

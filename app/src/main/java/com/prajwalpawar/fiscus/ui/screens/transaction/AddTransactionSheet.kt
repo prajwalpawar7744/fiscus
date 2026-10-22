@@ -1,5 +1,13 @@
 package com.prajwalpawar.fiscus.ui.screens.transaction
 
+import androidx.compose.runtime.getValue
+import com.prajwalpawar.fiscus.ui.theme.FiscusReducedMotion
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import com.prajwalpawar.fiscus.util.formatMoney
 import androidx.compose.ui.graphics.Shape
@@ -40,7 +48,6 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -503,21 +510,40 @@ private fun ItemsSection(
     onRemoveItem: (key: Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val motionScheme = MaterialTheme.motionScheme
+    val reducedMotion = FiscusReducedMotion.enabled
+
     Column(
-        modifier = modifier,
+        // Removing a card closes the gap smoothly instead of jumping.
+        modifier = modifier.animateContentSize(
+            if (reducedMotion) snap() else motionScheme.defaultSpatialSpec()
+        ),
         verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
     ) {
         FiscusSectionHeader(title = if (items.isEmpty()) "Items (optional)" else "Items")
 
         items.forEachIndexed { index, item ->
             key(item.key) {
-                ItemRow(
-                    item = item,
-                    position = index + 1,
-                    shape = ListItemDefaults.segmentedShapes(index = index, count = items.size).shape,
-                    onChange = { transform -> onItemChange(item.key, transform) },
-                    onRemove = { onRemoveItem(item.key) }
-                )
+                // M3 enter/exit: a new card expands along the y axis from the top (no
+                // scaling); with reduced motion it fades in.
+                val visible = remember { MutableTransitionState(false) }.apply { targetState = true }
+                AnimatedVisibility(
+                    visibleState = visible,
+                    enter = if (reducedMotion) {
+                        fadeIn(motionScheme.fastEffectsSpec())
+                    } else {
+                        expandVertically(motionScheme.defaultSpatialSpec(), expandFrom = Alignment.Top) +
+                            fadeIn(motionScheme.fastEffectsSpec())
+                    }
+                ) {
+                    ItemRow(
+                        item = item,
+                        position = index + 1,
+                        shape = ListItemDefaults.segmentedShapes(index = index, count = items.size).shape,
+                        onChange = { transform -> onItemChange(item.key, transform) },
+                        onRemove = { onRemoveItem(item.key) }
+                    )
+                }
             }
         }
 

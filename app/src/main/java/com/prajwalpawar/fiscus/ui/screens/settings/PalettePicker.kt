@@ -1,5 +1,18 @@
 package com.prajwalpawar.fiscus.ui.screens.settings
 
+import androidx.compose.runtime.getValue
+import com.prajwalpawar.fiscus.ui.theme.FiscusReducedMotion
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.graphics.asComposePath
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.geometry.Size
+import android.graphics.Matrix
+import androidx.graphics.shapes.toPath
+import androidx.graphics.shapes.Morph
+import androidx.compose.runtime.remember
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +36,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,7 +62,8 @@ private fun PalettePreference.label(): String = when (this) {
 
 // Colour palettes for when Dynamic color is off. M3 has no swatch picker component, so
 // this follows Android's own wallpaper & style picker: one swatch per palette showing its
-// primary, secondary and tertiary colours; the chosen one morphs to a cookie with a check.
+// primary, secondary and tertiary colours; the chosen one morphs from a circle to a cookie
+// and shows a check.
 @Composable
 internal fun PaletteRow(
     selected: PalettePreference,
@@ -97,9 +110,17 @@ private fun PaletteSwatch(
 ) {
     // Shows each palette as it looks in the current light/dark mode.
     val scheme = palette.colorScheme(darkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f)
-    val shape = if (selected) MaterialShapes.Cookie9Sided.toShape() else MaterialShapes.Circle.toShape()
+    val reducedMotion = FiscusReducedMotion.enabled
+    val morph = remember { Morph(MaterialShapes.Circle, MaterialShapes.Cookie9Sided) }
+    // M3: shapes morph to show a state change. Reduced motion: no morph, just the shape.
+    val progress by animateFloatAsState(
+        targetValue = if (selected) 1f else 0f,
+        animationSpec = if (reducedMotion) snap() else MaterialTheme.motionScheme.defaultSpatialSpec(),
+        label = "swatchMorph"
+    )
+    val shape = remember(progress) { MorphShape(morph, progress) }
     val scale by animateFloatAsState(
-        targetValue = if (selected) 1f else 0.9f,
+        targetValue = if (selected || reducedMotion) 1f else 0.9f,
         animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "swatchScale"
     )
@@ -137,5 +158,18 @@ private fun PaletteSwatch(
                 )
             }
         }
+    }
+}
+
+// A Shape drawn from a graphics-shapes Morph at [progress] (0 = start, 1 = end); Material's
+// shapes are normalised to a unit square, so the path is scaled to the component's size.
+private class MorphShape(
+    private val morph: Morph,
+    private val progress: Float
+) : Shape {
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+        val path = morph.toPath(progress)
+        path.transform(Matrix().apply { setScale(size.width, size.height) })
+        return Outline.Generic(path.asComposePath())
     }
 }

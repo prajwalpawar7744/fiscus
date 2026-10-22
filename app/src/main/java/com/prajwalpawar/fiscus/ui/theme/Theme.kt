@@ -40,6 +40,7 @@ fun FiscusTheme(
     ) {
         CompositionLocalProvider(
             LocalIconShape provides iconShape.polygon().toShape(),
+            LocalReducedMotion provides rememberSystemReducedMotion(),
             content = content
         )
     }

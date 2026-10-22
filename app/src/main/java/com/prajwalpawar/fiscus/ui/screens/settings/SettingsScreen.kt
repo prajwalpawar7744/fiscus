@@ -1,5 +1,7 @@
 package com.prajwalpawar.fiscus.ui.screens.settings
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -53,10 +55,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -75,8 +75,6 @@ import com.prajwalpawar.fiscus.ui.components.FiscusDropdownMenu
 import com.prajwalpawar.fiscus.ui.components.FiscusListIcon
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.FiscusSegmentedListItem
-import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
-import com.prajwalpawar.fiscus.ui.navigation.containerTransform
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 
@@ -107,7 +105,6 @@ fun SettingsScreen(
         { shapes ->
             FiscusSegmentedListItem(
                 shapes = shapes,
-                modifier = Modifier.containerTransform(ContainerKeys.PROFILE),
                 onClick = onProfileClick,
                 leadingContent = {
                     FiscusAvatar(
@@ -280,7 +277,6 @@ fun SettingsScreen(
                 icon = Icons.Rounded.Category,
                 shapes = shapes,
                 onClick = onCategoriesClick,
-                modifier = Modifier.containerTransform(ContainerKeys.MANAGE_CATEGORIES)
             )
         },
         { shapes ->
@@ -290,7 +286,6 @@ fun SettingsScreen(
                 icon = Icons.Rounded.AccountBalanceWallet,
                 shapes = shapes,
                 onClick = onAccountsClick,
-                modifier = Modifier.containerTransform(ContainerKeys.MANAGE_ACCOUNTS)
             )
         }
     )

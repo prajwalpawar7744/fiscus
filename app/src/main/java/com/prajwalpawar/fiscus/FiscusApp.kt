@@ -2,12 +2,11 @@
 
 package com.prajwalpawar.fiscus
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
@@ -22,11 +21,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.components.FiscusAvatar
@@ -56,6 +53,8 @@ import com.prajwalpawar.fiscus.ui.components.FiscusTopAppBar
 import com.prajwalpawar.fiscus.ui.components.ImeInsetsRepair
 import com.prajwalpawar.fiscus.ui.components.monthLabel
 import com.prajwalpawar.fiscus.ui.navigation.ContainerKeys
+import com.prajwalpawar.fiscus.ui.navigation.FiscusNavTransitions
+import com.prajwalpawar.fiscus.ui.theme.FiscusReducedMotion
 import com.prajwalpawar.fiscus.ui.navigation.FiscusDestination
 import com.prajwalpawar.fiscus.ui.navigation.FiscusNavigationBar
 import com.prajwalpawar.fiscus.ui.navigation.FiscusRoutes
@@ -86,7 +85,6 @@ import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionSearchScreen
 import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionSearchViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionsScreen
 import com.prajwalpawar.fiscus.ui.screens.transactions.TransactionsViewModelFactory
-import com.prajwalpawar.fiscus.ui.theme.FiscusMotion
 import java.time.YearMonth
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -275,8 +273,7 @@ fun FiscusApp(
                         if (onHome) {
                             IconButton(
                                 shapes = IconButtonDefaults.shapes(),
-                                onClick = { navController.navigate(FiscusRoutes.PROFILE) },
-                                modifier = Modifier.containerTransform(ContainerKeys.PROFILE)
+                                onClick = { navController.navigate(FiscusRoutes.PROFILE) }
                             ) {
                                 FiscusAvatar(
                                     name = settings.profileName,
@@ -332,6 +329,9 @@ fun FiscusApp(
             }
         }
     ) { innerPadding ->
+        val reducedMotion = FiscusReducedMotion.enabled
+        val navTransitions = remember(reducedMotion) { FiscusNavTransitions(reducedMotion) }
+
         // Lets a tapped row or card grow into the page it opens (container transform).
         SharedTransitionLayout {
             CompositionLocalProvider(LocalSharedTransitionScope provides this) {
@@ -339,17 +339,12 @@ fun FiscusApp(
                     navController = navController,
                     startDestination = FiscusDestination.Home.route,
                     modifier = Modifier.padding(innerPadding),
-                    // Fade through between tabs, timed by the Expressive motion scheme.
-                    enterTransition = {
-                        fadeIn(motionScheme.defaultEffectsSpec()) +
-                                scaleIn(
-                                    animationSpec = motionScheme.defaultSpatialSpec(),
-                                    initialScale = FiscusMotion.ENTER_SCALE
-                                )
-                    },
-                    exitTransition = {
-                        fadeOut(motionScheme.fastEffectsSpec())
-                    }
+                    // M3 transition patterns: fade through between tabs, forward/backward
+                    // into pages, container transform for hero moments (FiscusTransitions).
+                    enterTransition = navTransitions.enter,
+                    exitTransition = navTransitions.exit,
+                    popEnterTransition = navTransitions.popEnter,
+                    popExitTransition = navTransitions.popExit
                 ) {
                     fiscusComposable(FiscusDestination.Home.route) {
                         HomeScreen(
@@ -441,11 +436,6 @@ fun FiscusApp(
                             ?: CategoryType.EXPENSE
 
                         CategoryEditorScreen(
-                            modifier = Modifier.containerTransform(
-                                ContainerKeys.newCategory(
-                                    initialType.name
-                                )
-                            ),
                             viewModel = viewModel(
                                 factory = CategoryEditorViewModelFactory(
                                     categoryRepository,
@@ -519,7 +509,6 @@ fun FiscusApp(
 
                     fiscusComposable(FiscusRoutes.PROFILE) {
                         ProfileScreen(
-                            modifier = Modifier.containerTransform(ContainerKeys.PROFILE),
                             viewModel = viewModel(
                                 factory = SettingsViewModelFactory(LocalContext.current)
                             ),
@@ -529,7 +518,6 @@ fun FiscusApp(
 
                     fiscusComposable(FiscusRoutes.MANAGE_CATEGORIES) {
                         ManageCategoriesScreen(
-                            modifier = Modifier.containerTransform(ContainerKeys.MANAGE_CATEGORIES),
                             viewModel = viewModel(
                                 factory = ManageViewModelFactory(
                                     categoryRepository,
@@ -547,7 +535,6 @@ fun FiscusApp(
 
                     fiscusComposable(FiscusRoutes.MANAGE_ACCOUNTS) {
                         ManageAccountsScreen(
-                            modifier = Modifier.containerTransform(ContainerKeys.MANAGE_ACCOUNTS),
                             viewModel = viewModel(
                                 factory = ManageViewModelFactory(
                                     categoryRepository,
@@ -572,7 +559,6 @@ fun FiscusApp(
                         val id = entry.arguments?.getLong(FiscusRoutes.ID_ARG) ?: 0L
 
                         CategoryEditorScreen(
-                            modifier = Modifier.containerTransform(ContainerKeys.category(id)),
                             viewModel = viewModel(
                                 factory = CategoryEditorViewModelFactory(
                                     categoryRepository = categoryRepository,
