@@ -4,6 +4,42 @@ All notable changes to Fiscus are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.1.0-beta.4] - 2026-10-23
+
+### Added
+
+- **Colour palettes**: with Dynamic color turned off, choose Monochrome, Blue, Green,
+  Purple, Rose or Amber in Settings → Appearance → Palette. Your choice is included in
+  backups.
+
+### Changed
+
+- **Smoother, calmer motion** throughout the app:
+  - Switching tabs is now a quick fade.
+  - Pages open with a short slide; opening a transaction or an account card on Home
+    still grows into its page.
+  - Moving to another period slides the content sideways in the direction you're going.
+    The period selector now stays at the top while you scroll.
+  - List rows glide into place when you filter, add, delete or archive, instead of
+    jumping.
+  - The date picker drops down from its field, and new items in a transaction expand
+    into place.
+- Fiscus follows Android's "Remove animations" setting, using simple fades instead of
+  movement.
+- Backing up no longer blocks the app: the Back up row shows progress while it saves.
+- If a backup, restore or wipe fails, a message explains why instead of a brief
+  notification.
+
+### Known limitations
+
+- English only, with amounts in your phone's currency.
+- Backups are only made when you ask; there are no automatic backups yet.
+- Restoring a backup or wiping data restarts the app.
+- Installing an older version of Fiscus over this one erases your data. Back up first if
+  you ever need to go back.
+- Unsaved transaction drafts are lost if Android closes the app in the background.
+- The Home screen's month doesn't change at midnight on the 1st until you reopen it.
+
 ## [0.1.0-beta.3] - 2026-10-19
 
 ### Added
@@ -130,6 +166,7 @@ access and no account.
 - Unsaved transaction drafts are lost if Android closes the app in the background.
 - The Home screen's month doesn't change at midnight on the 1st until you reopen it.
 
+[0.1.0-beta.4]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.3...v0.1.0-beta.4
 [0.1.0-beta.3]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.2...v0.1.0-beta.3
 [0.1.0-beta.2]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.1...v0.1.0-beta.2
 [0.1.0-beta.1]: https://github.com/prajwalpawar7744/fiscus/releases/tag/v0.1.0-beta.1
