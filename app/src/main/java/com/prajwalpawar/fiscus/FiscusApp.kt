@@ -597,8 +597,9 @@ fun FiscusApp(
     }
 
     // The sheet also opens over a transaction's details page, to edit it.
+    // isTopLevel covers a null route, so route is known non-null here.
     val sheetCanShow = isTopLevel ||
-            route?.startsWith(FiscusRoutes.TRANSACTION_DETAILS_BASE) == true
+            route.startsWith(FiscusRoutes.TRANSACTION_DETAILS_BASE)
 
     // The sheet steps aside while a page is open on top and returns with the draft intact.
     if (showAddTransactionSheet && sheetCanShow) {

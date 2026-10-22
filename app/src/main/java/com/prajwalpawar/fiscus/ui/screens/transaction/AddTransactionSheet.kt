@@ -46,7 +46,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -90,9 +91,11 @@ fun AddTransactionSheet(
     onAddCategory: (CategoryType) -> Unit,
     onAddAccount: (asTransferTarget: Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    // A form has no useful half-open state, so open straight to full height.
-    sheetState: SheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
+    // A form has no useful half-open state, so open straight to full height: the sheet
+    // only moves between hidden and expanded.
+    sheetState: SheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
     )
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
