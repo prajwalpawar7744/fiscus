@@ -37,5 +37,10 @@ object FiscusSize {
     // Charts: thin marks with a small rounded data-end, square at the baseline.
     val chartColumnWidth: Dp = 24.dp
     val chartMarkCorner: Dp = 4.dp
+
+    // Line form of the trend: 2dp line, 8dp marker with a 2dp ring in the card colour.
+    val chartLineWidth: Dp = 2.dp
+    val chartMarker: Dp = 8.dp
+    val chartMarkerRing: Dp = 2.dp
     val trendChartHeight: Dp = 140.dp
 }

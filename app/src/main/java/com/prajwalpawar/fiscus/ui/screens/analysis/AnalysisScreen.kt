@@ -1,5 +1,19 @@
 package com.prajwalpawar.fiscus.ui.screens.analysis
 
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.animation.core.Animatable
+import com.prajwalpawar.fiscus.ui.theme.FiscusReducedMotion
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.animation.core.snap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.foundation.Canvas
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.LoadingIndicator
@@ -423,6 +437,7 @@ private fun SpendingTrend(
     onBucketClick: (Period) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var style by rememberSaveable { mutableStateOf(TrendStyle.COLUMNS) }
     val largest = buckets.maxOfOrNull { it.expense }?.coerceAtLeast(1L) ?: 1L
     // Label every n-th column so labels never crowd, however many columns there are.
     val labelEvery = ceil(buckets.size / MAX_TREND_LABELS.toDouble()).toInt().coerceAtLeast(1)
@@ -444,20 +459,45 @@ private fun SpendingTrend(
                 style = MaterialTheme.typography.titleMediumEmphasized
             )
 
-            Row(
+            // A choice between two views, so a connected group (M3: connected = selection).
+            FiscusConnectedToggleGroup(
+                options = TrendStyle.entries,
+                selectedOption = style,
+                onOptionSelected = { style = it },
+                optionLabel = { if (it == TrendStyle.COLUMNS) "Columns" else "Line" }
+            )
+
+            val fractions = buckets.map { it.expense.toFloat() / largest }
+
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(FiscusSize.trendChartHeight),
-                verticalAlignment = Alignment.Bottom
+                    .height(FiscusSize.trendChartHeight)
             ) {
-                buckets.forEach { bucket ->
-                    TrendColumn(
-                        bucket = bucket,
-                        description = bucketDescription(bucket),
-                        fraction = bucket.expense.toFloat() / largest,
-                        onClick = { onBucketClick(bucket.period) },
-                        modifier = Modifier.weight(1f)
+                if (style == TrendStyle.LINE) {
+                    TrendLine(
+                        fractions = fractions,
+                        highlighted = buckets.map { it.isHighlighted },
+                        modifier = Modifier.fillMaxSize()
                     )
+                }
+
+                // The slots are the tap targets (and TalkBack items) in both views; in the
+                // line view they draw no column.
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    buckets.forEachIndexed { index, bucket ->
+                        TrendColumn(
+                            bucket = bucket,
+                            description = bucketDescription(bucket),
+                            fraction = fractions[index],
+                            showMark = style == TrendStyle.COLUMNS,
+                            onClick = { onBucketClick(bucket.period) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
 
@@ -485,6 +525,9 @@ private fun SpendingTrend(
     }
 }
 
+// How the spending trend is drawn; the user switches on the card.
+private enum class TrendStyle { COLUMNS, LINE }
+
 // "Oct" for a month column, "18" for a day column.
 private fun bucketLabel(bucket: TrendBucket, scale: TrendScale): String {
     return if (scale == TrendScale.DAILY) {
@@ -503,7 +546,8 @@ private fun TrendColumn(
     description: String,
     fraction: Float,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showMark: Boolean = true
 ) {
     val animatedFraction by animateFloatAsState(
         targetValue = fraction,
@@ -526,7 +570,7 @@ private fun TrendColumn(
             },
         contentAlignment = Alignment.BottomCenter
     ) {
-        if (bucket.expense > 0L) {
+        if (showMark && bucket.expense > 0L) {
             Box(
                 modifier = Modifier
                     // Narrower than its slot so neighbours stay apart; capped for thin marks.
@@ -555,3 +599,63 @@ private const val MAX_TREND_LABELS = 7
 
 // Share of each column's slot the column itself fills.
 private const val COLUMN_SLOT_FILL = 0.6f
+
+// The trend as a line: one series, one colour (primary), 2dp with round joins, through
+// the centre of each slot so it lines up with the labels and tap targets below. Where one
+// bucket is emphasised (the month in its 6-month context) it gets an 8dp marker with a
+// ring in the card colour; the rest of the line carries no markers.
+@Composable
+private fun TrendLine(
+    fractions: List<Float>,
+    highlighted: List<Boolean>,
+    modifier: Modifier = Modifier
+) {
+    val lineColor = MaterialTheme.colorScheme.primary
+    val ringColor = MaterialTheme.colorScheme.surfaceContainer
+    val reducedMotion = FiscusReducedMotion.enabled
+    val spec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
+
+    // Grows up from the baseline when first shown; afterwards each point eases to its new
+    // value, as the columns do. Reduced motion: drawn in place.
+    val growth = remember { Animatable(if (reducedMotion) 1f else 0f) }
+    LaunchedEffect(Unit) { growth.animateTo(1f, spec) }
+    val animated = fractions.mapIndexed { index, fraction ->
+        animateFloatAsState(
+            targetValue = fraction,
+            animationSpec = if (reducedMotion) snap() else spec,
+            label = "trendPoint$index"
+        ).value
+    }
+    val emphasise = highlighted.count { it } == 1
+
+    Canvas(modifier = modifier) {
+        if (animated.isEmpty()) return@Canvas
+        val slot = size.width / animated.size
+        val stroke = FiscusSize.chartLineWidth.toPx()
+        // Keep the line's top and bottom inside the canvas.
+        val top = FiscusSize.chartMarker.toPx() / 2
+        val usable = size.height - top - stroke / 2
+        fun point(i: Int) = Offset(
+            x = slot * i + slot / 2,
+            // Clamped: spring animations can overshoot.
+            y = size.height - stroke / 2 - usable * (animated[i] * growth.value).coerceIn(0f, 1f)
+        )
+
+        val path = Path().apply {
+            moveTo(point(0).x, point(0).y)
+            for (i in 1 until animated.size) lineTo(point(i).x, point(i).y)
+        }
+        drawPath(
+            path = path,
+            color = lineColor,
+            style = Stroke(width = stroke, cap = StrokeCap.Round, join = StrokeJoin.Round)
+        )
+
+        if (emphasise) {
+            val i = highlighted.indexOf(true)
+            val radius = FiscusSize.chartMarker.toPx() / 2
+            drawCircle(ringColor, radius = radius + FiscusSize.chartMarkerRing.toPx(), center = point(i))
+            drawCircle(lineColor, radius = radius, center = point(i))
+        }
+    }
+}
