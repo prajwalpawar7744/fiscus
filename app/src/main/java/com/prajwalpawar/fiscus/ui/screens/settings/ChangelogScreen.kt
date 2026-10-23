@@ -125,6 +125,12 @@ private fun ReleaseCard(
     val motionScheme = MaterialTheme.motionScheme
     val reducedMotion = FiscusReducedMotion.enabled
     // M3 colour pairing: secondary text on a tonal container uses its "on" colour.
+    // Primary only pairs with surface roles; on the tonal card accents use its "on" colour.
+    val accentText = if (isFeatured) {
+        MaterialTheme.colorScheme.onSecondaryContainer
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
     val secondaryText = if (isFeatured) {
         MaterialTheme.colorScheme.onSecondaryContainer
     } else {
@@ -182,7 +188,7 @@ private fun ReleaseCard(
                     Text(
                         text = "Installed",
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
+                        color = accentText
                     )
                 }
                 Icon(
@@ -212,6 +218,7 @@ private fun ReleaseCard(
                     release.groups.forEach { group ->
                         FiscusSectionHeader(
                             title = group.title,
+                            color = accentText,
                             modifier = Modifier.padding(top = FiscusSpacing.sm)
                         )
                         group.entries.forEach { entry ->

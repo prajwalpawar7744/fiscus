@@ -579,10 +579,13 @@ private fun TrendColumn(
                     // Keep tiny amounts visible as a sliver rather than vanishing.
                     .fillMaxHeight(abs(animatedFraction).coerceIn(0.02f, 1f))
                     .background(
+                        // M3: outlineVariant is for decorative dividers and must not mark
+                        // hierarchy or targets; muted columns are tappable data, so they use
+                        // outline (3:1 against surfaces).
                         color = if (bucket.isHighlighted) {
                             MaterialTheme.colorScheme.primary
                         } else {
-                            MaterialTheme.colorScheme.outlineVariant
+                            MaterialTheme.colorScheme.outline
                         },
                         shape = RoundedCornerShape(
                             topStart = FiscusSize.chartMarkCorner,

@@ -1,5 +1,6 @@
 package com.prajwalpawar.fiscus.ui.components
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -11,12 +12,15 @@ import androidx.compose.ui.semantics.semantics
 @Composable
 fun FiscusSectionHeader(
     title: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // Primary pairs with surface roles. On a coloured container pass its "on" colour
+    // instead (M3 colour pairing), e.g. onSecondaryContainer.
+    color: Color = MaterialTheme.colorScheme.primary
 ) {
     Text(
         text = title,
         style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
+        color = color,
         modifier = modifier.semantics {
             heading()
         }
