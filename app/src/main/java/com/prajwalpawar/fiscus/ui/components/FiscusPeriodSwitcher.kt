@@ -2,6 +2,7 @@
 
 package com.prajwalpawar.fiscus.ui.components
 
+import com.prajwalpawar.fiscus.ui.components.FiscusTooltip
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.layout.Box
@@ -47,11 +48,13 @@ fun FiscusPeriodSwitcher(
             .padding(horizontal = FiscusSpacing.xs, vertical = FiscusSpacing.sm),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = { onPeriodChange(period.previous()) }, shapes = IconButtonDefaults.shapes()) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                contentDescription = "Previous period"
-            )
+        FiscusTooltip("Previous period") {
+            IconButton(onClick = { onPeriodChange(period.previous()) }, shapes = IconButtonDefaults.shapes()) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                    contentDescription = "Previous period"
+                )
+            }
         }
 
         // The picker anchors to this box, so it opens centred under the label.
@@ -88,16 +91,18 @@ fun FiscusPeriodSwitcher(
             )
         }
 
-        IconButton(
+        FiscusTooltip("Next period") {
+            IconButton(
 
-            shapes = IconButtonDefaults.shapes(),
-            onClick = { onPeriodChange(period.next()) },
-            enabled = period.canGoForward()
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                contentDescription = "Next period"
-            )
+                shapes = IconButtonDefaults.shapes(),
+                onClick = { onPeriodChange(period.next()) },
+                enabled = period.canGoForward()
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                    contentDescription = "Next period"
+                )
+            }
         }
     }
 }

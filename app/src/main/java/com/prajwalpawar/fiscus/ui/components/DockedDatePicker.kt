@@ -2,6 +2,7 @@
 
 package com.prajwalpawar.fiscus.ui.components
 
+import com.prajwalpawar.fiscus.ui.components.FiscusTooltip
 import androidx.compose.ui.Alignment
 import com.prajwalpawar.fiscus.ui.theme.FiscusReducedMotion
 import androidx.compose.animation.shrinkVertically
@@ -99,17 +100,19 @@ fun DockedDatePicker(
             enabled = enabled,
             interactionSource = fieldInteractionSource,
             trailingIcon = {
-                IconButton(
-                    shapes = IconButtonDefaults.shapes(),
-                    enabled = enabled,
-                    onClick = {
-                        pickerVisibility.targetState = !pickerVisibility.targetState
+                FiscusTooltip("Select $label") {
+                    IconButton(
+                        shapes = IconButtonDefaults.shapes(),
+                        enabled = enabled,
+                        onClick = {
+                            pickerVisibility.targetState = !pickerVisibility.targetState
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.DateRange,
+                            contentDescription = "Select $label"
+                        )
                     }
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.DateRange,
-                        contentDescription = "Select $label"
-                    )
                 }
             }
         )

@@ -1,5 +1,7 @@
 package com.prajwalpawar.fiscus.ui.screens.analysis
 
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.runtime.getValue
 import com.prajwalpawar.fiscus.ui.components.LateralPeriodContent
@@ -27,7 +29,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -273,10 +274,12 @@ private fun StatTile(
     caption: String,
     modifier: Modifier = Modifier
 ) {
-    Surface(
+    Card(
         modifier = modifier.semantics(mergeDescendants = true) {},
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainer
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        )
     ) {
         Column(
             modifier = Modifier.padding(FiscusSpacing.md),
@@ -424,10 +427,12 @@ private fun SpendingTrend(
     // Label every n-th column so labels never crowd, however many columns there are.
     val labelEvery = ceil(buckets.size / MAX_TREND_LABELS.toDouble()).toInt().coerceAtLeast(1)
 
-    Surface(
+    Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainer
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        )
     ) {
         Column(
             modifier = Modifier.padding(FiscusSpacing.md),

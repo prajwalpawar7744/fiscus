@@ -1,5 +1,8 @@
 package com.prajwalpawar.fiscus.ui.screens.transaction
 
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Card
+import com.prajwalpawar.fiscus.ui.components.FiscusTooltip
 import androidx.compose.runtime.getValue
 import com.prajwalpawar.fiscus.ui.theme.FiscusReducedMotion
 import androidx.compose.animation.fadeIn
@@ -13,7 +16,6 @@ import com.prajwalpawar.fiscus.util.formatMoney
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.key
-import androidx.compose.material3.Surface
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.IconButtonDefaults
@@ -577,9 +579,11 @@ private fun ItemRow(
     onChange: ((ItemDraft) -> ItemDraft) -> Unit,
     onRemove: () -> Unit
 ) {
-    Surface(
+    Card(
         shape = shape,
-        color = MaterialTheme.colorScheme.surfaceContainer
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        )
     ) {
         Column(
             modifier = Modifier.padding(FiscusSpacing.sm),
@@ -598,14 +602,16 @@ private fun ItemRow(
                     )
                 )
 
-                IconButton(
-                    onClick = onRemove,
-                    shapes = IconButtonDefaults.shapes()
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Close,
-                        contentDescription = "Remove item $position"
-                    )
+                FiscusTooltip("Remove item $position") {
+                    IconButton(
+                        onClick = onRemove,
+                        shapes = IconButtonDefaults.shapes()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Close,
+                            contentDescription = "Remove item $position"
+                        )
+                    }
                 }
             }
 

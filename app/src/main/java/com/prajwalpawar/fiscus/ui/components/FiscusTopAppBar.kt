@@ -2,6 +2,7 @@
 
 package com.prajwalpawar.fiscus.ui.components
 
+import com.prajwalpawar.fiscus.ui.components.FiscusTooltip
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.foundation.layout.RowScope
@@ -35,11 +36,13 @@ fun FiscusTopAppBar(
 ) {
     val navigationIcon: @Composable () -> Unit = {
         if (onNavigateUp != null) {
-            IconButton(onClick = onNavigateUp, shapes = IconButtonDefaults.shapes()) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "Back"
-                )
+            FiscusTooltip("Back") {
+                IconButton(onClick = onNavigateUp, shapes = IconButtonDefaults.shapes()) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                        contentDescription = "Back"
+                    )
+                }
             }
         }
     }

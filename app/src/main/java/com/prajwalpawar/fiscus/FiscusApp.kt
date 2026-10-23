@@ -2,6 +2,7 @@
 
 package com.prajwalpawar.fiscus
 
+import com.prajwalpawar.fiscus.ui.components.FiscusTooltip
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -271,28 +272,32 @@ fun FiscusApp(
                     },
                     actions = {
                         if (onHome) {
-                            IconButton(
-                                shapes = IconButtonDefaults.shapes(),
-                                onClick = { navController.navigate(FiscusRoutes.PROFILE) }
-                            ) {
-                                FiscusAvatar(
-                                    name = settings.profileName,
-                                    photoVersion = settings.profilePhotoVersion,
-                                    size = FiscusSize.listIconContainer,
-                                    initialStyle = MaterialTheme.typography.titleMediumEmphasized,
-                                    modifier = Modifier.semantics { contentDescription = "Profile" }
-                                )
+                            FiscusTooltip("Profile") {
+                                IconButton(
+                                    shapes = IconButtonDefaults.shapes(),
+                                    onClick = { navController.navigate(FiscusRoutes.PROFILE) }
+                                ) {
+                                    FiscusAvatar(
+                                        name = settings.profileName,
+                                        photoVersion = settings.profilePhotoVersion,
+                                        size = FiscusSize.listIconContainer,
+                                        initialStyle = MaterialTheme.typography.titleMediumEmphasized,
+                                        modifier = Modifier.semantics { contentDescription = "Profile" }
+                                    )
+                                }
                             }
                         }
                         if (onTransactions) {
-                            IconButton(
-                                shapes = IconButtonDefaults.shapes(),
-                                onClick = { navController.navigate(FiscusRoutes.TRANSACTION_SEARCH) }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Search,
-                                    contentDescription = "Search transactions"
-                                )
+                            FiscusTooltip("Search transactions") {
+                                IconButton(
+                                    shapes = IconButtonDefaults.shapes(),
+                                    onClick = { navController.navigate(FiscusRoutes.TRANSACTION_SEARCH) }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Search,
+                                        contentDescription = "Search transactions"
+                                    )
+                                }
                             }
                         }
                     }

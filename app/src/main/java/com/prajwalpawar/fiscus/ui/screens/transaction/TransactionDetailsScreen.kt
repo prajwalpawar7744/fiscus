@@ -2,6 +2,7 @@
 
 package com.prajwalpawar.fiscus.ui.screens.transaction
 
+import com.prajwalpawar.fiscus.ui.components.FiscusTooltip
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -118,14 +119,16 @@ fun TransactionDetailsScreen(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = FloatingToolbarDefaults.ScreenOffset)
         ) {
-            IconButton(
-                onClick = { confirmDelete = true },
-                shapes = IconButtonDefaults.shapes()
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Delete,
-                    contentDescription = "Delete"
-                )
+            FiscusTooltip("Delete") {
+                IconButton(
+                    onClick = { confirmDelete = true },
+                    shapes = IconButtonDefaults.shapes()
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Delete,
+                        contentDescription = "Delete"
+                    )
+                }
             }
         }
     }

@@ -2,6 +2,9 @@
 
 package com.prajwalpawar.fiscus.ui.screens.home
 
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Card
 import com.prajwalpawar.fiscus.ui.theme.FiscusMotion
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.LoadingIndicator
@@ -16,8 +19,6 @@ import androidx.compose.material.icons.automirrored.rounded.ReceiptLong
 import com.prajwalpawar.fiscus.ui.components.FiscusEmptyState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,7 +40,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
@@ -49,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.prajwalpawar.fiscus.data.model.AccountBalance
@@ -143,10 +142,12 @@ private fun BalanceHero(
     accountCount: Int,
     modifier: Modifier = Modifier
 ) {
-    Surface(
+    Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.primaryContainer
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
     ) {
         Column(
             modifier = Modifier.padding(FiscusSpacing.lg),
@@ -253,11 +254,13 @@ private fun SummaryTile(
     contentColor: Color,
     modifier: Modifier = Modifier
 ) {
-    Surface(
+    Card(
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
-        color = containerColor,
-        contentColor = contentColor
+        colors = CardDefaults.cardColors(
+            containerColor = containerColor,
+            contentColor = contentColor
+        )
     ) {
         Column(
             modifier = Modifier.padding(FiscusSpacing.md),
@@ -353,35 +356,40 @@ private fun AccountCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .clickable(
-                onClickLabel = "Edit ${account.name}",
-                role = Role.Button,
-                onClick = onClick
-            )
-            .padding(FiscusSpacing.md),
-        verticalArrangement = Arrangement.SpaceBetween
+    // M3 filled card; the carousel's mask gives it its shape, so the card itself is square.
+    Card(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RectangleShape,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
     ) {
-        FiscusListIcon(icon = accountIcon(account.type))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(FiscusSpacing.md),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            FiscusListIcon(icon = accountIcon(account.type))
 
-        Column {
-            Text(
-                text = account.name,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Column {
+                Text(
+                    text = account.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
 
-            val balanceStyle = MaterialTheme.typography.titleLargeEmphasized
+                val balanceStyle = MaterialTheme.typography.titleLargeEmphasized
 
-            Text(
-                text = formatMoney(account.balance),
-                style = balanceStyle,
-                maxLines = 1,
-                autoSize = TextAutoSize.StepBased(maxFontSize = balanceStyle.fontSize)
-            )
+                Text(
+                    text = formatMoney(account.balance),
+                    style = balanceStyle,
+                    maxLines = 1,
+                    autoSize = TextAutoSize.StepBased(maxFontSize = balanceStyle.fontSize)
+                )
+            }
         }
     }
 }
@@ -391,23 +399,27 @@ private fun AddAccountCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .clickable(
-                onClickLabel = "Add account",
-                role = Role.Button,
-                onClick = onClick
-            )
-            .padding(FiscusSpacing.md),
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        FiscusListIcon(icon = Icons.Rounded.Add)
-
-        Text(
-            text = "Add account",
-            style = MaterialTheme.typography.titleMedium
+    Card(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RectangleShape,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(FiscusSpacing.md),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            FiscusListIcon(icon = Icons.Rounded.Add)
+
+            Text(
+                text = "Add account",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
     }
 }
 

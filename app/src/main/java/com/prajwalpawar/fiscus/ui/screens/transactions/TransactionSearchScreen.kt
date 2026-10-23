@@ -2,6 +2,7 @@
 
 package com.prajwalpawar.fiscus.ui.screens.transactions
 
+import com.prajwalpawar.fiscus.ui.components.FiscusTooltip
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.foundation.layout.Arrangement
@@ -87,14 +88,18 @@ fun TransactionSearchScreen(
                 )
             },
             leadingIcon = {
-                IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
-                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                FiscusTooltip("Back") {
+                    IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                    }
                 }
             },
             trailingIcon = {
                 if (textFieldState.text.isNotEmpty()) {
-                    IconButton(onClick = { textFieldState.clearText() }, shapes = IconButtonDefaults.shapes()) {
-                        Icon(Icons.Rounded.Clear, contentDescription = "Clear search")
+                    FiscusTooltip("Clear search") {
+                        IconButton(onClick = { textFieldState.clearText() }, shapes = IconButtonDefaults.shapes()) {
+                            Icon(Icons.Rounded.Clear, contentDescription = "Clear search")
+                        }
                     }
                 }
             }
