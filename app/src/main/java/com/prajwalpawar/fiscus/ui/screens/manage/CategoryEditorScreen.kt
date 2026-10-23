@@ -70,16 +70,10 @@ fun CategoryEditorScreen(
         canSave = uiState.canSave,
         onSave = { viewModel.save(onSaved) },
         modifier = modifier,
-        actions = {
-            uiState.manage?.let { manage ->
-                ItemManageActions(
-                    state = manage,
-                    itemNoun = "category",
-                    onArchiveToggle = { viewModel.toggleArchived(onDone) },
-                    onDelete = { viewModel.delete(onDone) }
-                )
-            }
-        }
+        manage = uiState.manage,
+        itemNoun = "category",
+        onArchiveToggle = { viewModel.toggleArchived(onDone) },
+        onDelete = { viewModel.delete(onDone) }
     ) {
         OutlinedTextField(
             value = uiState.name,

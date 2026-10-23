@@ -2,11 +2,13 @@
 
 package com.prajwalpawar.fiscus.ui.screens.manage
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import com.prajwalpawar.fiscus.ui.components.FiscusTooltip
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.HorizontalFloatingToolbar
+import androidx.compose.material3.FloatingToolbarDefaults
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Archive
 import androidx.compose.material.icons.rounded.Delete
@@ -16,7 +18,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -26,7 +27,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 
 // What an existing category or account allows, decided by its editor ViewModel.
 data class ItemManageState(
@@ -39,62 +39,63 @@ data class ItemManageState(
     val canDelete: Boolean get() = !isDefault && usageCount == 0
 }
 
-// Archive/restore and delete for an existing item. Delete only appears when nothing
-// uses the item; otherwise the hint explains why archiving is the way to hide it.
+// The editor's page actions, matching the transaction details page: a vibrant floating
+// toolbar with Save as its FAB (the main action) and Archive/Restore and Delete inside.
+// Unavailable actions stay visible but disabled ([ItemManageHint] says why); Delete asks
+// first. Sits above the keyboard so Save stays reachable while typing.
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ItemManageActions(
+fun ItemManageToolbar(
     state: ItemManageState,
     // "category" or "account", for the messages.
     itemNoun: String,
+    onSave: () -> Unit,
     onArchiveToggle: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
 
-    Column(
-        verticalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
+    HorizontalFloatingToolbar(
+        expanded = true,
+        floatingActionButton = {
+            FiscusTooltip("Save changes") {
+                FloatingToolbarDefaults.VibrantFloatingActionButton(onClick = onSave) {
+                    Icon(
+                        imageVector = Icons.Rounded.Check,
+                        contentDescription = "Save changes"
+                    )
+                }
+            }
+        },
+        colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(),
+        modifier = modifier
     ) {
-        OutlinedButton(
-            onClick = onArchiveToggle,
-            enabled = state.isArchived || state.canArchive,
-            shapes = ButtonDefaults.shapes(),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                imageVector = if (state.isArchived) Icons.Rounded.Unarchive else Icons.Rounded.Archive,
-                contentDescription = null
-            )
-            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-            Text(if (state.isArchived) "Restore" else "Archive")
-        }
-
-        if (state.canDelete) {
-            TextButton(
-                onClick = { confirmDelete = true },
-                shapes = ButtonDefaults.shapes(),
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                ),
-                modifier = Modifier.fillMaxWidth()
+        val archiveLabel = if (state.isArchived) "Restore" else "Archive"
+        FiscusTooltip(archiveLabel) {
+            IconButton(
+                onClick = onArchiveToggle,
+                enabled = state.isArchived || state.canArchive,
+                shapes = IconButtonDefaults.shapes()
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.Delete,
-                    contentDescription = null
+                    imageVector = if (state.isArchived) Icons.Rounded.Unarchive else Icons.Rounded.Archive,
+                    contentDescription = archiveLabel
                 )
-                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                Text("Delete")
             }
         }
 
-        hint(state, itemNoun)?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
+        FiscusTooltip("Delete") {
+            IconButton(
+                onClick = { confirmDelete = true },
+                enabled = state.canDelete,
+                shapes = IconButtonDefaults.shapes()
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Delete,
+                    contentDescription = "Delete"
+                )
+            }
         }
     }
 
@@ -132,6 +133,24 @@ fun ItemManageActions(
                     Text("Cancel")
                 }
             }
+        )
+    }
+}
+
+// Why Archive or Delete is unavailable (or what archiving means), under the form.
+@Composable
+fun ItemManageHint(
+    state: ItemManageState,
+    itemNoun: String,
+    modifier: Modifier = Modifier
+) {
+    hint(state, itemNoun)?.let {
+        Text(
+            text = it,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = modifier.fillMaxWidth()
         )
     }
 }

@@ -1,5 +1,11 @@
 package com.prajwalpawar.fiscus.ui.screens.manage
 
+import androidx.compose.material3.FloatingToolbarDefaults
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.WindowInsets
 import com.prajwalpawar.fiscus.ui.theme.FiscusReducedMotion
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -46,80 +52,115 @@ fun ItemEditorLayout(
     canSave: Boolean,
     onSave: () -> Unit,
     modifier: Modifier = Modifier,
-    // Archive/delete controls, shown under the save button when editing.
-    actions: @Composable ColumnScope.() -> Unit = {},
+    // Set when editing an existing item: its actions move to a floating toolbar (Save as the
+    // FAB, Archive/Delete inside), as on the transaction details page. Null for a new item,
+    // which keeps the single full-width save button.
+    manage: ItemManageState? = null,
+    // "category" or "account", for the toolbar's messages.
+    itemNoun: String = "",
+    onArchiveToggle: () -> Unit = {},
+    onDelete: () -> Unit = {},
     fields: @Composable ColumnScope.() -> Unit
 ) {
     val motionScheme = MaterialTheme.motionScheme
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(FiscusSpacing.md),
-        verticalArrangement = Arrangement.spacedBy(FiscusSpacing.lg)
-    ) {
-        // Decorative preview; the fields below carry the real labels.
+    Box(modifier = modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(FiscusSpacing.md)
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(
+                    start = FiscusSpacing.md,
+                    top = FiscusSpacing.md,
+                    end = FiscusSpacing.md,
+                    // Room for the floating toolbar, so the last field isn't hidden behind it.
+                    bottom = if (manage != null) {
+                        FloatingToolbarDefaults.ContainerSize + FloatingToolbarDefaults.ScreenOffset * 2
+                    } else {
+                        FiscusSpacing.md
+                    }
+                ),
+            verticalArrangement = Arrangement.spacedBy(FiscusSpacing.lg)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(FiscusSize.emptyStateShape)
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = FiscusShapes.icon
-                    ),
-                contentAlignment = Alignment.Center
+            // Decorative preview; the fields below carry the real labels.
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(FiscusSpacing.md)
             ) {
-                // Pop the new icon in when the choice changes (a fade with reduced motion).
-                val reducedMotion = FiscusReducedMotion.enabled
-                AnimatedContent(
-                    targetState = previewIcon,
-                    transitionSpec = {
-                        if (reducedMotion) {
-                            fadeIn(motionScheme.defaultEffectsSpec()) togetherWith
-                                fadeOut(motionScheme.fastEffectsSpec())
-                        } else (fadeIn(motionScheme.defaultEffectsSpec()) +
-                                scaleIn(
-                                    animationSpec = motionScheme.defaultSpatialSpec(),
-                                    initialScale = FiscusMotion.ENTER_SCALE
-                                )) togetherWith fadeOut(motionScheme.fastEffectsSpec())
-                    },
-                    label = "previewIcon"
-                ) { icon ->
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(FiscusSize.emptyStateIcon)
-                    )
+                Box(
+                    modifier = Modifier
+                        .size(FiscusSize.emptyStateShape)
+                        .background(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shape = FiscusShapes.icon
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Pop the new icon in when the choice changes (a fade with reduced motion).
+                    val reducedMotion = FiscusReducedMotion.enabled
+                    AnimatedContent(
+                        targetState = previewIcon,
+                        transitionSpec = {
+                            if (reducedMotion) {
+                                fadeIn(motionScheme.defaultEffectsSpec()) togetherWith
+                                    fadeOut(motionScheme.fastEffectsSpec())
+                            } else (fadeIn(motionScheme.defaultEffectsSpec()) +
+                                    scaleIn(
+                                        animationSpec = motionScheme.defaultSpatialSpec(),
+                                        initialScale = FiscusMotion.ENTER_SCALE
+                                    )) togetherWith fadeOut(motionScheme.fastEffectsSpec())
+                        },
+                        label = "previewIcon"
+                    ) { icon ->
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(FiscusSize.emptyStateIcon)
+                        )
+                    }
                 }
+
+                Text(
+                    text = previewName.ifBlank { namePlaceholder },
+                    style = MaterialTheme.typography.headlineMediumEmphasized,
+                    color = if (previewName.isBlank()) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
+                    textAlign = TextAlign.Center
+                )
             }
 
-            Text(
-                text = previewName.ifBlank { namePlaceholder },
-                style = MaterialTheme.typography.headlineMediumEmphasized,
-                color = if (previewName.isBlank()) {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                },
-                textAlign = TextAlign.Center
-            )
+            fields()
+
+            if (manage == null) {
+                FiscusSubmitButton(
+                    text = saveLabel,
+                    icon = Icons.Rounded.Check,
+                    enabled = canSave,
+                    onClick = onSave
+                )
+            } else {
+                ItemManageHint(state = manage, itemNoun = itemNoun)
+            }
         }
 
-        fields()
-
-        FiscusSubmitButton(
-            text = saveLabel,
-            icon = Icons.Rounded.Check,
-            enabled = canSave,
-            onClick = onSave
-        )
-
-        actions()
+        if (manage != null) {
+            ItemManageToolbar(
+                state = manage,
+                itemNoun = itemNoun,
+                onSave = onSave,
+                onArchiveToggle = onArchiveToggle,
+                onDelete = onDelete,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    // Above the keyboard while typing (the screen already pads the nav bar).
+                    .windowInsetsPadding(WindowInsets.ime.exclude(WindowInsets.navigationBars))
+                    .padding(bottom = FloatingToolbarDefaults.ScreenOffset)
+            )
+        }
     }
 }

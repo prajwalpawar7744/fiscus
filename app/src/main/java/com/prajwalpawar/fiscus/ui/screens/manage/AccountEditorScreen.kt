@@ -68,16 +68,10 @@ fun AccountEditorScreen(
         canSave = uiState.canSave,
         onSave = { viewModel.save(onSaved) },
         modifier = modifier,
-        actions = {
-            uiState.manage?.let { manage ->
-                ItemManageActions(
-                    state = manage,
-                    itemNoun = "account",
-                    onArchiveToggle = { viewModel.toggleArchived(onDone) },
-                    onDelete = { viewModel.delete(onDone) }
-                )
-            }
-        }
+        manage = uiState.manage,
+        itemNoun = "account",
+        onArchiveToggle = { viewModel.toggleArchived(onDone) },
+        onDelete = { viewModel.delete(onDone) }
     ) {
         OutlinedTextField(
             value = uiState.name,
