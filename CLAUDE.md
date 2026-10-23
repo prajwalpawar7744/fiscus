@@ -160,7 +160,7 @@ Follow (and Fiscus does):
 
 Every build handed to testers or users goes through these steps:
 
-1. **Version** in `app/build.gradle.kts`: bump `versionCode` by 1 (Android refuses an update with an equal or lower code) and set `versionName` by SemVer (`0.1.0-beta.1` → `-beta.2` …, `0.1.0` when stable). Which pre-release label to use (see *Release stages* below): **Fiscus currently ships only betas** — keep using `-beta.N` until the user decides to go stable.
+1. **Version** in `app/build.gradle.kts`: bump `versionCode` by 1 (Android refuses an update with an equal or lower code) and set `versionName` by SemVer (`0.1.0-beta.1` → `-beta.2` …, `0.1.0` when stable). Which stage and number to use: follow the *Release cycle* below.
 2. **Changelog** (`CHANGELOG.md`, [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/)): during development, add entries under `## [Unreleased]`; at release, rename it to `## [X.Y.Z-beta.N] - YYYY-MM-DD`, add a fresh empty `[Unreleased]`, and update the compare links at the bottom (`[Unreleased]` → `vX…HEAD`). Rules:
    - Only the standard groups, in this order: *Added, Changed, Deprecated, Removed, Fixed, Security*. No other sections (no "Known limitations", no intro paragraphs, no bold sub-headings inside a group).
    - One flat bullet per notable change, written for users: what changed, in neutral, factual wording. No marketing adjectives ("smoother", "friendlier", "clean"), no second-person pitch, no emoji, no exclamation marks. Name settings by their path (Settings → Data).
@@ -171,19 +171,35 @@ Every build handed to testers or users goes through these steps:
 5. **Build** a signed release: `./gradlew :app:bundleRelease` (`.aab` for Play testing tracks) or `./gradlew :app:assembleRelease` (APK for a GitHub release). Install the signed release build on the phone and smoke-test it — R8/release-only problems don't show up in debug.
 6. **Tag and publish**: `git tag -a vX.Y.Z[-beta.N] -m "Fiscus X.Y.Z[-beta.N]"` and push the tag; attach the APK and the changelog section to the GitHub release (or upload the `.aab` and a ≤500-character "What's new").
 
-### Release stages
+### Release cycle
 
-| Stage | Version | When to use it | Expect |
-|---|---|---|---|
-| **Alpha** | `X.Y.Z-alpha.N` | Features still being built or changing shape; only for you and a few close testers. | Things may break, change or be removed; data loss is possible. |
-| **Beta** | `X.Y.Z-beta.N` | Feature set for the version is mostly in place; real people use it day to day and report bugs. | Mostly works; rough edges and known limitations. Data must survive updates (migrations, no wipes). |
-| **Release (stable)** | `X.Y.Z` | Tested, no known serious bugs, data format settled; for everyone. | Reliable; only bug-fix (`X.Y.Z+1`) or feature (`X.Y+1.0`) updates follow. |
+Each version line (`0.1.0`, `0.2.0`, …) moves through **alpha → beta → stable**. Features land in alpha, beta only fixes, stable is what everyone runs.
 
-- **Fiscus uses beta only.** It went straight to `0.1.0-beta.1` (no alpha), and every build handed out is the next `-beta.N`. Don't introduce alpha builds or a stable `0.1.0` unless the user asks.
-- SemVer ordering: `alpha` < `beta` < stable, so `0.1.0-beta.3` < `0.1.0`. Going stable means dropping the suffix (`0.1.0`), not bumping the number.
-- Before `1.0.0`, the version means "still early": `0.x` releases may still change things in breaking ways.
-- `versionCode` keeps going up by 1 across every stage, whatever the label.
+| Stage | Version | What may change | Who gets it | Distribution |
+|---|---|---|---|---|
+| **Alpha** | `X.Y.0-alpha.N` | New features, still changing; UI and behaviour may be reworked. Data must still survive updates (migrations), but rough edges are expected. | The user and a few close testers | GitHub pre-release; Play *internal testing* track |
+| **Beta** | `X.Y.0-beta.N` | **Feature freeze**: bug fixes, wording and polish only. No new features — those go to the next line's alpha. | Opt-in testers, used day to day | GitHub pre-release; Play *open/closed testing* track |
+| **Stable** | `X.Y.0` | Nothing new: it's the last beta, unchanged, with the suffix dropped. | Everyone | GitHub release (latest); Play *production* |
+| **Patch** | `X.Y.Z` (Z ≥ 1) | Fixes for a stable release only, branched from its tag if new work has moved on. | Everyone | Same as stable |
+
+How to decide the next version (Claude picks and says why; going **stable needs the user's yes**):
+
+- Build contains **new features** → alpha of the *next* minor line. If the current line is in beta or stable, start `X.(Y+1).0-alpha.1`; otherwise bump `-alpha.N`.
+- Build contains **only fixes/polish** for a line in alpha that's feature-complete → its first beta (`X.Y.0-beta.1`); already in beta → `-beta.N+1`.
+- A beta that has been used for about **one to two weeks with no serious bugs** (data loss, crashes, wrong totals) → propose `X.Y.0` stable, built from the same commit as that beta with only the version changed.
+- A serious bug in a stable release → patch `X.Y.(Z+1)`, straight to stable after testing (no new features in a patch).
+- New features and fixes in the same build → it's an alpha; ship the fixes separately as a beta/patch if they're urgent.
+
+Rules that hold at every stage:
+
+- SemVer ordering: `alpha` < `beta` < stable (`0.2.0-alpha.3` < `0.2.0-beta.1` < `0.2.0`). Going stable drops the suffix; it doesn't bump the number.
+- `versionCode` goes up by 1 for every build handed out, whatever the stage (an alpha after a stable still gets a higher code).
+- Schema changes need a migration in every stage — testers' data counts too.
+- Every stage gets a `CHANGELOG.md` section and a tag (`v0.2.0-alpha.1`); alpha and beta GitHub releases are marked **pre-release**.
+- Before `1.0.0`, minor versions may still change things in breaking ways.
 - Debug builds add `-debug` automatically (`versionNameSuffix`); never put that in a release.
+
+**Where Fiscus is now:** it shipped `0.1.0-beta.1` … `beta.5` without an alpha, and the betas still added features; `0.1.0-beta.5` is the last, transitional beta allowed to (the user's decision). From here: `0.1.0` is **feature-frozen** — further `0.1.0-beta.N` builds are fixes only, and after a quiet beta it becomes stable `0.1.0` (with the user's go-ahead). New features (budgets, recurring transactions, CSV export, …) start the next line at `0.2.0-alpha.1`.
 
 Release facts to keep straight:
 
