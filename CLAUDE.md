@@ -93,6 +93,7 @@ util              Money.kt (formatMoney, currencySymbol), DateRanges.kt
   - `FiscusDropdownMenu` — Expressive grouped menu; Settings uses dropdowns for every choice (user's decision, for consistency).
   - `FiscusChipIcon` — filter-chip leading icon that crossfades to a check.
   - `FiscusSubmitButton` — full-width medium Expressive button with shape morph.
+  - `FiscusSplitButton` + `FiscusMenuAction` — M3 split button (main action + ▾ menu of *related* alternatives; ▾ rotates, has expanded/collapsed state and a tooltip; menu anchored to ▾; `fillWidth` and `height` for size). Not used yet. Only for variants of one action — never to hide unrelated or destructive actions (e.g. Archive/Delete behind Save).
   - `FiscusTransactionRow` + `transactionsByDay { transaction, shapes -> }` — the one transaction row and day-grouped list used by Home, Transactions and search (`showDate = true` for search results).
   - `FiscusTransactionAmount` — amount with direction arrow instead of a sign: ↑ income (primary), ↓ expense, ⇄ transfer; arrows carry TalkBack labels.
   - `FiscusEmptyState`, `DockedDatePicker` (date field + animated docked popup; tapping the field opens it), `DockedDateRangePicker` (same docked popup with `DateRangePicker`; both share `DockedPickerPopup` / `DockedPickerActions`), `FiscusPeriodSwitcher`, `FiscusTopAppBar` (small/medium/large flexible, optional subtitle and back arrow).
