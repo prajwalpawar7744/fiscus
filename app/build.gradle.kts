@@ -22,8 +22,8 @@ android {
         minSdk = 26
         targetSdk = 36
         // Bump versionCode for every build you hand out; versionName follows SemVer.
-        versionCode = 4
-        versionName = "0.1.0-beta.4"
+        versionCode = 5
+        versionName = "0.1.0-beta.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

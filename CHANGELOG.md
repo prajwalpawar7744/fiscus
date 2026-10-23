@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-beta.5] - 2026-10-23
+
 ### Added
 
 - What's new page, opened from Settings → Version.
@@ -97,7 +99,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Theme, dynamic colour, icon shape, app bar size and scroll behaviour, and bottom bar
   label settings.
 
-[Unreleased]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.4...HEAD
+[Unreleased]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.5...HEAD
+[0.1.0-beta.5]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.4...v0.1.0-beta.5
 [0.1.0-beta.4]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.3...v0.1.0-beta.4
 [0.1.0-beta.3]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.2...v0.1.0-beta.3
 [0.1.0-beta.2]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.1...v0.1.0-beta.2
