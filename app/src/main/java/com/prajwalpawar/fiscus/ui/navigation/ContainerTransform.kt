@@ -1,5 +1,7 @@
 package com.prajwalpawar.fiscus.ui.navigation
 
+import com.prajwalpawar.fiscus.ui.theme.FiscusMotion
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.SharedTransitionScope
@@ -57,8 +59,12 @@ fun Modifier.containerTransform(
                 animatedVisibilityScope = visibilityScope,
                 enter = fadeIn(motionScheme.defaultEffectsSpec()),
                 exit = fadeOut(motionScheme.fastEffectsSpec()),
+                // M3 transitions use easing + duration, never bouncy springs: an expressive
+                // spring overshot when a predictive back swipe was released (the card flew
+                // past its spot in the carousel, then sprang back). Same timing as the other
+                // screen transitions, and it follows the back gesture smoothly.
                 boundsTransform = BoundsTransform { _: Rect, _: Rect ->
-                    motionScheme.defaultSpatialSpec()
+                    tween(FiscusMotion.TRANSITION_MILLIS, easing = FiscusMotion.Emphasized)
                 },
                 // Relayout at each size instead of scaling, so the page reflows as it grows.
                 resizeMode = RemeasureToBounds,
