@@ -33,6 +33,22 @@ budgets and recurring transactions.
       opens the add sheet pre-filled (amount, payee as title, date). No special
       permissions; the fallback when a notification was missed.
 
+## Home hero
+
+- [ ] Tap the hero to open the Accounts list (also the accessible way to see every account
+      without swiping the carousel). `Card(onClick)`.
+- [ ] "↑ ₹X this month" / "↓ ₹X this month" under the total: this month's income minus
+      spending. Direction by arrow and words, not colour (text keeps the card's on-colour).
+- [ ] Hide-amounts eye: a toggle on the hero that masks every amount on Home as "₹ ••••".
+      Saved as a setting and included in settings backups; TalkBack reads "hidden".
+- [ ] Decorative shape: the user's icon shape, large and faint (~8% on-colour), cropped in
+      the hero's top-end corner. Follows the icon-shape setting.
+- [ ] 30-day balance sparkline under the amount: total balance at the end of each day, worked
+      back from today's total with each day's net change (active accounts only; needs a
+      daily-net query, no schema change). Thin line, no axes; TalkBack reads start and end.
+- [ ] Count-up: the total rolls to its new value when it changes (not on first show); jumps
+      instantly with "Remove animations" on.
+
 ## Polish
 
 - [ ] Move all text into `strings.xml` (first step toward translations).
