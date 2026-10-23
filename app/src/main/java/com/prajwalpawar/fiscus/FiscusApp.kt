@@ -74,6 +74,7 @@ import com.prajwalpawar.fiscus.ui.screens.manage.CategoryEditorViewModelFactory
 import com.prajwalpawar.fiscus.ui.screens.manage.ManageAccountsScreen
 import com.prajwalpawar.fiscus.ui.screens.manage.ManageCategoriesScreen
 import com.prajwalpawar.fiscus.ui.screens.manage.ManageViewModelFactory
+import com.prajwalpawar.fiscus.ui.screens.settings.ChangelogScreen
 import com.prajwalpawar.fiscus.ui.screens.settings.ProfileScreen
 import com.prajwalpawar.fiscus.ui.screens.settings.SettingsScreen
 import com.prajwalpawar.fiscus.ui.screens.settings.SettingsViewModelFactory
@@ -253,6 +254,10 @@ fun FiscusApp(
                             "Profile"
                         }
 
+                        route == FiscusRoutes.CHANGELOG -> {
+                            "What's new"
+                        }
+
                         route?.startsWith(FiscusRoutes.TRANSACTION_DETAILS_BASE) == true -> {
                             "Transaction"
                         }
@@ -417,6 +422,9 @@ fun FiscusApp(
                             onProfileClick = {
                                 navController.navigate(FiscusRoutes.PROFILE)
                             },
+                            onVersionClick = {
+                                navController.navigate(FiscusRoutes.CHANGELOG)
+                            },
                             onCategoriesClick = {
                                 navController.navigate(FiscusRoutes.MANAGE_CATEGORIES)
                             },
@@ -510,6 +518,10 @@ fun FiscusApp(
                             },
                             onDeleted = { navController.popBackStack() }
                         )
+                    }
+
+                    fiscusComposable(FiscusRoutes.CHANGELOG) {
+                        ChangelogScreen()
                     }
 
                     fiscusComposable(FiscusRoutes.PROFILE) {

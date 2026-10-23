@@ -1,171 +1,103 @@
 # Changelog
 
-All notable changes to Fiscus are listed here. The format follows
-[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
-[Semantic Versioning](https://semver.org/).
+All notable changes to this project are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- What's new page, opened from Settings → Version.
+- Line view for the spending trend in Analysis, selectable alongside the column view.
+- Tooltips on icon-only buttons, shown on long press.
+
+### Changed
+
+- Category and account editors show Save, Archive and Delete in a floating toolbar,
+  consistent with transaction details.
 
 ## [0.1.0-beta.4] - 2026-10-23
 
 ### Added
 
-- **Colour palettes**: with Dynamic color turned off, choose Monochrome, Blue, Green,
-  Purple, Rose or Amber in Settings → Appearance → Palette. Your choice is included in
-  backups.
+- Colour palettes for use when dynamic colour is off: Monochrome, Blue, Green, Purple,
+  Rose and Amber (Settings → Appearance → Palette). The selection is included in backups.
 
 ### Changed
 
-- **Smoother, calmer motion** throughout the app:
-  - Switching tabs is now a quick fade.
-  - Pages open with a short slide; opening a transaction or an account card on Home
-    still grows into its page.
-  - Moving to another period slides the content sideways in the direction you're going.
-    The period selector now stays at the top while you scroll.
-  - List rows glide into place when you filter, add, delete or archive, instead of
-    jumping.
-  - The date picker drops down from its field, and new items in a transaction expand
-    into place.
-- Fiscus follows Android's "Remove animations" setting, using simple fades instead of
-  movement.
-- Backing up no longer blocks the app: the Back up row shows progress while it saves.
-- If a backup, restore or wipe fails, a message explains why instead of a brief
-  notification.
-
-### Known limitations
-
-- English only, with amounts in your phone's currency.
-- Backups are only made when you ask; there are no automatic backups yet.
-- Restoring a backup or wiping data restarts the app.
-- Installing an older version of Fiscus over this one erases your data. Back up first if
-  you ever need to go back.
-- Unsaved transaction drafts are lost if Android closes the app in the background.
-- The Home screen's month doesn't change at midnight on the 1st until you reopen it.
+- Navigation transitions follow Material 3 patterns: tabs fade through, pages slide
+  forward and back, and transactions and Home account cards expand into their pages.
+- Changing the period in Transactions and Analysis slides the content in the direction of
+  travel. The period selector stays fixed at the top.
+- List rows animate into place when items are added, removed, filtered or archived.
+- The date picker expands from its field, and new transaction items expand into place.
+- Animations are replaced by fades when the system "Remove animations" setting is on.
+- Backups run without blocking the app; progress is shown on the Back up row.
+- Backup, restore and wipe errors are shown in a dialog.
 
 ## [0.1.0-beta.3] - 2026-10-19
 
 ### Added
 
-- **Split a transaction into items**: for an expense or income, tap "Split into items" and
-  add each item with its quantity and price (decimals allowed, like 1.5 kg). The amount
-  becomes the total of the items. You'll see the items on the transaction's details, and
-  they come back when you edit it.
-- **Back up your data** from Settings → Data. Choose what to include (transactions,
-  accounts and categories; settings; your profile) and where to save the file, such as
-  Downloads or Drive.
-- **Restore a backup**: pick a Fiscus backup file and choose which parts to bring back.
-  Backups from earlier versions of Fiscus work too.
-- **Wipe data**: delete everything and start over as if Fiscus were freshly installed.
+- Itemised transactions: expenses and income can be split into items with a quantity and
+  unit price. The transaction amount is the sum of its items.
+- Data backup to a `.fiscus` file, with a choice of transactions, accounts and categories;
+  settings; and profile (Settings → Data).
+- Restore from a backup file, including backups made by earlier versions.
+- Wipe data, which resets the app to its freshly installed state.
 
 ### Changed
 
-- Fiscus updates its stored data to a new format the first time you open this version, to
-  make room for items. Your existing transactions are kept.
+- The database is upgraded on first launch to support itemised transactions. Existing
+  data is preserved.
 
-### Known limitations
-
-- English only, with amounts in your phone's currency.
-- Backups are only made when you ask; there are no automatic backups yet.
-- Restoring a backup or wiping data restarts the app.
-- Once you've opened this version, installing an older version of Fiscus over it erases
-  your data. Back up first if you ever need to go back.
-- Unsaved transaction drafts are lost if Android closes the app in the background.
-- The Home screen's month doesn't change at midnight on the 1st until you reopen it.
-
-## [0.1.0-beta.2]
+## [0.1.0-beta.2] - 2026-10-18
 
 ### Added
 
-- **Your profile**: add your name and a profile photo in Settings → Profile. The photo
-  is picked with Android's photo picker (no permissions needed) and stays on your phone.
-- **A personal greeting** on Home: "Good morning", "Good afternoon", "Good evening" or
-  "Good night" with your name, and your profile photo in the top corner.
-- **Opening balance** for accounts: set how much an account held before you started
-  using Fiscus. Start it with "−" for money already owed, such as a credit card.
+- Profile name and photo (Settings → Profile). Photos are selected with the system photo
+  picker and stored on the device.
+- Time-of-day greeting with the profile name on Home, with the profile photo in the app
+  bar.
+- Opening balance for accounts. A negative value records money owed.
 
 ### Changed
 
-- **New app icon**, also shown on the splash screen.
-- The splash screen now takes its background from your wallpaper colours on Android 12
-  and newer.
-- With Dynamic color turned off, Fiscus now uses a clean black-and-white (monochrome)
-  theme.
-- A refreshed Material 3 Expressive look: softer rounded icons, buttons that change
-  shape when pressed, and Edit as a floating button on a transaction's details.
-- Account cards on Home are always shown full size, so names and balances are never cut
-  off.
-- Home shows a friendlier message when you have no transactions yet.
+- New app icon, also used on the splash screen.
+- The splash screen background uses the wallpaper colour on Android 12 and later.
+- The colour scheme used when dynamic colour is off is now monochrome.
+- Rounded icons throughout, and buttons change shape when pressed.
+- Edit is the floating action button on transaction details.
+- Home account cards are always shown at full size.
+- Home shows an empty state when there are no transactions.
 
 ### Fixed
 
-- The ready-made categories and Cash account were missing when Android restored an
-  earlier backup during install.
-
-### Known limitations
-
-- English only, with amounts in your phone's currency.
-- There's no export or backup inside the app yet. Android's own device backup may
-  restore your data on a new phone.
-- Unsaved transaction drafts are lost if Android closes the app in the background.
-- The Home screen's month doesn't change at midnight on the 1st until you reopen it.
+- Default categories and the Cash account were missing after Android restored a backup
+  during installation.
 
 ## [0.1.0-beta.1] - 2026-10-18
 
-The first public beta. Fiscus is a personal finance manager designed with
-Material 3 Expressive. Everything stays on your device: the app has no internet
-access and no account.
-
 ### Added
 
-**Recording money**
-- Add income, expenses and transfers between accounts from the "Add transaction" button.
-- Every transaction has an amount, a title, a category (or From/To accounts for a
-  transfer), an account, a date and an optional note.
-- Your default account is picked for you, and a half-filled transaction is kept if you
-  close the sheet by accident.
-- Create a new category or account straight from the transaction form.
+- Income, expense and transfer transactions with an amount, title, category or transfer
+  accounts, account, date and optional note.
+- Home with total balance, the current month's income and spending, an accounts carousel
+  and the ten most recent transactions.
+- Transactions list by month, day or custom date range, with type, account and category
+  filters, and search across titles and notes.
+- Transaction details with edit and delete.
+- Analysis with spending, change from the previous period, daily average, savings rate,
+  spending by category, a spending trend and the largest expenses.
+- Fourteen default categories and a Cash account.
+- Category and account management: add, rename, change icon, archive, restore and delete
+  unused items.
+- Theme, dynamic colour, icon shape, app bar size and scroll behaviour, and bottom bar
+  label settings.
 
-**Home**
-- Total balance across your accounts. Credit card spending counts as money owed.
-- This month's income and spending, with a wavy bar showing how much of your income
-  you've spent.
-- A carousel of your accounts and their balances.
-- Your 10 most recent transactions, grouped by day.
-
-**Transactions**
-- Browse any month, a single day, or any date range: tap the date to pick a range,
-  or step back and forward with the arrows.
-- Filter by type (expense, income, transfer), account and category. The totals
-  follow your filters.
-- Search titles and notes across all your history.
-- Open any transaction to see its details, then edit or delete it.
-
-**Analysis**
-- Spent, change versus the previous period, daily average and savings rate for any
-  period you pick.
-- Where your money went (or came from), by category, as a share of the total.
-- A spending trend by day or by month, depending on the period.
-- Your biggest expenses for the period.
-
-**Categories and accounts**
-- 14 ready-made categories and a Cash account to start with.
-- Add, rename, change the icon of, archive or restore categories and accounts from
-  Settings → Manage. Anything never used can be deleted.
-
-**Personalisation**
-- Light, dark or system theme, and colours taken from your wallpaper on
-  Android 12 and newer.
-- Choose the shape used for icons (circle, square, cookie, clover, sunny or flower).
-- Choose the app bar size, how it behaves when you scroll, and how the bottom bar
-  shows labels.
-
-### Known limitations
-
-- English only, with amounts in your phone's currency.
-- An account's starting balance can't be set yet; every new account starts at zero.
-- There's no export or backup inside the app yet. Android's own device backup may
-  restore your data on a new phone.
-- Unsaved transaction drafts are lost if Android closes the app in the background.
-- The Home screen's month doesn't change at midnight on the 1st until you reopen it.
-
+[Unreleased]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.4...HEAD
 [0.1.0-beta.4]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.3...v0.1.0-beta.4
 [0.1.0-beta.3]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.2...v0.1.0-beta.3
 [0.1.0-beta.2]: https://github.com/prajwalpawar7744/fiscus/compare/v0.1.0-beta.1...v0.1.0-beta.2

@@ -109,3 +109,30 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 }
+
+// Ships CHANGELOG.md (project root) inside the app as an asset, so Settings → Version can
+// show "What's new" offline. Copied fresh on every build; the root file stays the only copy.
+abstract class CopyChangelogTask : DefaultTask() {
+    @get:InputFile
+    abstract val changelog: RegularFileProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun copy() {
+        val target = outputDir.get().asFile.apply { mkdirs() }
+        changelog.get().asFile.copyTo(target.resolve("CHANGELOG.md"), overwrite = true)
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        val copyChangelog = tasks.register<CopyChangelogTask>(
+            "copy${variant.name.replaceFirstChar { it.uppercase() }}Changelog"
+        ) {
+            changelog.set(rootProject.layout.projectDirectory.file("CHANGELOG.md"))
+        }
+        variant.sources.assets?.addGeneratedSourceDirectory(copyChangelog, CopyChangelogTask::outputDir)
+    }
+}

@@ -85,6 +85,7 @@ private typealias SettingsRow = @Composable (shapes: ListItemShapes) -> Unit
 @Composable
 fun SettingsScreen(
     onProfileClick: () -> Unit,
+    onVersionClick: () -> Unit,
     onCategoriesClick: () -> Unit,
     onAccountsClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -407,7 +408,9 @@ fun SettingsScreen(
                 label = "Version",
                 description = version,
                 icon = Icons.Rounded.Info,
-                shapes = shapes
+                shapes = shapes,
+                // Opens "What's new" (the bundled changelog).
+                onClick = onVersionClick
             )
         },
         { shapes ->
