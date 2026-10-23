@@ -24,6 +24,14 @@ budgets and recurring transactions.
 - [ ] Quick add: a home-screen widget or Quick Settings tile that opens the add sheet.
 - [ ] Home and lock-screen widgets: this month's spending, or total balance.
 - [ ] Search inside items (find "milk" in a "Groceries" transaction).
+- [ ] Auto-capture UPI payments from notifications: a `NotificationListenerService`
+      (user grants notification access once, picks which apps — PhonePe, GPay, bank apps)
+      reads "Paid ₹250 to X" notifications and offers them as suggested transactions to
+      confirm or edit, never saved silently. Offline. Parsing differs per app and changes
+      over time, so keep the patterns easy to update.
+- [ ] "Share to Fiscus": register a share target so a PhonePe/GPay receipt shared to Fiscus
+      opens the add sheet pre-filled (amount, payee as title, date). No special
+      permissions; the fallback when a notification was missed.
 
 ## Polish
 
