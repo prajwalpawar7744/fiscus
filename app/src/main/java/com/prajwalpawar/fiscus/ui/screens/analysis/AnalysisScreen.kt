@@ -1,5 +1,12 @@
 package com.prajwalpawar.fiscus.ui.screens.analysis
 
+import com.prajwalpawar.fiscus.ui.components.FiscusStatCard
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.CompareArrows
+import androidx.compose.material.icons.automirrored.rounded.ReceiptLong
+import androidx.compose.material.icons.automirrored.rounded.TrendingDown
+import androidx.compose.material.icons.rounded.CalendarToday
+import androidx.compose.material.icons.rounded.Savings
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.animation.core.Animatable
@@ -221,8 +228,9 @@ private fun HeadlineTiles(
         verticalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)) {
-            StatTile(
+            FiscusStatCard(
                 label = "Spent",
+                icon = Icons.AutoMirrored.Rounded.TrendingDown,
                 value = formatMoney(state.spent),
                 caption = "Income ${formatMoney(state.income)}",
                 modifier = Modifier.weight(1f)
@@ -230,8 +238,9 @@ private fun HeadlineTiles(
 
             // The words carry the direction, so it never relies on color.
             val change = state.changeVsPrevious
-            StatTile(
+            FiscusStatCard(
                 label = if (period.isWholeMonth) "Vs last month" else "Vs previous period",
+                icon = Icons.AutoMirrored.Rounded.CompareArrows,
                 value = when {
                     change == null -> "—"
                     change > 0 -> "+$change%"
@@ -250,15 +259,17 @@ private fun HeadlineTiles(
         Row(horizontalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)) {
             // For one day the daily average would just repeat "Spent", so count instead.
             if (period.isSingleDay) {
-                StatTile(
+                FiscusStatCard(
                     label = "Transactions",
+                    icon = Icons.AutoMirrored.Rounded.ReceiptLong,
                     value = state.transactionCount.toString(),
                     caption = "On this day",
                     modifier = Modifier.weight(1f)
                 )
             } else {
-                StatTile(
+                FiscusStatCard(
                     label = "Daily average",
+                    icon = Icons.Rounded.CalendarToday,
                     value = formatMoney(state.dailyAverage),
                     caption = if (includesToday) "Per day so far" else "Per day",
                     modifier = Modifier.weight(1f)
@@ -266,8 +277,9 @@ private fun HeadlineTiles(
             }
 
             val rate = state.savingsRate
-            StatTile(
+            FiscusStatCard(
                 label = "Savings rate",
+                icon = Icons.Rounded.Savings,
                 value = rate?.let { "$it%" } ?: "—",
                 caption = when {
                     rate == null -> "No income in this period"
@@ -275,50 +287,6 @@ private fun HeadlineTiles(
                     else -> "Of income kept"
                 },
                 modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun StatTile(
-    label: String,
-    value: String,
-    caption: String,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.semantics(mergeDescendants = true) {},
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(FiscusSpacing.md),
-            verticalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            val valueStyle = MaterialTheme.typography.titleLargeEmphasized
-            Text(
-                text = value,
-                style = valueStyle,
-                maxLines = 1,
-                autoSize = TextAutoSize.StepBased(maxFontSize = valueStyle.fontSize)
-            )
-
-            Text(
-                text = caption,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
             )
         }
     }

@@ -55,6 +55,7 @@ import com.prajwalpawar.fiscus.data.model.AccountBalance
 import com.prajwalpawar.fiscus.data.model.PeriodTotals
 import com.prajwalpawar.fiscus.data.model.TransactionDetails
 import com.prajwalpawar.fiscus.ui.components.FiscusListIcon
+import com.prajwalpawar.fiscus.ui.components.FiscusStatCard
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.FiscusTransactionRow
 import com.prajwalpawar.fiscus.ui.components.accountIcon
@@ -330,21 +331,31 @@ private fun MonthSummary(
         Row(
             horizontalArrangement = Arrangement.spacedBy(FiscusSpacing.sm)
         ) {
-            SummaryTile(
+            FiscusStatCard(
                 label = "Income",
-                amount = totals.income,
+                value = formatMoney(totals.income),
                 icon = Icons.AutoMirrored.Rounded.TrendingUp,
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                ),
+                supportingColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                iconContainerColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                iconColor = MaterialTheme.colorScheme.tertiaryContainer,
                 modifier = Modifier.weight(1f)
             )
 
-            SummaryTile(
+            FiscusStatCard(
                 label = "Spent",
-                amount = totals.expense,
+                value = formatMoney(totals.expense),
                 icon = Icons.AutoMirrored.Rounded.TrendingDown,
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                ),
+                supportingColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                iconContainerColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                iconColor = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -380,55 +391,6 @@ private fun MonthSummary(
                     }
                 )
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun SummaryTile(
-    label: String,
-    amount: Long,
-    icon: ImageVector,
-    containerColor: Color,
-    contentColor: Color,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = containerColor,
-            contentColor = contentColor
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(FiscusSpacing.md),
-            verticalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null
-                )
-
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelLarge
-                )
-            }
-
-            val amountStyle = MaterialTheme.typography.titleLargeEmphasized
-
-            Text(
-                text = formatMoney(amount),
-                style = amountStyle,
-                maxLines = 1,
-                autoSize = TextAutoSize.StepBased(maxFontSize = amountStyle.fontSize)
-            )
         }
     }
 }

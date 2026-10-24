@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.prajwalpawar.fiscus.ui.theme.FiscusShapes
 import com.prajwalpawar.fiscus.ui.theme.FiscusSize
@@ -16,13 +17,16 @@ import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 @Composable
 fun FiscusListIcon(
     icon: ImageVector,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // A colour role and its on colour, as a pair.
+    containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer
 ) {
     Box(
         modifier = modifier
             .size(FiscusSize.listIconContainer)
             .background(
-                color = MaterialTheme.colorScheme.primaryContainer,
+                color = containerColor,
                 shape = FiscusShapes.icon
             ),
         contentAlignment = Alignment.Center
@@ -30,7 +34,7 @@ fun FiscusListIcon(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onPrimaryContainer
+            tint = contentColor
         )
     }
 }

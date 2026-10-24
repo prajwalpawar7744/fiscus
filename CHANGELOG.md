@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The stat tiles in Analysis show an icon beside each label, matching the Income and Spent tiles on Home.
 - The default account can no longer be archived; make another account the default first.
 
 ## [0.1.0-beta.5] - 2026-10-23
