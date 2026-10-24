@@ -21,6 +21,10 @@ data class AccountEditorUiState(
     val type: AccountType = AccountType.BANK,
     // Typed text; a leading "-" means money owed (e.g. a credit card's existing debt).
     val openingBalance: String = "",
+    // The account new transactions start with. Turned off only by making another the default.
+    val isDefault: Boolean = false,
+    // False while this is already the default, or archived.
+    val canChangeDefault: Boolean = true,
     val isDuplicate: Boolean = false,
     val isSaving: Boolean = false,
     // False only while an existing account is being loaded.
@@ -56,12 +60,19 @@ class AccountEditorViewModel(
             name = account.name,
             type = account.type,
             openingBalance = if (account.openingBalance == 0L) "" else minorUnitsToAmountInput(account.openingBalance),
+            isDefault = account.isDefault,
+            canChangeDefault = !account.isDefault && !account.isArchived,
             isLoaded = true,
             manage = ItemManageState(
                 isArchived = account.isArchived,
                 isDefault = account.isDefault,
                 usageCount = accountRepository.usageCount(id),
-                canArchive = accountRepository.activeCount() > 1
+                canArchive = !account.isDefault && accountRepository.activeCount() > 1,
+                archiveBlockedHint = if (account.isDefault) {
+                    "This is your default account. Make another account the default to archive it."
+                } else {
+                    null
+                }
             )
         )
     }
@@ -73,6 +84,12 @@ class AccountEditorViewModel(
     fun setOpeningBalance(value: String) {
         if (isAmountInput(value.removePrefix("-"))) {
             state.update { it.copy(openingBalance = value) }
+        }
+    }
+
+    fun setDefault(isDefault: Boolean) {
+        if (state.value.canChangeDefault) {
+            state.update { it.copy(isDefault = isDefault) }
         }
     }
 
@@ -115,6 +132,10 @@ class AccountEditorViewModel(
                     // Matches an archived account with the same name.
                     null
                 }
+            }
+
+            if (id != null && current.isDefault && original?.isDefault != true) {
+                accountRepository.setDefault(id)
             }
 
             state.update { it.copy(isSaving = false, isDuplicate = id == null) }

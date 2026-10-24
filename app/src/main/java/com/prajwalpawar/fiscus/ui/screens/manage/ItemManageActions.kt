@@ -34,7 +34,9 @@ data class ItemManageState(
     val isDefault: Boolean,
     val usageCount: Int,
     // False when this is the last active item, which must stay usable.
-    val canArchive: Boolean
+    val canArchive: Boolean,
+    // Why archiving is blocked when it isn't the last-item rule (e.g. the default account).
+    val archiveBlockedHint: String? = null
 ) {
     val canDelete: Boolean get() = !isDefault && usageCount == 0
 }
@@ -157,6 +159,9 @@ fun ItemManageHint(
 
 private fun hint(state: ItemManageState, itemNoun: String): String? {
     return when {
+        !state.isArchived && !state.canArchive && state.archiveBlockedHint != null ->
+            state.archiveBlockedHint
+
         !state.isArchived && !state.canArchive ->
             "This is your only active $itemNoun, so it can't be archived."
 

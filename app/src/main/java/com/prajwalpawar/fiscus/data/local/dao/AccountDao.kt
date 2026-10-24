@@ -92,6 +92,10 @@ interface AccountDao {
     @Query("UPDATE accounts SET isArchived = :archived WHERE id = :id")
     suspend fun setArchived(id: Long, archived: Boolean)
 
+    // One statement, so there is never a moment with zero or two defaults.
+    @Query("UPDATE accounts SET isDefault = (id = :id)")
+    suspend fun setDefault(id: Long)
+
     @Query("DELETE FROM accounts WHERE id = :id")
     suspend fun deleteAccount(id: Long)
 }

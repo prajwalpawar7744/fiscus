@@ -127,4 +127,27 @@ class ManageQueriesTest {
         )
         accounts.deleteAccount(freshDefault)
     }
+
+    @Test
+    fun settingADefaultMovesItSoThereIsExactlyOne() = runBlocking {
+        accounts.setDefault(spare)
+
+        val defaults = accounts.accountBalances.first().filter { it.isDefault }.map { it.id }
+        assertEquals(listOf(spare), defaults)
+        // Pickers list the default first, so the add-transaction sheet starts with it.
+        assertEquals(spare, accounts.accounts.first().first().id)
+        // The old default is now an ordinary account.
+        assertFalse(accounts.getAccount(cash)!!.isDefault)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun defaultAccountCannotBeArchived(): Unit = runBlocking {
+        accounts.setArchived(cash, true)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun archivedAccountCannotBecomeTheDefault(): Unit = runBlocking {
+        accounts.setArchived(spare, true)
+        accounts.setDefault(spare)
+    }
 }

@@ -61,7 +61,23 @@ class AccountRepository(
     }
 
     suspend fun setArchived(id: Long, archived: Boolean) {
+        if (archived) {
+            require(accountDao.getAccount(id)?.isDefault != true) {
+                "The default account can't be archived."
+            }
+        }
         accountDao.setArchived(id, archived)
+    }
+
+    // Makes [id] the account new transactions start with; the previous default loses it.
+    suspend fun setDefault(id: Long) {
+        val account = requireNotNull(accountDao.getAccount(id)) {
+            "Account $id doesn't exist."
+        }
+        require(!account.isArchived) {
+            "An archived account can't be the default."
+        }
+        accountDao.setDefault(id)
     }
 
     // Only unused, non-default accounts can be deleted; anything else is archived instead.

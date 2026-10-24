@@ -6,6 +6,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedListItem
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -28,6 +38,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.prajwalpawar.fiscus.data.model.AccountType
 import com.prajwalpawar.fiscus.ui.components.FiscusChipIcon
+import com.prajwalpawar.fiscus.ui.components.FiscusListIcon
 import com.prajwalpawar.fiscus.ui.components.FiscusSectionHeader
 import com.prajwalpawar.fiscus.ui.components.accountIcon
 import com.prajwalpawar.fiscus.ui.components.accountTypeLabel
@@ -153,5 +164,69 @@ fun AccountEditorScreen(
                 }
             }
         }
+
+        DefaultAccountRow(
+            checked = uiState.isDefault,
+            enabled = uiState.canChangeDefault,
+            onCheckedChange = viewModel::setDefault
+        )
+    }
+}
+
+// Picks the account the add-transaction sheet starts with. The current default stays on
+// (locked): turning it on for another account moves it there.
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun DefaultAccountRow(
+    checked: Boolean,
+    enabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    SegmentedListItem(
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+        enabled = enabled,
+        shapes = ListItemDefaults.segmentedShapes(index = 0, count = 1),
+        colors = ListItemDefaults.segmentedColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        ),
+        leadingContent = {
+            FiscusListIcon(icon = Icons.Rounded.Star)
+        },
+        supportingContent = {
+            Text(
+                text = if (checked && !enabled) {
+                    "New transactions start with this account"
+                } else {
+                    "Start new transactions with this account"
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        trailingContent = {
+            // The row handles the toggle, so the switch only displays state.
+            Switch(
+                checked = checked,
+                onCheckedChange = null,
+                enabled = enabled,
+                thumbContent = if (checked) {
+                    {
+                        Icon(
+                            imageVector = Icons.Rounded.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize)
+                        )
+                    }
+                } else {
+                    null
+                }
+            )
+        }
+    ) {
+        Text(
+            text = "Default account",
+            style = MaterialTheme.typography.bodyLarge
+        )
     }
 }
