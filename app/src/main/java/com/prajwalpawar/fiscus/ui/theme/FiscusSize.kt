@@ -28,6 +28,11 @@ object FiscusSize {
 
     // The same arrow beside a display-size hero amount.
     val heroAmountArrow: Dp = 36.dp
+
+    // The faint icon shape cropped into the Home balance hero's top-end corner, and how far
+    // it pokes out past that corner (the card clips the rest).
+    val heroDecoration: Dp = 160.dp
+    val heroDecorationOverhang: Dp = 48.dp
     val accountCardWidth: Dp = 180.dp
     val accountCardHeight: Dp = 148.dp
 

@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Default account switch in the account editor (Settings → Manage → Accounts): new transactions start with the chosen account.
+- Tapping the total balance on Home opens the accounts list.
+- The total balance on Home counts to its new value when it changes; it changes instantly when "Remove animations" is on.
+- The total balance card on Home shows the chosen icon shape (Settings → Appearance → Icon shape) as a faint decoration in one of its corners; it turns slowly and responds to a press, and stays still when "Remove animations" is on.
 
 ### Changed
 

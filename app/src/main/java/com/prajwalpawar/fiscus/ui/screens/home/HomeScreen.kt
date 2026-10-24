@@ -65,12 +65,42 @@ import com.prajwalpawar.fiscus.ui.theme.FiscusSize
 import com.prajwalpawar.fiscus.ui.theme.FiscusSpacing
 import com.prajwalpawar.fiscus.util.formatMoney
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
+import com.prajwalpawar.fiscus.ui.theme.FiscusReducedMotion
+import com.prajwalpawar.fiscus.ui.theme.FiscusShapes
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
     onSeeAllClick: () -> Unit,
+    // Opens the Accounts list, so every account is reachable without swiping the carousel.
+    onBalanceClick: () -> Unit,
     onAddAccountClick: () -> Unit,
     onAccountClick: (id: Long) -> Unit,
     onTransactionClick: (id: Long) -> Unit,
@@ -103,6 +133,7 @@ fun HomeScreen(
                 BalanceHero(
                     total = uiState.totalBalance,
                     accountCount = uiState.accounts.size,
+                    onClick = onBalanceClick,
                     modifier = Modifier.padding(horizontal = FiscusSpacing.md)
                 )
             }
@@ -140,40 +171,149 @@ fun HomeScreen(
 private fun BalanceHero(
     total: Long,
     accountCount: Int,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val pressMotion = !FiscusReducedMotion.enabled && pressed
+    val scale by animateFloatAsState(
+        targetValue = if (pressMotion) FiscusMotion.HERO_PRESS_SCALE else 1f,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
+        label = "heroScale"
+    )
+    val rotation by animateFloatAsState(
+        targetValue = if (pressMotion) FiscusMotion.HERO_PRESS_ROTATION else 0f,
+        animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+        label = "heroShapeRotation"
+    )
+    val corner = heroDecorationCorner
+
+    // A slow, steady spin (linear, so it never seems to speed up or stop); none with
+    // reduced motion.
+    val reducedMotion = FiscusReducedMotion.enabled
+    val spin = if (reducedMotion) {
+        null
+    } else {
+        rememberInfiniteTransition(label = "heroSpin").animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(FiscusMotion.HERO_SPIN_MILLIS, easing = LinearEasing)
+            ),
+            label = "heroSpinAngle"
+        )
+    }
+
     Card(
-        modifier = modifier.fillMaxWidth(),
+        onClick = onClick,
+        interactionSource = interactionSource,
+        modifier = modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .semantics { onClick(label = "Open accounts", action = null) },
         shape = MaterialTheme.shapes.extraLarge,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         )
     ) {
-        Column(
-            modifier = Modifier.padding(FiscusSpacing.lg),
-            verticalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
+        val shape = FiscusShapes.icon
+        val decorationColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = HERO_DECORATION_ALPHA)
+
+        // Decoration only: the user's icon shape, large and faint, drawn behind the content
+        // so it never changes the card's size; the card clips what pokes out past the corner.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .drawBehind {
+                    val side = FiscusSize.heroDecoration.toPx()
+                    val inset = FiscusSize.heroDecorationOverhang.toPx() - side / 2
+                    val x = if (layoutDirection == LayoutDirection.Rtl) -corner.x else corner.x
+                    val center = Offset(
+                        x = (if (x > 0) size.width else 0f) + x * inset,
+                        y = (if (corner.y > 0) size.height else 0f) + corner.y * inset
+                    )
+                    val outline = shape.createOutline(Size(side, side), layoutDirection, this)
+                    rotate(rotation + (spin?.value ?: 0f), pivot = center) {
+                        translate(center.x - side / 2, center.y - side / 2) {
+                            drawOutline(outline, decorationColor)
+                        }
+                    }
+                }
         ) {
-            Text(
-                text = "Total balance",
-                style = MaterialTheme.typography.labelLarge
-            )
+            Column(
+                modifier = Modifier.padding(FiscusSpacing.lg),
+                verticalArrangement = Arrangement.spacedBy(FiscusSpacing.xs)
+            ) {
+                Text(
+                    text = "Total balance",
+                    style = MaterialTheme.typography.labelLarge
+                )
 
-            val heroStyle = MaterialTheme.typography.displayMediumEmphasized
+                val heroStyle = MaterialTheme.typography.displayMediumEmphasized
+                val shown = animatedAmount(total)
 
-            // Shrinks to fit large amounts on one line instead of wrapping.
-            Text(
-                text = formatMoney(total),
-                style = heroStyle,
-                maxLines = 1,
-                autoSize = TextAutoSize.StepBased(maxFontSize = heroStyle.fontSize)
-            )
+                // Shrinks to fit large amounts on one line instead of wrapping. TalkBack reads
+                // the final amount, not the numbers it rolls through.
+                Text(
+                    text = formatMoney(shown),
+                    style = heroStyle,
+                    maxLines = 1,
+                    autoSize = TextAutoSize.StepBased(maxFontSize = heroStyle.fontSize),
+                    modifier = Modifier.semantics { contentDescription = formatMoney(total) }
+                )
 
-            Text(
-                text = if (accountCount == 1) "Across 1 account" else "Across $accountCount accounts",
-                style = MaterialTheme.typography.bodyMedium
-            )
+                Text(
+                    text = if (accountCount == 1) "Across 1 account" else "Across $accountCount accounts",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
         }
     }
+}
+
+private const val HERO_DECORATION_ALPHA = 0.08f
+
+// Where the hero's decorative shape sits (x: -1 start, 1 end; y: -1 top, 1 bottom).
+private enum class HeroCorner(val x: Int, val y: Int) {
+    TopStart(-1, -1),
+    TopEnd(1, -1),
+    BottomStart(-1, 1),
+    BottomEnd(1, 1)
+}
+
+// Picked once per launch, so it stays put while moving around the app.
+private val heroDecorationCorner = HeroCorner.entries.random()
+
+// Rolls from the previously shown amount to [target] when it changes; the first value shows
+// as is. With reduced motion it jumps straight there.
+@Composable
+private fun animatedAmount(target: Long): Long {
+    val reducedMotion = FiscusReducedMotion.enabled
+    val spec = MaterialTheme.motionScheme.slowEffectsSpec<Float>()
+    var from by remember { mutableLongStateOf(target) }
+    var to by remember { mutableLongStateOf(target) }
+    val progress = remember { Animatable(1f) }
+
+    // Long maths, since Float can't hold large amounts exactly.
+    val shown = from + ((to - from) * progress.value.toDouble()).roundToLong()
+
+    LaunchedEffect(target) {
+        if (target == to) return@LaunchedEffect
+        from = from + ((to - from) * progress.value.toDouble()).roundToLong()
+        to = target
+        if (reducedMotion) {
+            progress.snapTo(1f)
+        } else {
+            progress.snapTo(0f)
+            progress.animateTo(1f, spec)
+        }
+    }
+
+    return shown
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

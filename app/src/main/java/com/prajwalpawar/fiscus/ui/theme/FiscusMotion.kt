@@ -10,6 +10,13 @@ object FiscusMotion {
     // Starting scale for small content that pops in place (an icon changing).
     const val ENTER_SCALE: Float = 0.92f
 
+    // Home balance hero press: the card gives a little and its decorative shape turns.
+    const val HERO_PRESS_SCALE: Float = 0.97f
+    const val HERO_PRESS_ROTATION: Float = 30f
+
+    // One full turn of the hero's decorative shape: slow enough to stay in the background.
+    const val HERO_SPIN_MILLIS: Int = 24_000
+
     // Transition patterns: 300 ms in all; the old screen fades out in the first 90 ms and
     // the new one fades in over the remaining 210 ms ("fade out fully before fading in").
     const val TRANSITION_MILLIS: Int = 300

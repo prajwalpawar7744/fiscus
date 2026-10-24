@@ -367,6 +367,9 @@ fun FiscusApp(
                             onSeeAllClick = {
                                 navController.navigateToTab(FiscusDestination.Transactions)
                             },
+                            onBalanceClick = {
+                                navController.navigate(FiscusRoutes.MANAGE_ACCOUNTS)
+                            },
                             onAddAccountClick = {
                                 navController.navigate(FiscusRoutes.NEW_ACCOUNT)
                             },
