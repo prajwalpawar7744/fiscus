@@ -18,7 +18,7 @@
 - [ ] Decide when to raise targetSdk to 37
 - [x] Add deps: Hilt, Room 3/KSP, Navigation 3, DataStore, serialization, datetime; toolchain upgrade (ADR-011)
 - [x] M3 Expressive theme (`MaterialExpressiveTheme`, dynamic color, brand schemes ×3 contrast levels, expressive motion, tabular numbers) (ADR-012)
-- [ ] App shell: navigation suite, Navigation 3 back stack, placeholder screens
+- [x] App shell: navigation suite, Navigation 3 back stack, 5 placeholder features with the full pattern (ADR-015)
 
 ## M1 Transactions
 - [ ] Room schema: Account, Category, Transaction

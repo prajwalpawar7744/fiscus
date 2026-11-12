@@ -20,6 +20,8 @@
   | Determinate progress | `LinearWavyProgressIndicator` / `CircularWavyProgressIndicator` | flat indicators, unless a calm data context calls for them (ADR) |
   | Lists | `ListItem` content-lambda overload, `SegmentedListItem` | `ListItem(headlineContent = …)` (deprecated) |
   | Theme | `MaterialExpressiveTheme` + `MotionScheme.expressive()` | `MaterialTheme` |
+  | Nav suite type | `NavigationSuiteScaffoldDefaults.navigationSuiteType(...)` | `calculateFromAdaptiveInfo(...)` (returns old NavigationBar/Rail) |
+  | Nav suite scaffold | overload with `state` | stateless overloads (deprecated) |
 
   Components that have no separate Expressive version (`Button`, `Card`, `TextField`, `Snackbar`, dialogs, chips, …) are used as-is: they are already the updated M3 Expressive versions in material3 1.5.
 - Arranging M3 components with Compose foundation **layout** primitives (`Column`, `Row`, `Box`, `LazyColumn`, `Spacer`, padding).
@@ -39,6 +41,7 @@
 - `Shapes()` and `Typography()` stay at M3 defaults (they already include the Expressive scale and emphasized styles). Remap in `Shape.kt` or `Type.kt` only, never per screen.
 - **Font: the device's font** (ADR-014). The default `Typography()` already uses the system sans-serif, which follows the phone's font and OEM font settings. Never bundle a font or set `fontFamily` on text.
 - Amounts: `style.tabularNumbers` (Type.kt), e.g. `MaterialTheme.typography.displayLargeEmphasized.tabularNumbers`.
+- **Startup window and splash** use `@color/window_background`: `system_surface_light/dark` on Android 14+, `system_neutral1_10/900` on 12–13 (wallpaper-based), brand surface below 12. So the splash follows Material You like the app. Note: when the M5 "use brand colors" toggle is on, the splash still shows dynamic colors (resources can't read app settings). Handle that with the core-splashscreen API if needed.
 - Theme check: `ui/theme/ThemePreview.kt` (brand light, dark, and large font; dynamic).
 - Dynamic color is the default on API 31+; brand schemes are used below that or when `dynamicColor = false` (a Settings toggle comes in M5).
 - Income/expense colors use existing roles (for example tertiary/primary vs. error containers). Any extended color must be generated with the M3 tooling and harmonized with the scheme.
@@ -53,7 +56,7 @@
 - **Numbers**: all amounts use tabular figures (`fontFeatureSettings = "tnum"`). Use display or headline styles for hero figures.
 - **Elevation**: keep component defaults; build hierarchy with surface-container tiers, not shadows.
 - **Corners**: no large or full corners on information-dense cards; nested shapes use optical roundness (inner = outer − padding).
-- **Icons** (ADR-010): Material Symbols **Rounded** only, app-wide.
+- **Icons** (ADR-010): Material Symbols **Rounded** only, app-wide, as vector drawables from the official repo (see REFERENCES). Navigation items are filled when selected and outline otherwise. Tint always comes from the M3 component; never set a color on an icon.
 - **Adaptive**: every screen supports compact, medium, and expanded breakpoints using a canonical layout (transactions → list-detail).
 
 ## Component map (Fiscus need → M3 component)

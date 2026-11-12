@@ -81,3 +81,20 @@ Start as one module; split into `:core`, `:feature:*` only if build times or bou
 Verified 2026-11-13 against the developer.android.com architecture pages (UI, events, data, domain, recommendations, modularization).
 - **Google**: layers and optional domain, dependency direction, UDF, ViewModel rules, state over events, lifecycle-aware collection, single activity with Navigation 3, one repository per type, main-safety, fakes over mocks, performance items above.
 - **Team conventions, consistent with Google** (Google shows them in examples but doesn't require them): repository interfaces, the `OfflineFirst*` naming, dispatchers injected via a Hilt qualifier, the shared `model/` package (from Now in Android), `XxxRoute`/`XxxScreen`, `onEvent`.
+
+## Navigation (ADR-015)
+- Keys: one `@Serializable data object XxxNavKey : NavKey` per destination in `ui/navigation/FiscusNavKeys.kt`.
+- `TopLevelDestination` (enum) lists the tabs: Home, Transactions, Budgets, Insights. Settings is a **pushed** destination, opened from the top-bar icon.
+- `FiscusNavigator` (plain class, unit-tested) owns the back-stack rules: Home is always the root; a tab gives `[Home, tab]`; pushed screens go on top; Back never removes Home.
+- `ui/FiscusApp.kt` hosts `NavigationSuiteScaffold` (hidden on pushed screens) around `NavDisplay`, with entry decorators `rememberSaveableStateHolderNavEntryDecorator()` and `rememberViewModelStoreNavEntryDecorator()` (each screen gets its own ViewModel scope).
+- Every destination is registered in the `entryProvider` in `FiscusApp.kt`. Screens never touch the navigator; they receive navigation lambdas.
+
+## Feature pattern: copy this for every feature
+`ui/feature/<name>/`, using `home/` as the reference:
+| File | Contents |
+|---|---|
+| `XxxUiState.kt` | immutable `data class` with defaults |
+| `XxxViewModel.kt` | `@HiltViewModel`, `@Inject constructor(...)`, exposes `val uiState: StateFlow<XxxUiState>` |
+| `XxxRoute.kt` | stateful: `hiltViewModel()`, `collectAsStateWithLifecycle()`, navigation lambdas in, calls `XxxScreen` |
+| `XxxScreen.kt` | stateless: `Scaffold` + `LargeFlexibleTopAppBar` + content; previews in light, dark, and large font |
+Tests: `test/.../ui/feature/<name>/XxxViewModelTest.kt` using `MainDispatcherRule` and Turbine.

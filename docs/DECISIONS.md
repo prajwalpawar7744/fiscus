@@ -85,3 +85,7 @@ Format: `## ADR-NNN: Title`, then Date, Status, Context, Decision, Consequences.
 - **Decision**: No custom or bundled typeface. Material's default `Typography()` uses `FontFamily.SansSerif` for both its brand and plain typefaces (verified in material3 1.5.0-rc01 `TypefaceTokens`), which is the device's system font, so it is kept as-is.
 - **Consequences**: Never set `fontFamily` on text. The app's text follows the user's device font (including OEM font styles).
 
+## ADR-015: App shell and navigation structure
+- **Date**: 2026-11-13 · **Status**: Accepted (user chose the tabs and the full placeholder pattern)
+- **Decision**: 4 tabs (Home, Transactions, Budgets, Insights) in `NavigationSuiteScaffold` (Expressive ShortNavigationBar/WideNavigationRail via `navigationSuiteType`). Settings is pushed from a top-bar icon, and the navigation suite is hidden there. Navigation 3 back stack is Home-rooted (rules in `FiscusNavigator`). Every destination, even a placeholder, uses the full Route + Screen + ViewModel + UiState pattern. Icons are the official Material Symbols Rounded vector drawables (no icon library; `material-icons-extended` is old Material Icons, frozen at 1.7.8).
+- **Consequences**: New destinations need a NavKey, an `entryProvider` entry, and (if a tab) a `TopLevelDestination` entry. New icons are downloaded from the official repo, not drawn.

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 11 and below: brand dark surface (ui/theme/Color.kt). -->
+    <color name="window_background">#FF14140C</color>
+</resources>

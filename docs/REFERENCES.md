@@ -129,3 +129,20 @@ import fs from 'fs'; fs.writeFileSync('schemes.json',JSON.stringify(out,null,1))
 for (const k of ['lightScheme','darkScheme']) console.log(k, ['primary','onPrimary','primaryContainer','secondary','secondaryContainer','tertiary','tertiaryContainer','surface','surfaceContainer','onSurface'].map(x=>x+'='+out[k][x]).join(' '));
 ```
 
+## App shell APIs (checked 2026-11-13 via javap and the compiler)
+- Navigation 3 1.2.1: `NavDisplay(backStack, onBack, entryDecorators, entryProvider)`, `rememberNavBackStack(vararg NavKey)`, `rememberSaveableStateHolderNavEntryDecorator()`, `entryProvider { entry<Key> { } }`.
+- lifecycle-viewmodel-navigation3 2.11.0: `rememberViewModelStoreNavEntryDecorator()`.
+- androidx.hilt 1.4.0: `androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()`.
+- material3-adaptive-navigation-suite 1.5.0-rc01: `NavigationSuiteScaffold(navigationItems, modifier, navigationSuiteType, …, state, content)`, `rememberNavigationSuiteScaffoldState()` (`show()`/`hide()`), `NavigationSuiteItem(selected, onClick, icon, label)`. `NavigationSuiteScaffoldDefaults.navigationSuiteType()` returns the Expressive types `ShortNavigationBarCompact/Medium` and `WideNavigationRailCollapsed/Expanded`. `calculateFromAdaptiveInfo()` returns the old `NavigationBar`/`NavigationRail`. The stateless scaffold overloads are deprecated ("in favor of NavigationSuiteScaffold with state parameter").
+- `LargeFlexibleTopAppBar` compiles without the Expressive opt-in in rc01.
+- kotlinx-coroutines-test 1.11.0: `Dispatchers.setMain/resetMain` still need `@OptIn(ExperimentalCoroutinesApi::class)`.
+
+## Icons (checked 2026-11-13)
+- Official Material Symbols Rounded Android drawables: `https://raw.githubusercontent.com/google/material-design-icons/master/symbols/android/<name>/materialsymbolsrounded/<name>_24px.xml` (outline) and `<name>_fill1_24px.xml` (filled). License: Apache-2.0. Browse names at https://fonts.google.com/icons.
+- These files use `android:tint="?attr/colorControlNormal"` (an AppCompat attribute; this app has no AppCompat), so remove that attribute when importing. Compose `Icon` tints them. `arrow_back` already includes `android:autoMirrored="true"`.
+- Google's guidance (https://developer.android.com/develop/ui/compose/graphics/images/material, checked 2026-11-13): the Material Icons artifact (`material-icons`, the `Icons.Rounded.*` objects) "is no longer maintained or recommended for use in your apps, as it contains an older look and feel and can also increase the build time of your apps significantly. Instead, we recommend using Google Font Icons and download the XML file" (Material Symbols).
+
+## Dynamic system colors for XML (checked 2026-11-13 in android-37.0 android.jar)
+- Android 14+ (API 34): `@android:color/system_surface_light`, `system_surface_dark`, plus `system_surface_container_*`, `system_background_*` and other M3 roles.
+- Android 12+ (API 31): tonal palettes `@android:color/system_neutral1_0…1000`, `system_accent1_*` etc. `neutral1_10` ≈ tone 99 and `neutral1_900` ≈ tone 10 (closest to M3 surface; M3 dark surface is tone 6).
+- The Android 12+ system splash uses `android:windowSplashScreenBackground` (falls back to `windowBackground`).

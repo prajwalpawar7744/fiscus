@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 14+: the system's dynamic M3 surface role. -->
+    <color name="window_background">@android:color/system_surface_light</color>
+</resources>

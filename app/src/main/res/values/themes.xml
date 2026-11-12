@@ -2,6 +2,7 @@
 <resources>
 
     <style name="Theme.Fiscus" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@color/fiscus_surface_light</item>
+        <!-- Matches the first Compose frame: dynamic surface on Android 12+, brand surface below. -->
+        <item name="android:windowBackground">@color/window_background</item>
     </style>
 </resources>

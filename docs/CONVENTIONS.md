@@ -24,6 +24,8 @@
 - Data: repository interface `XxxRepository`, implementation `OfflineFirstXxxRepository`. Room: `XxxEntity`, `XxxDao`. Mappers: `XxxEntity.asModel()`.
 - Use cases: verb + noun + `UseCase` (`GetMonthlySummaryUseCase`).
 - Models in `model/` carry no suffix (`Transaction`).
+- Navigation: `XxxNavKey` (`@Serializable data object`), tabs in `TopLevelDestination`.
+- Icons: `res/drawable/ic_<symbol_name>_rounded.xml` (outline) and `ic_<symbol_name>_rounded_filled.xml` (filled), the official Material Symbols Rounded drawables with the AppCompat `android:tint` line removed.
 
 ## Testing
 - Unit tests for use cases, ViewModels and money math (JUnit + Turbine + coroutines-test). Prefer fakes to mocks.
