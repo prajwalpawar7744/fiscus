@@ -16,6 +16,7 @@
 - Collect flows with `collectAsStateWithLifecycle()`.
 - Every public composable has an `@Preview` in light and dark. Screens also get a large-font preview (see DESIGN_SYSTEM.md).
 - UI is built **only from M3 components** (see DESIGN_SYSTEM.md). No custom look-alikes.
+- **Expressive-first**: use the Expressive component when one exists (mapping in DESIGN_SYSTEM.md). Zero deprecation warnings are allowed; treat `w: … is deprecated` as a build failure.
 - Text lives in `strings.xml`; dimensions and colors come from theme tokens.
 
 ## Naming

@@ -67,3 +67,21 @@ Format: `## ADR-NNN: Title`, then Date, Status, Context, Decision, Consequences.
 - **Context**: M0 needs DI, persistence, navigation, and settings. The template's Kotlin 2.2.10 was too old for current libraries (kotlinx-serialization 1.13 needs Kotlin 2.4; Hilt 2.60 is built with Kotlin 2.3). AGP 9.2.1 only supports compileSdk up to 37.0.
 - **Decision**: Use the latest **stable** release of each library (material3 stays on its pre-release per ADR-006). Upgrade the toolchain to AGP 9.5.1, Gradle 9.9.1 (wrapper checksum verified against gradle.org), Kotlin 2.4.21, and KSP 2.3.13. Use **Room 3** (`androidx.room3`, stable 3.0.3) instead of Room 2.x, since it is Google's current major version, with `sqlite-bundled`. Annotation processing uses KSP only (no kapt).
 - **Consequences**: Room 3 uses the `androidx.room3` package and plugin, so tutorials written for Room 2 need adapting. Toolchain upgrades are checked with a full build plus tests.
+
+## ADR-012: Theme: brand colors, generation, dynamic color
+- **Date**: 2026-11-13 · **Status**: Accepted (user chose the key colors and dynamic-by-default)
+- **Context**: Material3 has no seed-to-scheme API at runtime, and M3 requires role-based colors that work in light, dark, and three contrast levels.
+- **Decision**: Brand key colors are primary **#DEDACD** and secondary **#228B22**. Tertiary, neutral, and neutral-variant come from the TonalSpot variant of the primary. Schemes are generated with Google's `@material/material-color-utilities` 0.4.0 (the Material Theme Builder engine, color spec 2021) into `ui/theme/Color.kt`: six schemes (light/dark × standard/medium/high contrast). Dynamic color is the default on Android 12+, with a "use brand colors" toggle in Settings (M5). Type and shape stay at M3 defaults.
+- **Consequences**: #DEDACD has very low chroma, so `primary` renders as a warm grey (#605F54 light, #CAC6BA dark) and the green secondary carries most of the color. If more color is wanted on primary actions, switch to the fidelity variant or pick a more saturated primary key, then regenerate. Never hand-edit Color.kt.
+
+## ADR-013: Expressive-first, no deprecated APIs
+- **Date**: 2026-11-13 · **Status**: Accepted (user guideline)
+- **Context**: material3 ships both older components and their Expressive successors, so "prefer" left room for inconsistency.
+- **Decision**: When an Expressive component or overload exists, using it is mandatory, and the older equivalent is forbidden. Deprecated APIs are never used. The old → new mapping lives in DESIGN_SYSTEM.md and is extended whenever a new pair is found.
+- **Consequences**: Deprecation warnings must be fixed immediately. A non-Expressive choice (for example flat progress in a dense data view) needs its own ADR.
+
+## ADR-014: Use the device's font
+- **Date**: 2026-11-13 · **Status**: Accepted (user decision)
+- **Decision**: No custom or bundled typeface. Material's default `Typography()` uses `FontFamily.SansSerif` for both its brand and plain typefaces (verified in material3 1.5.0-rc01 `TypefaceTokens`), which is the device's system font, so it is kept as-is.
+- **Consequences**: Never set `fontFamily` on text. The app's text follows the user's device font (including OEM font styles).
+

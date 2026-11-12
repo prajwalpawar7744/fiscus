@@ -17,7 +17,7 @@
 - [ ] Release signing (keystore kept out of git) and enable R8 full mode
 - [ ] Decide when to raise targetSdk to 37
 - [x] Add deps: Hilt, Room 3/KSP, Navigation 3, DataStore, serialization, datetime; toolchain upgrade (ADR-011)
-- [ ] M3 Expressive theme (`MaterialExpressiveTheme`, dynamic color, fallback scheme, income/expense via color roles, expressive motion)
+- [x] M3 Expressive theme (`MaterialExpressiveTheme`, dynamic color, brand schemes ×3 contrast levels, expressive motion, tabular numbers) (ADR-012)
 - [ ] App shell: navigation suite, Navigation 3 back stack, placeholder screens
 
 ## M1 Transactions
@@ -39,5 +39,5 @@
 ## M5 Data & Polish
 - [ ] Backup/restore and CSV export
 - [ ] Recurring transactions
-- [ ] App lock (biometric), settings, onboarding
+- [ ] App lock (biometric), settings (incl. "use brand colors" toggle, ADR-012), onboarding
 - [ ] Baseline and Startup Profiles with Macrobenchmark

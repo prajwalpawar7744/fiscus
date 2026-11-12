@@ -5,7 +5,23 @@
 ## What is allowed vs. forbidden
 ✅ Allowed
 - Any component from `androidx.compose.material3`, including **all** Expressive APIs, even experimental ones (ADR-006). Opt in at file or function level.
-- Prefer the Expressive variant whenever one exists (for example `FloatingActionButtonMenu` over a plain FAB, `ButtonGroup` over plain button rows, flexible top app bars, `LoadingIndicator`).
+- **Expressive-first (mandatory, ADR-013):** if an Expressive component or overload exists for a need, use it. The older non-Expressive equivalent is not allowed. **Deprecated APIs are never allowed**: use the replacement named in the deprecation message. When in doubt, check REFERENCES.md and let the compiler's deprecation warnings decide.
+
+  | Need | ✅ Use (Expressive) | ❌ Not |
+  |---|---|---|
+  | Bottom navigation | `ShortNavigationBar` (via `NavigationSuiteScaffold`) | `NavigationBar` |
+  | Side navigation | `WideNavigationRail` (with `contentPadding`) | `NavigationRail`, `PermanentNavigationDrawer` for primary nav |
+  | Medium/large top bar | `MediumFlexibleTopAppBar` / `LargeFlexibleTopAppBar` | `MediumTopAppBar` / `LargeTopAppBar` |
+  | Bottom actions bar | `HorizontalFloatingToolbar` / `FlexibleBottomAppBar` | `BottomAppBar` |
+  | Several related actions | `ButtonGroup` (connected) / `ToggleButton` | a plain `Row` of buttons |
+  | Multiple create actions | `FloatingActionButtonMenu` + `ToggleFloatingActionButton` | several separate FABs |
+  | Action + options | `SplitButtonLayout` | button + separate menu icon |
+  | Short indeterminate wait | `LoadingIndicator` / `ContainedLoadingIndicator` | `CircularProgressIndicator` (indeterminate) |
+  | Determinate progress | `LinearWavyProgressIndicator` / `CircularWavyProgressIndicator` | flat indicators, unless a calm data context calls for them (ADR) |
+  | Lists | `ListItem` content-lambda overload, `SegmentedListItem` | `ListItem(headlineContent = …)` (deprecated) |
+  | Theme | `MaterialExpressiveTheme` + `MotionScheme.expressive()` | `MaterialTheme` |
+
+  Components that have no separate Expressive version (`Button`, `Card`, `TextField`, `Snackbar`, dialogs, chips, …) are used as-is: they are already the updated M3 Expressive versions in material3 1.5.
 - Arranging M3 components with Compose foundation **layout** primitives (`Column`, `Row`, `Box`, `LazyColumn`, `Spacer`, padding).
 - Theme tokens: `MaterialTheme.colorScheme`, `.typography`, `.shapes`, `.motionScheme`.
 - Material Symbols / Material Icons.
@@ -18,8 +34,13 @@
 - **If a need has no M3 component** (for example, charts), stop and ask the user. Record the outcome as an ADR.
 
 ## Theme
-- An expressive theme setup in `ui/theme/` (`Color.kt`, `Type.kt`, `Shape.kt`, `Theme.kt`). Use `MaterialExpressiveTheme` with `motionScheme = MotionScheme.expressive()` (both are stable in 1.5.0-rc01, see REFERENCES).
-- Dynamic color on API 31+, with a brand fallback scheme for light and dark, generated from M3 tonal palettes (Material Theme Builder).
+- `FiscusTheme(darkTheme, dynamicColor = true)` in `ui/theme/Theme.kt` wraps `MaterialExpressiveTheme` with `MotionScheme.expressive()`, `FiscusShapes` (Shape.kt) and `FiscusTypography` (Type.kt). Every screen and preview uses `FiscusTheme`.
+- **Brand colors** (ADR-012): primary key **#DEDACD**, secondary key **#228B22**. Schemes in `Color.kt` are generated, never hand-edited: light and dark × standard, medium and high contrast. On Android 14+ the brand scheme follows the user's contrast setting (`UiModeManager.contrast`).
+- `Shapes()` and `Typography()` stay at M3 defaults (they already include the Expressive scale and emphasized styles). Remap in `Shape.kt` or `Type.kt` only, never per screen.
+- **Font: the device's font** (ADR-014). The default `Typography()` already uses the system sans-serif, which follows the phone's font and OEM font settings. Never bundle a font or set `fontFamily` on text.
+- Amounts: `style.tabularNumbers` (Type.kt), e.g. `MaterialTheme.typography.displayLargeEmphasized.tabularNumbers`.
+- Theme check: `ui/theme/ThemePreview.kt` (brand light, dark, and large font; dynamic).
+- Dynamic color is the default on API 31+; brand schemes are used below that or when `dynamicColor = false` (a Settings toggle comes in M5).
 - Income/expense colors use existing roles (for example tertiary/primary vs. error containers). Any extended color must be generated with the M3 tooling and harmonized with the scheme.
 
 ## Expressive principles

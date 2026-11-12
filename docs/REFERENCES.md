@@ -82,8 +82,9 @@ Sources: [UI layer](https://developer.android.com/topic/architecture/ui-layer), 
 
 ## material3 1.5.0-rc01 API status (checked 2026-11-13 by inspecting the published AAR with `javap`)
 Method: downloaded `material3-android-1.5.0-rc01.aar` from Google Maven and scanned the class annotations for `ExperimentalMaterial3ExpressiveApi` / `ExperimentalMaterial3Api` / `Deprecated`.
-- **Exist and are stable (no opt-in)**: `MaterialExpressiveTheme`, `MotionScheme` (`expressive()`/`standard()`), `ButtonGroup`, `FloatingActionButtonMenu`, `ToggleFloatingActionButton`, `LoadingIndicator`, `ContainedLoadingIndicator`, `MediumFlexibleTopAppBar`, `LargeFlexibleTopAppBar`, `ShortNavigationBar`, `SplitButtonLayout`, `ToggleButton`, `HorizontalFloatingToolbar`, `LinearWavyProgressIndicator`, `CircularWavyProgressIndicator`, `SegmentedListItem`, `SegmentedButtonRow`.
-- **Still need `@OptIn(ExperimentalMaterial3ExpressiveApi::class)`**: the `MaterialShapes` class.
+- **Exist and are stable (no opt-in)**: `MaterialExpressiveTheme`, `MotionScheme` (`expressive()`/`standard()`), `ButtonGroup`, `FloatingActionButtonMenu`, `ToggleFloatingActionButton`, `ContainedLoadingIndicator`, `MediumFlexibleTopAppBar`, `LargeFlexibleTopAppBar`, `ShortNavigationBar`, `SplitButtonLayout`, `ToggleButton`, `HorizontalFloatingToolbar`, `LinearWavyProgressIndicator`, `CircularWavyProgressIndicator`, `SegmentedListItem`, `SegmentedButtonRow`.
+- **Still need `@OptIn(ExperimentalMaterial3ExpressiveApi::class)`**: the `MaterialShapes` class, and **`LoadingIndicator`** (confirmed by the compiler on 2026-11-13; the bytecode scan missed it, so **the compiler is the final authority**).
+- **Deprecated in rc01**: `ListItem(headlineContent = …)`. Use the overload where the headline is the trailing `content` lambda.
 - **Still need `@OptIn(ExperimentalMaterial3Api::class)`**: e.g. `rememberModalBottomSheetState`, `SheetState`, `rememberStandardBottomSheetState`, `RangeSliderState`, `SearchBarColors`, `TextFieldColors`.
 - **Deprecated**: the `WideNavigationRail` overload without `contentPadding` ("Deprecated in favor of function with contentPadding parameter").
 - `NavigationSuiteScaffold` is in the separate `material3-adaptive-navigation-suite` artifact.
@@ -106,4 +107,25 @@ Summarized in [M3_EXPRESSIVE.md](M3_EXPRESSIVE.md).
 - Kotlin requirements: kotlinx-serialization-core 1.13.0 depends on kotlin-stdlib 2.4.10; hilt-android 2.60.1 depends on kotlin-stdlib 2.3.21.
 - Gradle 9.9.1 bin sha256: `d8a18a7a841dd5df825d35a685fad6f2d7f12ac0c280e57b67c27b4a520ba228` (from https://services.gradle.org/distributions/gradle-9.9.1-bin.zip.sha256).
 - To check for newer versions: `curl -s https://dl.google.com/android/maven2/<group/path>/<artifact>/maven-metadata.xml` (Google) or `https://repo1.maven.org/maven2/...` (Maven Central).
+
+## Brand color scheme generation (ADR-012, 2026-11-13)
+Tool: `@material/material-color-utilities` 0.4.0 (npm, Google). Run it outside the repo:
+`npm i @material/material-color-utilities`. The package uses extension-less ESM imports, so run with a resolve hook that appends `.js` (`node --import ./reg.mjs gen.mjs`). Then convert the output `schemes.json` into `ui/theme/Color.kt` (`internal val <name>Scheme = light/darkColorScheme(...)`).
+```js
+import {Hct, SchemeTonalSpot, DynamicScheme, TonalPalette, MaterialDynamicColors, Variant, argbFromHex, hexFromArgb} from '@material/material-color-utilities';
+const P=argbFromHex('#DEDACD'), S=argbFromHex('#228B22');
+const roles=['primary','onPrimary','primaryContainer','onPrimaryContainer','inversePrimary','secondary','onSecondary','secondaryContainer','onSecondaryContainer','tertiary','onTertiary','tertiaryContainer','onTertiaryContainer','background','onBackground','surface','onSurface','surfaceVariant','onSurfaceVariant','surfaceTint','inverseSurface','inverseOnSurface','error','onError','errorContainer','onErrorContainer','outline','outlineVariant','scrim','surfaceBright','surfaceContainer','surfaceContainerHigh','surfaceContainerHighest','surfaceContainerLow','surfaceContainerLowest','surfaceDim','primaryFixed','primaryFixedDim','onPrimaryFixed','onPrimaryFixedVariant','secondaryFixed','secondaryFixedDim','onSecondaryFixed','onSecondaryFixedVariant','tertiaryFixed','tertiaryFixedDim','onTertiaryFixed','onTertiaryFixedVariant'];
+const mdc=new MaterialDynamicColors();
+const out={};
+for (const dark of [false,true]) for (const [name,c] of [['',0],['MediumContrast',0.5],['HighContrast',1]]) {
+  const base=new SchemeTonalSpot(Hct.fromInt(P),dark,c);
+  const s=new DynamicScheme({sourceColorHct:Hct.fromInt(P),variant:Variant.TONAL_SPOT,contrastLevel:c,isDark:dark,
+    primaryPalette:TonalPalette.fromInt(P),secondaryPalette:TonalPalette.fromInt(S),tertiaryPalette:base.tertiaryPalette,
+    neutralPalette:base.neutralPalette,neutralVariantPalette:base.neutralVariantPalette,specVersion:'2021'});
+  const r={}; for (const k of roles){ const dc=mdc[k](); r[k]=hexFromArgb(dc.getArgb(s)).toUpperCase(); }
+  out[(dark?'dark':'light')+name+'Scheme']=r;
+}
+import fs from 'fs'; fs.writeFileSync('schemes.json',JSON.stringify(out,null,1));
+for (const k of ['lightScheme','darkScheme']) console.log(k, ['primary','onPrimary','primaryContainer','secondary','secondaryContainer','tertiary','tertiaryContainer','surface','surfaceContainer','onSurface'].map(x=>x+'='+out[k][x]).join(' '));
+```
 
