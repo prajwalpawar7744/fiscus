@@ -1,6 +1,6 @@
 # Architecture
 
-> Follows Google's official guide (see [REFERENCES.md](REFERENCES.md#architecture-checked-2026-11-12)). Accepted in ADR-007. Library versions are not pinned yet.
+> Follows Google's official guide (see [REFERENCES.md](REFERENCES.md#architecture-checked-2026-11-12)). Accepted in ADR-007. Library versions are pinned in the version catalog (ADR-011).
 
 ## Shape
 - **Single activity** (`MainActivity`) using **Navigation 3**.
@@ -25,7 +25,7 @@ com.prajwalpawar.fiscus
 ├── core/                   # money formatting, dates, utils
 ├── model/                  # shared plain Kotlin models
 ├── data/
-│   ├── db/                 # Room database, entities, DAOs
+│   ├── db/                 # Room 3 database, entities, DAOs
 │   ├── prefs/              # DataStore
 │   └── repository/
 ├── domain/                 # optional use cases only
@@ -44,12 +44,13 @@ Start as one module; split into `:core`, `:feature:*` only if build times or bou
 - Navigation between features goes only through `ui/navigation/` routes.
 - The reference for a future split into modules with `build-logic/` convention plugins is Google's [Now in Android](https://github.com/android/nowinandroid) app. Any split needs an ADR first.
 
-## Planned libraries
-- Room (KSP): persistence
-- Hilt: DI
-- Navigation 3 (official recommendation)
+## Libraries (ADR-011)
+- Room 3 (`androidx.room3`, KSP) with the bundled SQLite driver: persistence. Schemas are exported to `app/schemas/`
+- Hilt (+ `hilt-lifecycle-viewmodel-compose` for `hiltViewModel()`): DI
+- Navigation 3 (official recommendation) + `lifecycle-viewmodel-navigation3` for ViewModels scoped to back stack entries
 - DataStore Preferences: settings
-- kotlinx-datetime, kotlinx-coroutines
+- kotlinx-serialization (route keys), kotlinx-datetime, kotlinx-coroutines
+- Testing: JUnit 4, kotlinx-coroutines-test, Turbine
 - Charts: **open question.** M3 has no chart component; ask the user (see DESIGN_SYSTEM.md)
 
 ## Data rules

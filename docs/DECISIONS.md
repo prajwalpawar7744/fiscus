@@ -61,3 +61,9 @@ Format: `## ADR-NNN: Title`, then Date, Status, Context, Decision, Consequences.
   1. Hero moments: (a) the **balance overview on Home**, the key information users come for; (b) the **add-transaction flow** (FAB menu, form, satisfying save), the most frequent and important interaction. Everything else uses standard M3 patterns.
   2. Icons: **Material Symbols Rounded**, app-wide, to match the soft, rounded M3 Expressive shapes and type. (The style choice is our reading of the shape/type harmony principle. M3 itself allows outlined, rounded, or sharp.)
 - **Consequences**: New hero treatments elsewhere need a new ADR. All icons use the Rounded style; how they are included in Compose is decided when the first icons are added (check REFERENCES first).
+
+## ADR-011: Core dependencies and toolchain upgrade
+- **Date**: 2026-11-13 · **Status**: Accepted
+- **Context**: M0 needs DI, persistence, navigation, and settings. The template's Kotlin 2.2.10 was too old for current libraries (kotlinx-serialization 1.13 needs Kotlin 2.4; Hilt 2.60 is built with Kotlin 2.3). AGP 9.2.1 only supports compileSdk up to 37.0.
+- **Decision**: Use the latest **stable** release of each library (material3 stays on its pre-release per ADR-006). Upgrade the toolchain to AGP 9.5.1, Gradle 9.9.1 (wrapper checksum verified against gradle.org), Kotlin 2.4.21, and KSP 2.3.13. Use **Room 3** (`androidx.room3`, stable 3.0.3) instead of Room 2.x, since it is Google's current major version, with `sqlite-bundled`. Annotation processing uses KSP only (no kapt).
+- **Consequences**: Room 3 uses the `androidx.room3` package and plugin, so tutorials written for Room 2 need adapting. Toolchain upgrades are checked with a full build plus tests.

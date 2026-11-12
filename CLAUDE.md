@@ -3,7 +3,8 @@
 Fiscus is an offline-first personal finance tracker for Android, built with **Kotlin + Jetpack Compose** using **Material 3 Expressive**.
 
 ## Stack (source of truth: `gradle/libs.versions.toml`, `app/build.gradle.kts`)
-- AGP 9.2.1 · Kotlin 2.2.10 · Compose BOM 2026.02.01
+- AGP 9.5.1 · Gradle 9.9.1 · Kotlin 2.4.21 · KSP 2.3.13 · Compose BOM 2026.09.00
+- Libraries: Hilt 2.60.1, Room 3 (`androidx.room3`) 3.0.3 + bundled SQLite, Navigation 3 1.2.1, DataStore 1.3.0, kotlinx-serialization 1.13.0, kotlinx-datetime 0.8.0 (ADR-011)
 - material3 1.5.0-rc01: **latest pre-release, pinned over the BOM**; all Expressive APIs, experimental allowed (ADR-006)
 - compileSdk 37 · targetSdk 36 · minSdk 26 · Java 11
 - Package / applicationId: `com.prajwalpawar.fiscus`

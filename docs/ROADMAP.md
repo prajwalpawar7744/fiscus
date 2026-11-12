@@ -16,7 +16,7 @@
 - [ ] Decide chart approach (no M3 component; ask user)
 - [ ] Release signing (keystore kept out of git) and enable R8 full mode
 - [ ] Decide when to raise targetSdk to 37
-- [ ] Add deps: Hilt, Room/KSP, Navigation 3, DataStore, serialization, datetime
+- [x] Add deps: Hilt, Room 3/KSP, Navigation 3, DataStore, serialization, datetime; toolchain upgrade (ADR-011)
 - [ ] M3 Expressive theme (`MaterialExpressiveTheme`, dynamic color, fallback scheme, income/expense via color roles, expressive motion)
 - [ ] App shell: navigation suite, Navigation 3 back stack, placeholder screens
 

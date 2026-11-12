@@ -101,3 +101,9 @@ Summarized in [M3_EXPRESSIVE.md](M3_EXPRESSIVE.md).
 - Also read 2026-11-13: the M3 Expressive blog, corner radius scale, shape morph, type scale tokens, applying type, color roles, dynamic color, elevation, icons, breakpoints, canonical layouts, states, and accessibility (all summarized in M3_EXPRESSIVE.md).
 - ⚠️ Still unread: transition patterns (render times out), https://m3.material.io/blog/m3-expressive-motion-theming, component detail pages (one per component), and Android platform UX (edge-to-edge, predictive back, haptics) on developer.android.com.
 
+## Dependency versions (checked 2026-11-13 from Google Maven and Maven Central metadata)
+- Latest stable: AGP 9.5.1, Kotlin 2.4.21, KSP 2.3.13, Compose BOM 2026.09.00, Hilt 2.60.1, androidx.hilt 1.4.0, Room 3 3.0.3 (`androidx.room3`), sqlite-bundled 2.7.1, Navigation 3 1.2.1, lifecycle 2.11.0, DataStore 1.3.0, kotlinx-serialization 1.13.0, kotlinx-datetime 0.8.0, coroutines 1.11.0, Turbine 1.2.1, Gradle 9.9.1.
+- Kotlin requirements: kotlinx-serialization-core 1.13.0 depends on kotlin-stdlib 2.4.10; hilt-android 2.60.1 depends on kotlin-stdlib 2.3.21.
+- Gradle 9.9.1 bin sha256: `d8a18a7a841dd5df825d35a685fad6f2d7f12ac0c280e57b67c27b4a520ba228` (from https://services.gradle.org/distributions/gradle-9.9.1-bin.zip.sha256).
+- To check for newer versions: `curl -s https://dl.google.com/android/maven2/<group/path>/<artifact>/maven-metadata.xml` (Google) or `https://repo1.maven.org/maven2/...` (Maven Central).
+
