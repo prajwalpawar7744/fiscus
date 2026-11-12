@@ -10,9 +10,10 @@ Verified knowledge from official sources. **Always add new findings here** with 
 - Architecture recommendations: https://developer.android.com/topic/architecture/recommendations
 - Kotlin style guide: https://developer.android.com/kotlin/style-guide
 - App versioning: https://developer.android.com/studio/publish/versioning
-- To read next: [UI layer](https://developer.android.com/jetpack/guide/ui-layer), [data layer](https://developer.android.com/jetpack/guide/data-layer), [Compose architecture](https://developer.android.com/develop/ui/compose/architecture), [Navigation 3](https://developer.android.com/guide/navigation/navigation-3)
+- Architecture sub-pages: see "Architecture detail check" below (read 2026-11-13)
+- To read next: [Compose architecture](https://developer.android.com/develop/ui/compose/architecture), [Navigation 3](https://developer.android.com/guide/navigation/navigation-3), [modularization](https://developer.android.com/topic/modularization)
 
-> Note (2026-11-12): fetching m3.material.io pages automatically returned no content (the site is client-rendered). Read them in a browser, or use developer.android.com and the API reference instead.
+> Note: m3.material.io is client-rendered, so plain fetching returns only the title. Render it with headless Chromium instead (see "Design language sources" below).
 
 ---
 
@@ -34,7 +35,7 @@ Verified word-for-word:
 - `ButtonGroup` connected variant (alpha08). Overflow into a dropdown menu (alpha13).
 - `NavigationSuiteScaffold` (1.4.0-alpha12).
 
-⚠️ Unverified (taken from a summary of the release notes; check against the API reference before use):
+⚠️ Historical notes from a summary of the release notes. **Superseded for 1.5.0-rc01 by the bytecode check below.**
 - 1.5.0 alphas promoted these to stable: ButtonGroup, FAB + `FloatingActionButtonMenu`, `ToggleButton`, `SplitButton` (`SplitButtonLayout` is deprecated), `MotionScheme`, the flexible top app bars, expressive list items, and FloatingToolbar.
 - `ShortNavigationBar`, `WideNavigationRail`, and `NavigationItem` graduated in 1.4.0-alpha18.
 - `LoadingIndicator` and `MaterialShapes` promotion to stable was reverted, so they are still experimental.
@@ -68,3 +69,35 @@ See [VERSIONING.md](VERSIONING.md). Key facts: versionCode increases monotonical
 | 1.4.0 (stable) | 35 | 8.6.0 |
 | 1.5.0-alpha29 / 1.5.0-rc01 (newest) | **37** | 9.1.0 |
 → The bleeding-edge Expressive APIs (ADR-006) require **compileSdk 37**. Source: `META-INF/com/android/build/gradle/aar-metadata.properties` in `https://dl.google.com/android/maven2/androidx/compose/material3/material3-android/<ver>/`
+
+## Architecture detail check (2026-11-13)
+Sources: [UI layer](https://developer.android.com/topic/architecture/ui-layer), [UI events](https://developer.android.com/topic/architecture/ui-layer/events), [data layer](https://developer.android.com/topic/architecture/data-layer), [domain layer](https://developer.android.com/topic/architecture/domain-layer), [recommendations](https://developer.android.com/topic/architecture/recommendations), [modularization patterns](https://developer.android.com/topic/modularization/patterns)
+- "The domain layer is an *optional* layer… depends on the data layer." Add use cases "only when required."
+- Use cases: "*verb in present tense* + *noun/what (optional)* + *UseCase*", "should not contain mutable data", and "You can also overload `invoke()`".
+- `stateIn(WhileSubscribed(5000))` applies when data is a stream. For simpler cases, a `MutableStateFlow` exposed as a `StateFlow` is acceptable.
+- "ViewModel events should always result in a UI state update." "Do not send events from the ViewModel to the UI" (strongly recommended).
+- Create a repository "for each different type of data". Each data source works with "only one source of data". Repository and data source calls "should be *main-safe*".
+- Strongly recommended: prefer fakes to mocks; R8 full mode; Baseline and Startup Profiles; Macrobenchmark.
+- Not stated by Google: repository interfaces as a requirement, a mandatory dispatcher-injection rule, or a `core:model` module. These are team conventions (see ARCHITECTURE.md).
+
+## material3 1.5.0-rc01 API status (checked 2026-11-13 by inspecting the published AAR with `javap`)
+Method: downloaded `material3-android-1.5.0-rc01.aar` from Google Maven and scanned the class annotations for `ExperimentalMaterial3ExpressiveApi` / `ExperimentalMaterial3Api` / `Deprecated`.
+- **Exist and are stable (no opt-in)**: `MaterialExpressiveTheme`, `MotionScheme` (`expressive()`/`standard()`), `ButtonGroup`, `FloatingActionButtonMenu`, `ToggleFloatingActionButton`, `LoadingIndicator`, `ContainedLoadingIndicator`, `MediumFlexibleTopAppBar`, `LargeFlexibleTopAppBar`, `ShortNavigationBar`, `SplitButtonLayout`, `ToggleButton`, `HorizontalFloatingToolbar`, `LinearWavyProgressIndicator`, `CircularWavyProgressIndicator`, `SegmentedListItem`, `SegmentedButtonRow`.
+- **Still need `@OptIn(ExperimentalMaterial3ExpressiveApi::class)`**: the `MaterialShapes` class.
+- **Still need `@OptIn(ExperimentalMaterial3Api::class)`**: e.g. `rememberModalBottomSheetState`, `SheetState`, `rememberStandardBottomSheetState`, `RangeSliderState`, `SearchBarColors`, `TextFieldColors`.
+- **Deprecated**: the `WideNavigationRail` overload without `contentPadding` ("Deprecated in favor of function with contentPadding parameter").
+- `NavigationSuiteScaffold` is in the separate `material3-adaptive-navigation-suite` artifact.
+- Re-run this check on every material3 bump (ADR-006).
+
+## Design language sources (checked 2026-11-13)
+Summarized in [M3_EXPRESSIVE.md](M3_EXPRESSIVE.md).
+- Research: https://design.google/library/expressive-material-design-google-research (46 studies, 18k+ participants, key elements found up to 4× faster, restraint for banking-style contexts)
+- Launch: https://blog.google/products-and-platforms/platforms/android/material-3-expressive-android-wearos-launch/
+- Reference Compose app: https://android-developers.googleblog.com/2025/05/androidify-building-delightful-ui-with-compose.html (MaterialExpressiveTheme, MotionScheme.expressive(), MaterialShapes, HorizontalFloatingToolbar)
+- Design-language principles: https://developer.android.com/design/ui/wear/guides/get-started/design-language
+- Views library: MDC-Android is in maintenance mode, and Google recommends Compose (https://github.com/material-components/material-components-android/blob/master/docs/getting-started.md)
+- Tokens in rc01 [javap]: Shapes = extraSmall, small, medium, large, largeIncreased, extraLarge, extraLargeIncreased, extraExtraLarge. Typography = 15 base + 15 `*Emphasized`. MotionScheme = {fast,default,slow}{Spatial,Effects}Spec. MaterialShapes = 35 shapes. `expressiveLightColorScheme()` exists.
+- m3.material.io motion, easing, shape, typography, color, and components pages: **read on 2026-11-13** with the local headless Chromium (`~/.cache/ms-playwright/chromium_headless_shell-*/…/chrome-headless-shell --headless --dump-dom <url>`). Summary is in M3_EXPRESSIVE.md [M3].
+- Also read 2026-11-13: the M3 Expressive blog, corner radius scale, shape morph, type scale tokens, applying type, color roles, dynamic color, elevation, icons, breakpoints, canonical layouts, states, and accessibility (all summarized in M3_EXPRESSIVE.md).
+- ⚠️ Still unread: transition patterns (render times out), https://m3.material.io/blog/m3-expressive-motion-theming, component detail pages (one per component), and Android platform UX (edge-to-edge, predictive back, haptics) on developer.android.com.
+

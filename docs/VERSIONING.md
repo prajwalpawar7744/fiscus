@@ -22,6 +22,7 @@ Per https://developer.android.com/studio/publish/versioning:
 ## Build types
 - **debug**: applicationId `<id>.debug`, versionName `X.Y.Z-debug`. Installs side by side with release.
 - **release**: no suffix. The applicationId must never change after the app is published.
+- Output files are named `fiscus-v<versionName>-<buildType>.apk` (set via `base.archivesName` in `app/build.gradle.kts`). Unsigned release builds end in `-release-unsigned` until signing is configured.
 
 ## Current
 - `0.1.0` (versionCode 100).

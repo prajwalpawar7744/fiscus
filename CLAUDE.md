@@ -8,6 +8,9 @@ Fiscus is an offline-first personal finance tracker for Android, built with **Ko
 - compileSdk 37 · targetSdk 36 · minSdk 26 · Java 11
 - Package / applicationId: `com.prajwalpawar.fiscus`
 - Single module: `:app`
+- Build types: debug → `com.prajwalpawar.fiscus.debug`, `X.Y.Z-debug`; release → no suffix
+- Outputs are named `fiscus-v<versionName>-<buildType>.apk`
+- Gradle build cache, configuration cache, and parallel builds are on (`gradle.properties`)
 
 ## Commands
 ```bash
@@ -20,6 +23,7 @@ Fiscus is an offline-first personal finance tracker for Android, built with **Ko
 
 ## Docs index (read the relevant ones before feature work)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): layers, packages, libraries
+- [docs/M3_EXPRESSIVE.md](docs/M3_EXPRESSIVE.md): M3 Expressive design language: intent, look & feel, tokens, per-screen checklist
 - [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md): M3 Expressive theme, motion, components, a11y
 - [docs/CONVENTIONS.md](docs/CONVENTIONS.md): code style, Compose patterns, testing, commits
 - [docs/DOMAIN.md](docs/DOMAIN.md): finance glossary and data model
@@ -34,7 +38,7 @@ Fiscus is an offline-first personal finance tracker for Android, built with **Ko
 3. Money is a `Long` in minor units (paise/cents). Never `Float`/`Double` for amounts.
 4. Keep changes small and scoped to the task; don't refactor unrelated code.
 5. Record any architectural choice in `docs/DECISIONS.md`.
-6. Tick off / update `docs/ROADMAP.md` when a task finishes.
+6. Tick off / update `docs/ROADMAP.md` when a task finishes. Commits use `type(scope): summary` (see CONVENTIONS.md). Bump the version per VERSIONING.md when releasing.
 7. Build (`./gradlew assembleDebug`) before saying a change is done.
 8. Items marked *proposed* in docs are defaults that are not final yet. Confirm with the user before relying on them heavily.
 9. Before using an M3 component API, verify its current name and status (stable or experimental) in [REFERENCES.md](docs/REFERENCES.md) or the official docs. Add anything new you learn to REFERENCES.md.
