@@ -16,7 +16,7 @@ android {
     defaultConfig {
         applicationId = "com.prajwalpawar.fiscus"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         // SemVer, see docs/VERSIONING.md: versionCode = MAJOR*10000 + MINOR*100 + PATCH
         versionCode = 100
         versionName = "0.1.0"

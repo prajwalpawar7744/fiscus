@@ -46,8 +46,8 @@ Format: `## ADR-NNN: Title`, then Date, Status, Context, Decision, Consequences.
 ## ADR-008: compileSdk 37
 - **Date**: 2026-11-12 · **Status**: Accepted
 - **Context**: material3 1.5.x and core-ktx 1.19.0 require minCompileSdk 37 (AAR metadata). AGP 9.2.1 is tested up to 37.0, not 37.1.
-- **Decision**: `compileSdk = release(37)`. targetSdk stays 36 for now.
-- **Consequences**: SDK Platform 37 must be installed. Raising targetSdk to 37 is a separate task, because it changes runtime behavior.
+- **Decision**: `compileSdk = release(37)`. **Update 2026-11-13:** targetSdk raised to 37 after reviewing the Android 17 behavior changes (https://developer.android.com/about/versions/17/behavior-changes-17). None affect the app today; watch "local network permission" (if a sync feature is added) and "OTP protection for SMS" (if SMS parsing is added).
+- **Consequences**: SDK Platform 37 must be installed.
 
 ## ADR-009: Build variants, output naming, and Gradle caching
 - **Date**: 2026-11-13 · **Status**: Accepted

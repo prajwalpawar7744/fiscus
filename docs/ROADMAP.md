@@ -15,7 +15,7 @@
 - [x] Hero moments and icon style decided (ADR-010)
 - [ ] Decide chart approach (no M3 component; ask user)
 - [ ] Release signing (keystore kept out of git) and enable R8 full mode
-- [ ] Decide when to raise targetSdk to 37
+- [x] Raise targetSdk to 37 (ADR-008)
 - [x] Add deps: Hilt, Room 3/KSP, Navigation 3, DataStore, serialization, datetime; toolchain upgrade (ADR-011)
 - [x] M3 Expressive theme (`MaterialExpressiveTheme`, dynamic color, brand schemes ×3 contrast levels, expressive motion, tabular numbers) (ADR-012)
 - [x] App shell: navigation suite, Navigation 3 back stack, 5 placeholder features with the full pattern (ADR-015)
