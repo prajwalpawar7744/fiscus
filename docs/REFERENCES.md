@@ -146,3 +146,14 @@ for (const k of ['lightScheme','darkScheme']) console.log(k, ['primary','onPrima
 - Android 14+ (API 34): `@android:color/system_surface_light`, `system_surface_dark`, plus `system_surface_container_*`, `system_background_*` and other M3 roles.
 - Android 12+ (API 31): tonal palettes `@android:color/system_neutral1_0…1000`, `system_accent1_*` etc. `neutral1_10` ≈ tone 99 and `neutral1_900` ≈ tone 10 (closest to M3 surface; M3 dark surface is tone 6).
 - The Android 12+ system splash uses `android:windowSplashScreenBackground` (falls back to `windowBackground`).
+
+## Room 3 (3.0.3) facts (checked 2026-11-13 via javap and the compiler)
+- Package `androidx.room3`. `Room.databaseBuilder(context, Class, name)`, `Room.inMemoryDatabaseBuilder(context, Class)`. Builder: `setDriver(BundledSQLiteDriver())` (`androidx.sqlite.driver.bundled`), `setQueryCoroutineContext`, `addCallback`, `addMigrations`.
+- `RoomDatabase.Callback.onCreate(connection: SQLiteConnection)` is `suspend`. Use `connection.prepare(sql).use { bindText/bindLong; step(); reset() }`.
+- Raw SQL on a database: `database.useWriterConnection { it.executeSQL("...") }` (imports `androidx.room3.useWriterConnection`, `androidx.room3.executeSQL`). Transactions: `withWriteTransaction { }`.
+- Enums are stored as TEXT automatically. Custom converters use `@ColumnTypeConverter`.
+- `@Upsert` with a `Long` return works (rowId on insert, -1 on update).
+- No `@ConstructedBy` needed for an Android-only database built with the `Class` overload.
+
+## Money formatting (checked 2026-11-13)
+- JVM `java.text.NumberFormat` (en-IN) gives "₹124,580.00" (no lakh grouping). Android `android.icu.text.NumberFormat` (API 24+) gives "₹1,24,580.00". Confirmed on a moto g57 power, Android 17. The yen symbol differs between runtimes (fullwidth "￥" on the JVM), so tests shouldn't assert exact currency glyphs except for stable cases.

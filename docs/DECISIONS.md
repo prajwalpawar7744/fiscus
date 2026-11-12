@@ -89,3 +89,13 @@ Format: `## ADR-NNN: Title`, then Date, Status, Context, Decision, Consequences.
 - **Date**: 2026-11-13 · **Status**: Accepted (user chose the tabs and the full placeholder pattern)
 - **Decision**: 4 tabs (Home, Transactions, Budgets, Insights) in `NavigationSuiteScaffold` (Expressive ShortNavigationBar/WideNavigationRail via `navigationSuiteType`). Settings is pushed from a top-bar icon, and the navigation suite is hidden there. Navigation 3 back stack is Home-rooted (rules in `FiscusNavigator`). Every destination, even a placeholder, uses the full Route + Screen + ViewModel + UiState pattern. Icons are the official Material Symbols Rounded vector drawables (no icon library; `material-icons-extended` is old Material Icons, frozen at 1.7.8).
 - **Consequences**: New destinations need a NavKey, an `entryProvider` entry, and (if a tab) a `TopLevelDestination` entry. New icons are downloaded from the official repo, not drawn.
+
+## ADR-016: Data model v1: currency, seed data, categories
+- **Date**: 2026-11-13 · **Status**: Accepted (user decisions)
+- **Decision**: Each account has one ISO-4217 currency (default: the device locale, falling back to INR), with no conversion yet. Transactions store their currency too, so multi-currency can come later without a migration of meaning. First launch seeds a **Cash** account and a **starter category set** (9 expense, 4 income), with names from `strings.xml`, as editable rows. Categories store `iconKey` (a Material Symbols name). There's no category color yet (it would be a role mapping; ADR later). Money formatting uses `android.icu.text.NumberFormat`, because JVM `java.text` doesn't do Indian lakh grouping.
+- **Consequences**: Totals across accounts with different currencies need conversion rules before they're shown. Formatting tests run on a device.
+
+## ADR-017: Database migration policy
+- **Date**: 2026-11-13 · **Status**: Accepted
+- **Decision**: Room schemas are exported to `app/schemas/` and committed. Each version bump ships an `@AutoMigration` (with a spec when needed) or a manual `Migration`, plus a migration test. **Never** use `fallbackToDestructiveMigration` on user data. Deleting an account that has transactions is blocked (FK RESTRICT); archiving is the user-facing path.
+- **Consequences**: A schema change is never "just bump the version". The migration and its test are part of the same change.

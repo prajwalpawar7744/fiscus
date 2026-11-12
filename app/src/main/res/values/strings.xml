@@ -19,4 +19,19 @@
     <string name="budgets_empty">Your budgets will appear here.</string>
     <string name="insights_empty">Your spending insights will appear here.</string>
     <string name="settings_empty">Settings will appear here.</string>
+    <!-- Seed data (inserted once when the database is created, then user-editable) -->
+    <string name="seed_account_cash">Cash</string>
+    <string name="seed_category_food">Food &amp; dining</string>
+    <string name="seed_category_groceries">Groceries</string>
+    <string name="seed_category_transport">Transport</string>
+    <string name="seed_category_bills">Bills &amp; utilities</string>
+    <string name="seed_category_shopping">Shopping</string>
+    <string name="seed_category_health">Health</string>
+    <string name="seed_category_entertainment">Entertainment</string>
+    <string name="seed_category_education">Education</string>
+    <string name="seed_category_other_expense">Other expense</string>
+    <string name="seed_category_salary">Salary</string>
+    <string name="seed_category_business">Business</string>
+    <string name="seed_category_gifts">Gifts</string>
+    <string name="seed_category_other_income">Other income</string>
 </resources>

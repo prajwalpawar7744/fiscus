@@ -98,3 +98,14 @@ Verified 2026-11-13 against the developer.android.com architecture pages (UI, ev
 | `XxxRoute.kt` | stateful: `hiltViewModel()`, `collectAsStateWithLifecycle()`, navigation lambdas in, calls `XxxScreen` |
 | `XxxScreen.kt` | stateless: `Scaffold` + `LargeFlexibleTopAppBar` + content; previews in light, dark, and large font |
 Tests: `test/.../ui/feature/<name>/XxxViewModelTest.kt` using `MainDispatcherRule` and Turbine.
+
+## Data layer (M1a)
+- **Room 3** (`androidx.room3`): `FiscusDatabase` (v1) with `BundledSQLiteDriver` and `setQueryCoroutineContext(@IoDispatcher)`, provided as a `@Singleton` in `di/DatabaseModule`.
+- Enums are stored by name (Room built-in). Custom converters use Room 3's `@ColumnTypeConverter`/`@ColumnTypeConverters` (not Room 2's `@TypeConverter`).
+- DAOs: reads return `Flow`, writes are `suspend`. `@Upsert` returns the new rowId, or -1 on update (repositories map this back to the id).
+- Seeding uses `RoomDatabase.Callback.onCreate` (`SeedCallback`), which runs once when the file is created.
+- Schemas are exported to `app/schemas/` and **committed**. Every schema change needs a migration (ADR-017).
+- Repositories: `data/repository/XxxRepository` (interface) and `OfflineFirstXxxRepository` (impl, `@Binds` in `di/DataModule`). They return models only, and are main-safe via `flowOn`/`withContext(ioDispatcher)`.
+- Tests:
+  - JVM: models and pure logic in `app/src/test`. Fakes are in `testing/FakeRepositories.kt`.
+  - Device: DAO queries, seeding, and anything that uses `android.icu` live in `app/src/androidTest` (in-memory DB). Run with `./gradlew connectedDebugAndroidTest`.
