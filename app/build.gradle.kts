@@ -13,13 +13,18 @@ android {
         applicationId = "com.prajwalpawar.fiscus"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        // SemVer, see docs/VERSIONING.md: versionCode = MAJOR*10000 + MINOR*100 + PATCH
+        versionCode = 100
+        versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -35,6 +40,11 @@ android {
     buildFeatures {
         compose = true
     }
+}
+
+// APK/AAB names: fiscus-v<versionName>-<buildType>.apk (e.g. fiscus-v0.1.0-release.apk)
+base {
+    archivesName = "fiscus-v${android.defaultConfig.versionName}"
 }
 
 dependencies {

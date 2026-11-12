@@ -19,5 +19,9 @@ Per https://developer.android.com/studio/publish/versioning:
 - Single source of truth: `app/build.gradle.kts` → `defaultConfig { versionCode; versionName }`. Never set them in the manifest. (Moving them to a `version.properties` file or a catalog entry would be a separate ADR.)
 - Each release gets a git tag `vX.Y.Z` and an entry in `CHANGELOG.md` (Keep a Changelog format) once releases begin.
 
+## Build types
+- **debug**: applicationId `<id>.debug`, versionName `X.Y.Z-debug`. Installs side by side with release.
+- **release**: no suffix. The applicationId must never change after the app is published.
+
 ## Current
-- `versionName = "1.0"` comes from the project template. **Change it to `0.1.0` (versionCode 100) as part of M0.**
+- `0.1.0` (versionCode 100).

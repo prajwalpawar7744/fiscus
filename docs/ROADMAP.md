@@ -6,7 +6,7 @@
 - [x] Project template created
 - [x] Foundation docs (CLAUDE.md, docs/)
 - [x] User guidelines integrated into docs
-- [ ] Set version to 0.1.0 (versionCode 100)
+- [x] Set version to 0.1.0 (versionCode 100); debug suffix `.debug` / `-debug`
 - [x] Decide material3 version → latest pre-release, all Expressive APIs (ADR-006)
 - [x] Pin latest material3 pre-release in version catalog (1.5.0-rc01, compileSdk 37)
 - [ ] Decide chart approach
