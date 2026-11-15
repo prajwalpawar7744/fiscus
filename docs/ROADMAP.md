@@ -35,7 +35,7 @@
 - [ ] Per-category and overall budgets with progress
 
 ## M4 Insights
-- [ ] Home dashboard (balance hero, recent, month summary). Note from the 2026-11-15 review: replace the placeholder `ElevatedCard` with surface-tier containment (no shadows) and match the editor hero's treatment (hero moment 1, ADR-010).
+- [x] Home dashboard with today's data: balance hero with this month's in/out, accounts, recent transactions (ADR-033)
 - [ ] Charts: spending by category, trend over time
 
 ## M5 Data & Polish

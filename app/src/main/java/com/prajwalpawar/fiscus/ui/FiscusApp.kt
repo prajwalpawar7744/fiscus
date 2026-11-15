@@ -125,6 +125,14 @@ fun FiscusApp(modifier: Modifier = Modifier) {
                                 HomeRoute(
                                     onOpenSettings = openSettings,
                                     onAddTransaction = addTransaction,
+                                    onOpenTransaction = { id ->
+                                        navigator.navigate(TransactionDetailNavKey(id))
+                                    },
+                                    onSeeAllTransactions = {
+                                        navigator.navigateToTopLevel(
+                                            TopLevelDestination.TRANSACTIONS,
+                                        )
+                                    },
                                 )
                             }
                             entry<TransactionsNavKey> {

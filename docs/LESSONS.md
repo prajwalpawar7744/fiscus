@@ -78,6 +78,12 @@ Mistakes made while building Fiscus, and the rule each one produced. **Read this
    - What happened: the Category sheet "stopped responding" on the phone, but three instrumented tests passed. They reached the lower rows with `performScrollTo` (a semantic scroll), and the bug only happens after a real swipe that first expands the half-height sheet. An injected `swipeUp()` reproduced it at once.
    - Rule: when a bug report involves reaching or moving something, reproduce it with touch input (`performTouchInput { swipeUp() }`) before changing code. Ask the user for the exact steps first: "can't select income categories" pointed straight at the below-the-fold rows.
 
+## 2026-11-16: Home dashboard (M4 early)
+
+19. **Keeping a decorative slot because the pattern had one.**
+   - What happened: asked to make the Home hero more expressive, the proposal kept the wallet accent icon (it matched the editor and detail heroes) and added a separate linear progress bar. The user suggested putting a circular wavy indicator with the spent % in the icon's place, which is more expressive and drops a redundant element.
+   - Rule: when proposing an Expressive upgrade, ask of every decorative slot "could this carry data instead?" (M3 tactic 7: combine tactics into one hero element). Offer that option alongside "add a new element", and don't treat consistency with another hero as fixed.
+
 ## Process checklist (every task, including scaffolding)
 1. Read CLAUDE.md and every file in `docs/`, including this one.
 2. Plan: list the docs and ADRs that apply, the §9 checklist answers per screen, and any source still marked unread (ask for it).

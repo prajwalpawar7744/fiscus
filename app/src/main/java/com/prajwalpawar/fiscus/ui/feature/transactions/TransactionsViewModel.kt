@@ -2,6 +2,7 @@ package com.prajwalpawar.fiscus.ui.feature.transactions
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.prajwalpawar.fiscus.core.time.currentMonth
 import com.prajwalpawar.fiscus.data.repository.AccountRepository
 import com.prajwalpawar.fiscus.data.repository.CategoryRepository
 import com.prajwalpawar.fiscus.data.repository.TransactionRepository
@@ -11,6 +12,8 @@ import com.prajwalpawar.fiscus.model.Money
 import com.prajwalpawar.fiscus.model.Transaction
 import com.prajwalpawar.fiscus.model.TransactionFilter
 import com.prajwalpawar.fiscus.model.TransactionType
+import com.prajwalpawar.fiscus.model.summarize
+import com.prajwalpawar.fiscus.model.toListEntries
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.time.Clock
@@ -25,11 +28,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.datetime.DatePeriod
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateRange
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
-import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 
@@ -122,22 +123,13 @@ class TransactionsViewModel @Inject constructor(
         accounts: List<Account>,
         categories: List<Category>,
     ): List<TransactionDaySection> {
-        val accountsById = accounts.associateBy { it.id }
-        val categoriesById = categories.associateBy { it.id }
         // Transactions arrive newest first, and groupBy keeps that order for days and items.
         return transactions
             .groupBy { it.occurredAt.toLocalDateTime(timeZone).date }
             .map { (date, dayTransactions) ->
                 TransactionDaySection(
                     date = date,
-                    items = dayTransactions.map { transaction ->
-                        TransactionListEntry(
-                            transaction = transaction,
-                            account = accountsById[transaction.accountId],
-                            toAccount = transaction.toAccountId?.let(accountsById::get),
-                            category = transaction.categoryId?.let(categoriesById::get),
-                        )
-                    },
+                    items = dayTransactions.toListEntries(accounts, categories),
                     net = dayNet(dayTransactions),
                 )
             }
@@ -161,29 +153,7 @@ class TransactionsViewModel @Inject constructor(
     }
 }
 
-/**
- * Income and expense totals; transfers don't count (DOMAIN.md). Null when there's no income or
- * expense, or the currencies are mixed (no conversion yet, ADR-016).
- */
-internal fun summarize(transactions: List<Transaction>): PeriodSummary? {
-    val counted = transactions.filter { it.type != TransactionType.TRANSFER }
-    val currency = counted.map { it.amount.currencyCode }.distinct().singleOrNull() ?: return null
-    val zero = Money.zero(currency)
-    return counted.fold(PeriodSummary(zero, zero)) { summary, transaction ->
-        when (transaction.type) {
-            TransactionType.INCOME -> summary.copy(income = summary.income + transaction.amount)
-            else -> summary.copy(expense = summary.expense + transaction.amount)
-        }
-    }
-}
-
 /** Income minus expense for one day; null like [summarize]. */
 internal fun dayNet(transactions: List<Transaction>): Money? = summarize(transactions)?.net
-
-/** The calendar month containing [today], first to last day. */
-internal fun currentMonth(today: LocalDate): LocalDateRange {
-    val first = LocalDate(today.year, today.month, 1)
-    return first..first.plus(DatePeriod(months = 1)).minus(DatePeriod(days = 1))
-}
 
 private fun <T> Set<T>.toggle(item: T): Set<T> = if (item in this) this - item else this + item

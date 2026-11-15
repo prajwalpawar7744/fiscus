@@ -3,7 +3,8 @@ package com.prajwalpawar.fiscus.ui.feature.transactions
 import com.prajwalpawar.fiscus.model.Account
 import com.prajwalpawar.fiscus.model.Category
 import com.prajwalpawar.fiscus.model.Money
-import com.prajwalpawar.fiscus.model.Transaction
+import com.prajwalpawar.fiscus.model.PeriodSummary
+import com.prajwalpawar.fiscus.model.TransactionListEntry
 import com.prajwalpawar.fiscus.model.TransactionType
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateRange
@@ -48,21 +49,6 @@ data class TransactionDaySection(
     val items: List<TransactionListEntry>,
     val net: Money?,
 )
-
-/** A transaction with the names it refers to, resolved in the ViewModel. */
-data class TransactionListEntry(
-    val transaction: Transaction,
-    val account: Account?,
-    /** Destination account; only for transfers. */
-    val toAccount: Account?,
-    /** Null for transfers, or when the category was removed. */
-    val category: Category?,
-)
-
-/** Income and expense totals (transfers excluded, DOMAIN.md), in one currency. */
-data class PeriodSummary(val income: Money, val expense: Money) {
-    val net: Money get() = income - expense
-}
 
 /** The filter picker that is open, if any. */
 enum class FilterPicker { TYPE, ACCOUNT, CATEGORY, DATE }

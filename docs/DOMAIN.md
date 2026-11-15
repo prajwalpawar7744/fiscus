@@ -17,6 +17,8 @@ Category(id, name, kind[INCOME|EXPENSE], iconKey, archived)
 Transaction(id, type[INCOME|EXPENSE|TRANSFER], title, amount: Money, accountId, toAccountId?, categoryId?,
             note, occurredAt, createdAt, updatedAt)       // Instants (kotlin.time); title never blank
 AccountWithBalance(account, balance: Money)
+PeriodSummary(income: Money, expense: Money)            // net = income − expense; summarize() skips transfers, null if mixed currencies
+TransactionListEntry(transaction, account?, toAccount?, category?)  // refs resolved for lists (toListEntries)
 ```
 
 ## Tables (schema v2, `app/schemas/.../2.json`)

@@ -12,6 +12,8 @@ import com.prajwalpawar.fiscus.model.TransactionType
 fun HomeRoute(
     onOpenSettings: () -> Unit,
     onAddTransaction: (TransactionType) -> Unit,
+    onOpenTransaction: (Long) -> Unit,
+    onSeeAllTransactions: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -20,6 +22,8 @@ fun HomeRoute(
         uiState = uiState,
         onOpenSettings = onOpenSettings,
         onAddTransaction = onAddTransaction,
+        onOpenTransaction = onOpenTransaction,
+        onSeeAllTransactions = onSeeAllTransactions,
         modifier = modifier,
     )
 }

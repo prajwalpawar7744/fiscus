@@ -90,6 +90,9 @@
 | `TransactionListItem(transaction, supportingText, icon, onClick, shapes)` | One transaction in a list | `SegmentedListItem`; pass `ListItemDefaults.segmentedShapes(index, count)`; contained rows, `titleMedium` headline, the amount after its type's arrow (no −/+, ADR-026) with an optional `caption` (time) below; optional `highlight` emphasizes the search match; icon in a `ShapeAccentIcon` with the type's `accentRoles()` (ADR-023), signed tabular amount, TalkBack reads "Expense, ₹450.00" (ADR-022) |
 | `signedAmountText(type, amount)` / `signedNetText(net)` | TalkBack text for an amount ("−₹450.00", "+₹50,000.00") | Sign from `strings.xml`; transfers and zero unsigned. Not drawn: on screen amounts show an arrow (ADR-032) |
 | `netIconRes(net)` / `netAmountText(net)` | A net shown on screen | Arrow by direction (↓ negative, ↑ positive, none at zero) and the unsigned amount (ADR-032) |
+| `PeriodTotal(type, amount, labelColor?)` | A period's income or expense total | Type arrow in a `ShapeAccentIcon` (accent roles), `labelMedium` label, `titleMedium` tabular amount. Default label `onSurfaceVariant` only on surface-family containers; elsewhere pass the container's on-color (Home tiles, ADR-034) |
+| `transactionSupportingText(entry)` | The supporting line of a `TransactionListItem` | "Food · Cash", or "Cash → Bank" for transfers; "Unknown" for removed refs |
+| `AccountType.iconRes` | Account type icon | Cash `payments`, Bank `account_balance`, Card `credit_card`, Wallet `account_balance_wallet` (ADR-033) |
 | `dayLabel(date, today)` | Day headers | "Today", "Yesterday", else the localized full date; `today` from the injected clock |
 
 Kept inside a feature on purpose: the editor's `AmountHero` (hero moment 2, type colors). Extract a plain shared `AmountField` when a second screen (budgets, opening balance) needs amount input.
@@ -105,6 +108,8 @@ Reference only: what each component animates by itself. Hand-animating something
 | `FilterChip(shapes = …)` | Subtle corner change on select. |
 | `LoadingIndicator` | Shape-morphing polygons. |
 | Flexible top app bars | Collapse on scroll (`exitUntilCollapsedScrollBehavior`). |
+| `HorizontalMultiBrowseCarousel` | Items mask and resize between large, medium and small as they scroll; single-advance fling by default. |
+| `LinearWavyProgressIndicator` / `CircularWavyProgressIndicator` (determinate) | The wave's amplitude follows progress (`indicatorAmplitude`); it moves at one wavelength per second. |
 
 ## Component map (Fiscus need → M3 component)
 | Need | Component |
@@ -121,7 +126,8 @@ Reference only: what each component animates by itself. Hand-animating something
 | Containers | `Card`, `ElevatedCard`, `OutlinedCard` |
 | Forms | `OutlinedTextField`, `DatePicker`, `TimePicker`, `ExposedDropdownMenuBox` |
 | Sheets and dialogs | `ModalBottomSheet`, `AlertDialog` |
-| Progress (budgets) | `LinearWavyProgressIndicator` / `CircularWavyProgressIndicator` (or the flat versions) |
+| Browsing peers (accounts) | `HorizontalMultiBrowseCarousel` + `rememberCarouselState`, items clipped with `maskClip` (ADR-034) |
+| Progress (budgets, Home spent ring) | `LinearWavyProgressIndicator` / `CircularWavyProgressIndicator` (or the flat versions) |
 | Loading | `LoadingIndicator`, `ContainedLoadingIndicator` |
 | Feedback | `Snackbar` via `SnackbarHost` |
 | Toolbars | `HorizontalFloatingToolbar` / `VerticalFloatingToolbar` |

@@ -84,6 +84,8 @@ import com.prajwalpawar.fiscus.model.AccountType
 import com.prajwalpawar.fiscus.model.Category
 import com.prajwalpawar.fiscus.model.CategoryKind
 import com.prajwalpawar.fiscus.model.Money
+import com.prajwalpawar.fiscus.model.PeriodSummary
+import com.prajwalpawar.fiscus.model.TransactionListEntry
 import com.prajwalpawar.fiscus.model.Transaction
 import com.prajwalpawar.fiscus.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.ActionButtonGroup
@@ -103,8 +105,10 @@ import com.prajwalpawar.fiscus.ui.components.iconRes
 import com.prajwalpawar.fiscus.ui.components.labelRes
 import com.prajwalpawar.fiscus.ui.components.sharedContainer
 import com.prajwalpawar.fiscus.ui.components.netAmountText
+import com.prajwalpawar.fiscus.ui.components.PeriodTotal
 import com.prajwalpawar.fiscus.ui.components.netIconRes
 import com.prajwalpawar.fiscus.ui.components.signedNetText
+import com.prajwalpawar.fiscus.ui.components.transactionSupportingText
 import com.prajwalpawar.fiscus.ui.components.transactionContainerKey
 import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
@@ -500,7 +504,7 @@ private fun LazyListScope.transactionSections(
             val motion = MaterialTheme.motionScheme
             TransactionListItem(
                 transaction = entry.transaction,
-                supportingText = supportingText(entry),
+                supportingText = transactionSupportingText(entry),
                 icon = entry.category?.let { categoryIconRes(it.iconKey) }
                     ?: entry.transaction.type.iconRes,
                 onClick = { onOpenTransaction(entry.transaction.id) },
@@ -563,35 +567,9 @@ private fun SummaryCard(summary: PeriodSummary, period: String, modifier: Modifi
                 modifier = Modifier.padding(top = FiscusLayout.ItemSpacing),
                 horizontalArrangement = Arrangement.spacedBy(FiscusLayout.ScreenMargin),
             ) {
-                SummaryTotal(TransactionType.INCOME, summary.income, Modifier.weight(1f))
-                SummaryTotal(TransactionType.EXPENSE, summary.expense, Modifier.weight(1f))
+                PeriodTotal(TransactionType.INCOME, summary.income, Modifier.weight(1f))
+                PeriodTotal(TransactionType.EXPENSE, summary.expense, Modifier.weight(1f))
             }
-        }
-    }
-}
-
-@Composable
-private fun SummaryTotal(type: TransactionType, amount: Money, modifier: Modifier = Modifier) {
-    val label = stringResource(type.labelRes)
-    val roles = type.accentRoles()
-    val formatted = formatMoney(amount)
-    Row(
-        modifier = modifier.clearAndSetSemantics { contentDescription = "$label, $formatted" },
-        horizontalArrangement = Arrangement.spacedBy(FiscusLayout.ItemSpacing),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        ShapeAccentIcon(
-            icon = type.iconRes,
-            containerColor = roles.container,
-            contentColor = roles.content,
-        )
-        Column {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            AmountText(text = formatted, style = MaterialTheme.typography.titleMedium)
         }
     }
 }
@@ -636,19 +614,6 @@ private fun DayHeader(section: TransactionDaySection, today: LocalDate) {
                 modifier = Modifier.clearAndSetSemantics { contentDescription = netText },
             )
         }
-    }
-}
-
-/** "Food · Cash" for income and expense, "Cash → Bank" for a transfer. */
-@Composable
-private fun supportingText(entry: TransactionListEntry): String {
-    val unknown = stringResource(R.string.detail_unknown)
-    val account = entry.account?.name ?: unknown
-    return if (entry.transaction.type == TransactionType.TRANSFER) {
-        val toAccount = entry.toAccount?.name ?: unknown
-        stringResource(R.string.transactions_supporting_transfer, account, toAccount)
-    } else {
-        stringResource(R.string.transactions_supporting, entry.category?.name ?: unknown, account)
     }
 }
 
