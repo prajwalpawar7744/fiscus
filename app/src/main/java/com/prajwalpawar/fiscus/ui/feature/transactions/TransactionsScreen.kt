@@ -76,7 +76,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.prajwalpawar.fiscus.R
 import com.prajwalpawar.fiscus.core.money.formatMoney
@@ -91,6 +90,7 @@ import com.prajwalpawar.fiscus.ui.components.ActionButtonGroup
 import com.prajwalpawar.fiscus.ui.components.ActionStyle
 import com.prajwalpawar.fiscus.ui.components.AddTransactionFabMenu
 import com.prajwalpawar.fiscus.ui.components.AmountText
+import com.prajwalpawar.fiscus.ui.components.EmptyState
 import com.prajwalpawar.fiscus.ui.components.GroupAction
 import com.prajwalpawar.fiscus.ui.components.LocalSnackbarHostState
 import com.prajwalpawar.fiscus.ui.components.ShapeAccentIcon
@@ -216,6 +216,8 @@ fun TransactionsScreen(
                                 EmptyMessage(
                                     isFiltered = uiState.isFilteredEmpty,
                                     onClearFilters = { onEvent(TransactionsEvent.FiltersCleared) },
+                                    // Centered in the visible list area (ADR-031).
+                                    modifier = Modifier.fillParentMaxSize(),
                                 )
                             }
                         } else {
@@ -323,15 +325,17 @@ private fun SearchResults(
             when {
                 // Nothing typed yet: a hint, not the whole list (ADR-024).
                 !uiState.isSearching -> item(key = "hint") {
-                    AccentMessage(
+                    EmptyState(
                         icon = R.drawable.ic_search_rounded,
                         message = stringResource(R.string.transactions_search_hint),
+                        modifier = Modifier.fillParentMaxSize(),
                     )
                 }
                 uiState.sections.isEmpty() -> item(key = "noResults") {
-                    AccentMessage(
+                    EmptyState(
                         icon = R.drawable.ic_search_rounded,
                         message = stringResource(R.string.transactions_search_empty),
+                        modifier = Modifier.fillParentMaxSize(),
                     )
                 }
                 else -> item(key = "count") {
@@ -644,8 +648,13 @@ private fun supportingText(entry: TransactionListEntry): String {
 }
 
 @Composable
-private fun EmptyMessage(isFiltered: Boolean, onClearFilters: () -> Unit) {
-    AccentMessage(
+private fun EmptyMessage(
+    isFiltered: Boolean,
+    onClearFilters: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    EmptyState(
+        modifier = modifier,
         icon = if (isFiltered) R.drawable.ic_search_rounded else R.drawable.ic_receipt_long_rounded,
         message = stringResource(
             if (isFiltered) {
@@ -654,47 +663,18 @@ private fun EmptyMessage(isFiltered: Boolean, onClearFilters: () -> Unit) {
                 R.string.transactions_empty_month
             },
         ),
-    ) {
-        if (isFiltered) {
-            TextButton(onClick = onClearFilters) {
-                Text(stringResource(R.string.transactions_filter_clear))
+        action = if (isFiltered) {
+            {
+                TextButton(onClick = onClearFilters) {
+                    Text(stringResource(R.string.transactions_filter_clear))
+                }
             }
-        }
-    }
+        } else {
+            null
+        },
+    )
 }
 
-/**
- * A large decorative shape accent above a centered message, for empty and hint states
- * (M3_EXPRESSIVE §3: expressive shapes for empty states, not data). [action] goes below.
- */
-@Composable
-private fun AccentMessage(
-    @DrawableRes icon: Int,
-    message: String,
-    action: @Composable () -> Unit = {},
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = FiscusLayout.SectionSpacing),
-        verticalArrangement = Arrangement.spacedBy(FiscusLayout.ItemSpacing),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        ShapeAccentIcon(
-            icon = icon,
-            size = FiscusLayout.LargeAccentSize,
-            iconSize = FiscusLayout.LargeAccentIconSize,
-            modifier = Modifier.padding(bottom = FiscusLayout.ItemSpacing),
-        )
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-        action()
-    }
-}
 
 /** The open picker: a sheet for accounts or categories, a dialog for the date range. */
 @OptIn(ExperimentalMaterial3Api::class) // ModalBottomSheet

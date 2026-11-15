@@ -62,7 +62,8 @@ class TransactionsFilterFlowTest {
             transactions.save(
                 Transaction(
                     type = TransactionType.EXPENSE,
-                    title = category.name,
+                    // Not the category name, so each sheet row is the only node with its text.
+                    title = "${category.name} spend",
                     amount = Money(10_000, "INR"),
                     accountId = cash.id,
                     categoryId = category.id,
@@ -102,9 +103,9 @@ class TransactionsFilterFlowTest {
         viewModel.onEvent(TransactionsEvent.PickerOpened(FilterPicker.CATEGORY))
         composeRule.waitForIdle()
 
-        sheetRow("Groceries").performClick()
+        composeRule.onNode(hasText("Groceries") and hasClickAction()).performClick()
         composeRule.waitForIdle()
-        sheetRow("Transport").performClick()
+        composeRule.onNode(hasText("Transport") and hasClickAction()).performClick()
         composeRule.waitForIdle()
 
         assertEquals(2, viewModel.uiState.value.selectedCategoryIds.size)
@@ -131,7 +132,8 @@ class TransactionsFilterFlowTest {
         // Reach the income categories the way a finger does: swipe the sheet up (this first
         // expands the half-height sheet, then scrolls the list), twice.
         repeat(2) {
-            sheetRow("Groceries").performTouchInput { swipeUp() }
+            composeRule.onNode(hasText("Groceries") and hasClickAction())
+                .performTouchInput { swipeUp() }
             composeRule.waitForIdle()
         }
         // "Salary" has no transactions, so the list under the sheet becomes empty.
@@ -142,10 +144,4 @@ class TransactionsFilterFlowTest {
 
         assertEquals(2, viewModel.uiState.value.selectedCategoryIds.size)
     }
-
-    /** [name] also titles a list row; the sheet is composed last, so its row is the last match. */
-    private fun sheetRow(name: String) =
-        composeRule.onAllNodes(hasText(name) and hasClickAction()).let { nodes ->
-            nodes[nodes.fetchSemanticsNodes().lastIndex]
-        }
 }

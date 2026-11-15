@@ -229,3 +229,7 @@ Format: `## ADR-NNN: Title`, then Date, Status, Context, Decision, Consequences.
   3. **In-screen content swaps**: every `AnimatedContent` sets its `SizeTransform` on a spatial spec (fast for small swaps such as button content, default for screen-level swaps), so no size change falls back to Compose's default spring.
   4. Only theme tokens are used: no numbers, no `tween`, no copied internal tokens (LESSONS #3 still holds).
 - **Consequences**: There's no M3 easing-and-duration API for transitions in material3 (M3 says transitions still use that legacy system); springs are the closest public equivalent. Revisit on each material3 / navigation3 bump.
+
+## ADR-031: One shared empty state
+- **Date**: 2026-11-15 · **Status**: Accepted (user: "i want shared empty state of all the pages")
+- **Decision**: `EmptyState(icon, message, action?)` (`ui/components/`) is the only empty-state UI: a large decorative `ShapeAccentIcon` (`FiscusLayout.LargeAccentSize`), the message centered in `bodyLarge`/`onSurfaceVariant`, and an optional action below (e.g. "Clear filters"). Used on Transactions (empty month, no matches, search hint, no search results), Home, Budgets, Insights and Settings. Icons: Home and Transactions `receipt_long`, filtered/search `search`, Budgets `savings`, Insights `bar_chart`, Settings `settings`. The editor's inline "no accounts/categories" lines inside its option groups are form hints, not page empty states, so they stay as they are.

@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.prajwalpawar.fiscus.R
 import com.prajwalpawar.fiscus.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.AddTransactionFabMenu
+import com.prajwalpawar.fiscus.ui.components.EmptyState
 import com.prajwalpawar.fiscus.ui.components.LocalSnackbarHostState
 import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
@@ -79,10 +80,9 @@ fun HomeScreen(
                     )
                 }
             }
-            Text(
-                text = stringResource(uiState.emptyMessage),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            EmptyState(
+                icon = R.drawable.ic_receipt_long_rounded,
+                message = stringResource(uiState.emptyMessage),
             )
         }
     }
