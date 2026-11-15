@@ -46,6 +46,7 @@ class TransactionDetailViewModelTest {
 
     private val expense = Transaction(
         type = TransactionType.EXPENSE,
+        title = "Lunch",
         amount = Money(1999, "INR"),
         accountId = CashAccount.id,
         categoryId = FoodCategory.id,

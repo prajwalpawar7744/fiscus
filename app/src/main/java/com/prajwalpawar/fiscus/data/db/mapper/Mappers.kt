@@ -36,6 +36,7 @@ fun Category.asEntity() = CategoryEntity(id = id, name = name, kind = kind, icon
 fun TransactionEntity.asModel() = Transaction(
     id = id,
     type = type,
+    title = title,
     amount = Money(amountMinor, currencyCode),
     accountId = accountId,
     toAccountId = toAccountId,
@@ -49,6 +50,7 @@ fun TransactionEntity.asModel() = Transaction(
 fun Transaction.asEntity() = TransactionEntity(
     id = id,
     type = type,
+    title = title,
     amountMinor = amount.amountMinor,
     currencyCode = amount.currencyCode,
     accountId = accountId,

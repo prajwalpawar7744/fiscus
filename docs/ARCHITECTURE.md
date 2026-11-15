@@ -103,7 +103,7 @@ Verified 2026-11-13 against the developer.android.com architecture pages (UI, ev
 Tests: `test/.../ui/feature/<name>/XxxViewModelTest.kt` using `MainDispatcherRule`, following CONVENTIONS.md "Testing" (assert on `uiState.value` with a collector running; Turbine only for emission sequences).
 
 ## Data layer (M1a)
-- **Room 3** (`androidx.room3`): `FiscusDatabase` (v1) with `BundledSQLiteDriver` and `setQueryCoroutineContext(@IoDispatcher)`, provided as a `@Singleton` in `di/DatabaseModule`.
+- **Room 3** (`androidx.room3`): `FiscusDatabase` (v2; migrations in `data/db/Migrations.kt`, tested with `room3-testing`'s `MigrationTestHelper`) with `BundledSQLiteDriver` and `setQueryCoroutineContext(@IoDispatcher)`, provided as a `@Singleton` in `di/DatabaseModule`.
 - Enums are stored by name (Room built-in). Custom converters use Room 3's `@ColumnTypeConverter`/`@ColumnTypeConverters` (not Room 2's `@TypeConverter`).
 - DAOs: reads return `Flow`, writes are `suspend`. `@Upsert` returns the new rowId, or -1 on update (repositories map this back to the id).
 - Seeding uses `RoomDatabase.Callback.onCreate` (`SeedCallback`), which runs once when the file is created.

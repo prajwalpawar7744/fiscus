@@ -3,12 +3,14 @@ package com.prajwalpawar.fiscus.model
 import kotlin.time.Instant
 
 /**
- * A dated movement of money (DOMAIN.md). [amount] is always positive; the direction comes from
- * [type]. Transfers move money from [accountId] to [toAccountId] and have no category.
+ * A dated movement of money (DOMAIN.md). [title] is required ("Lunch with team"); [note] is optional
+ * extra detail. [amount] is always positive; the direction comes from [type]. Transfers move money
+ * from [accountId] to [toAccountId] and have no category.
  */
 data class Transaction(
     val id: Long = 0L,
     val type: TransactionType,
+    val title: String,
     val amount: Money,
     val accountId: Long,
     val toAccountId: Long? = null,
@@ -19,6 +21,7 @@ data class Transaction(
     val updatedAt: Instant,
 ) {
     init {
+        require(title.isNotBlank()) { "Title must not be blank" }
         require(amount.amountMinor > 0L) { "Amount must be positive" }
         when (type) {
             TransactionType.TRANSFER -> {

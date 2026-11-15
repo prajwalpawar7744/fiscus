@@ -7,6 +7,7 @@ import kotlinx.datetime.LocalDate
 sealed interface TransactionEditorEvent {
     data class TypeChanged(val type: TransactionType) : TransactionEditorEvent
     data class AmountChanged(val text: String) : TransactionEditorEvent
+    data class TitleChanged(val title: String) : TransactionEditorEvent
     data class AccountSelected(val accountId: Long) : TransactionEditorEvent
     data class ToAccountSelected(val accountId: Long) : TransactionEditorEvent
     data class CategorySelected(val categoryId: Long) : TransactionEditorEvent

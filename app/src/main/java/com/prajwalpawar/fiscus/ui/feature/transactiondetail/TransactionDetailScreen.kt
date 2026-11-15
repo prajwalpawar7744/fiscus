@@ -92,7 +92,8 @@ fun TransactionDetailScreen(
         snackbarHost = { SnackbarHost(LocalSnackbarHostState.current) },
         topBar = {
             LargeFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.detail_title)) },
+                // The transaction's own title (ADR-021); a generic one while loading.
+                title = { Text(uiState.transaction?.title ?: stringResource(R.string.detail_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -344,6 +345,7 @@ private fun TransactionDetailScreenPreview() {
                 transaction = Transaction(
                     id = 1,
                     type = TransactionType.EXPENSE,
+                    title = "Dinner with friends",
                     amount = Money(125_000, "INR"),
                     accountId = 1,
                     categoryId = 1,

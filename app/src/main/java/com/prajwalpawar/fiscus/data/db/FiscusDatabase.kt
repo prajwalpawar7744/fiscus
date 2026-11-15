@@ -12,10 +12,13 @@ import com.prajwalpawar.fiscus.data.db.entity.TransactionEntity
 /**
  * App database (Room 3). Schemas are exported to `app/schemas/`; every version change needs a
  * migration, never destructive fallback (ADR-017).
+ *
+ * - v1: accounts, categories, transactions (ADR-016).
+ * - v2: required transaction `title` ([Migration1To2], ADR-021).
  */
 @Database(
     entities = [AccountEntity::class, CategoryEntity::class, TransactionEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class FiscusDatabase : RoomDatabase() {

@@ -52,6 +52,7 @@ class TransactionEditorScreenTest {
                     onEvent = { event ->
                         when (event) {
                             is TransactionEditorEvent.AmountChanged -> state = state.copy(amountText = event.text)
+                            is TransactionEditorEvent.TitleChanged -> state = state.copy(title = event.title)
                             is TransactionEditorEvent.CategorySelected -> state = state.copy(categoryId = event.categoryId)
                             TransactionEditorEvent.Save -> saved = true
                             else -> Unit
@@ -65,6 +66,7 @@ class TransactionEditorScreenTest {
         composeRule.onNodeWithText("Save").assertIsNotEnabled()
         composeRule.onNodeWithText("Food").performClick()
         composeRule.onNodeWithContentDescription("Amount").performTextInput("250")
+        composeRule.onNodeWithText("Title").performTextInput("Team lunch")
         composeRule.onNodeWithText("Save").assertIsEnabled().performClick()
 
         assertTrue(saved)

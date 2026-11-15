@@ -13,8 +13,10 @@ class TransactionTest {
         amountMinor: Long = 100,
         toAccountId: Long? = null,
         categoryId: Long? = null,
+        title: String = "Lunch",
     ) = Transaction(
         type = type,
+        title = title,
         amount = Money(amountMinor, "INR"),
         accountId = 1,
         toAccountId = toAccountId,
@@ -29,6 +31,13 @@ class TransactionTest {
         transaction(TransactionType.EXPENSE, categoryId = 1)
         transaction(TransactionType.INCOME, categoryId = 1)
         transaction(TransactionType.TRANSFER, toAccountId = 2)
+    }
+
+    @Test
+    fun `title must not be blank`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            transaction(TransactionType.EXPENSE, categoryId = 1, title = "  ")
+        }
     }
 
     @Test

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -72,6 +73,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -166,7 +168,11 @@ fun TransactionEditorScreen(
             label = "editorLoading",
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                // innerPadding already reserves the Save bar and navigation bar. Mark it consumed so
+                // the form's imePadding() only adds the part of the keyboard not covered yet.
+                // Otherwise the bar's height shows as a gap above the keyboard.
+                .consumeWindowInsets(innerPadding),
         ) { isLoading ->
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -212,6 +218,19 @@ private fun EditorForm(
             uiState = uiState,
             onAmountChange = { onEvent(TransactionEditorEvent.AmountChanged(it)) },
             modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),
+        )
+        OutlinedTextField(
+            value = uiState.title,
+            onValueChange = { onEvent(TransactionEditorEvent.TitleChanged(it)) },
+            label = { Text(stringResource(R.string.editor_title)) },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = ImeAction.Next,
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = FiscusLayout.ScreenMargin),
         )
         SingleChoiceToggleGroup(
             title = stringResource(
@@ -559,6 +578,7 @@ private fun TransactionEditorScreenAddPreview() {
             uiState = TransactionEditorUiState(
                 isLoading = false,
                 amountText = "1250",
+                title = "Lunch with team",
                 accounts = PreviewAccounts,
                 accountId = 1,
                 categories = PreviewCategories,
@@ -581,6 +601,7 @@ private fun TransactionEditorScreenEditPreview() {
                 isNew = false,
                 type = TransactionType.TRANSFER,
                 amountText = "2500.00",
+                title = "Rent share",
                 accounts = PreviewAccounts,
                 accountId = 1,
                 toAccountId = 2,

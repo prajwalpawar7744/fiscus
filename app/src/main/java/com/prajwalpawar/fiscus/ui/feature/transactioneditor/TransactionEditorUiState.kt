@@ -16,6 +16,8 @@ data class TransactionEditorUiState(
     /** Raw text of the amount field, e.g. "19.9". Parsed into Money only on save. */
     val amountText: String = "",
     @StringRes val amountError: Int? = null,
+    /** Required (ADR-021); saved trimmed. */
+    val title: String = "",
     /** Active accounts the user can pick from. */
     val accounts: List<Account> = emptyList(),
     val accountId: Long? = null,
@@ -51,6 +53,7 @@ data class TransactionEditorUiState(
             // A blank amount is already prompted for in the hero, so don't repeat it here.
             if (amountText.isBlank()) return null
             if (parseMoneyInput(amountText, account.currencyCode) == null) return R.string.editor_hint_amount
+            if (title.isBlank()) return R.string.editor_hint_title
             return when (type) {
                 TransactionType.TRANSFER ->
                     if (toAccounts.none { it.id == toAccountId }) R.string.editor_hint_to_account else null
@@ -64,6 +67,7 @@ data class TransactionEditorUiState(
             val account = selectedAccount ?: return false
             if (isLoading || isSaving || date == null) return false
             if (parseMoneyInput(amountText, account.currencyCode) == null) return false
+            if (title.isBlank()) return false
             return when (type) {
                 TransactionType.TRANSFER -> toAccounts.any { it.id == toAccountId }
                 TransactionType.INCOME, TransactionType.EXPENSE -> categoryId != null

@@ -100,6 +100,7 @@ class TransactionEditorViewModel @AssistedInject constructor(
                 if (!isValidAmountInput(event.text)) return
                 form.update { it.copy(amountText = event.text, amountError = null) }
             }
+            is TransactionEditorEvent.TitleChanged -> form.update { it.copy(title = event.title) }
             is TransactionEditorEvent.AccountSelected -> form.update { it.copy(accountId = event.accountId) }
             is TransactionEditorEvent.ToAccountSelected -> form.update { it.copy(toAccountId = event.accountId) }
             is TransactionEditorEvent.CategorySelected -> form.update { it.copy(categoryId = event.categoryId) }
@@ -127,6 +128,7 @@ class TransactionEditorViewModel @AssistedInject constructor(
                     isNew = false,
                     type = existing.type,
                     amountText = formatMoneyInput(existing.amount),
+                    title = existing.title,
                     accountId = existing.accountId,
                     toAccountId = existing.toAccountId,
                     categoryId = existing.categoryId,
@@ -160,6 +162,7 @@ class TransactionEditorViewModel @AssistedInject constructor(
             val transaction = Transaction(
                 id = original?.id ?: 0L,
                 type = state.type,
+                title = state.title.trim(),
                 amount = amount,
                 accountId = account.id,
                 toAccountId = if (isTransfer) state.toAccountId else null,
@@ -188,6 +191,7 @@ private data class EditorForm(
     val type: TransactionType,
     val amountText: String = "",
     @StringRes val amountError: Int? = null,
+    val title: String = "",
     val accountId: Long? = null,
     val toAccountId: Long? = null,
     val categoryId: Long? = null,
@@ -217,6 +221,7 @@ private fun EditorForm.toUiState(accounts: List<Account>, categories: List<Categ
         type = type,
         amountText = amountText,
         amountError = amountError,
+        title = title,
         accounts = usable,
         accountId = selectedAccount?.id,
         toAccountId = toAccountId,

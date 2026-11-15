@@ -36,6 +36,7 @@ class TransactionDetailScreenTest {
         transaction = Transaction(
             id = 1,
             type = TransactionType.EXPENSE,
+            title = "Dinner out",
             amount = Money(125_000, "INR"),
             accountId = 1,
             categoryId = 1,
@@ -72,6 +73,7 @@ class TransactionDetailScreenTest {
             }
         }
 
+        composeRule.onNodeWithText("Dinner out").assertIsDisplayed()
         composeRule.onNodeWithText("Cash").assertIsDisplayed()
         composeRule.onNodeWithText("Food").assertIsDisplayed()
         composeRule.onNodeWithText("Dinner").assertIsDisplayed()

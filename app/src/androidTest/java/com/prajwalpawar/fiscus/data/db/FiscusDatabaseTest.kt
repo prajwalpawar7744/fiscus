@@ -108,6 +108,7 @@ class FiscusDatabaseTest {
         at: Long = 1_000,
     ) = TransactionEntity(
         type = type,
+        title = "Test",
         amountMinor = amountMinor,
         currencyCode = "INR",
         accountId = accountId,

@@ -135,3 +135,9 @@ Format: `## ADR-NNN: Title`, then Date, Status, Context, Decision, Consequences.
   2. One `SnackbarHostState`, provided by `FiscusApp` through `LocalSnackbarHostState` (`ui/components/`). Screens use `snackbarHost = { SnackbarHost(LocalSnackbarHostState.current) }`. Why: no parameter threading, every new screen gets it for free, and `FiscusApp` stays the single place that shows confirmations after navigation (state, not events: ViewModels expose `resultMessage`).
   3. `TransactionTypeDisplayOrder` (Expense, Income, Transfer) is the only order the UI uses; never the enum's declaration order.
 - **Consequences**: New screens use `FiscusLayout` and `LocalSnackbarHostState`; neither is passed as a parameter or redefined per file.
+
+## ADR-021: Required transaction title (schema v2)
+- **Date**: 2026-11-15 · **Status**: Accepted (user: "make title required"; the name "Title" chosen by default since no alternative was picked)
+- **Context**: Transactions had only an optional note, so a list (next task) could show nothing but the category and amount.
+- **Decision**: `Transaction.title: String`, required and never blank (enforced in the model, trimmed on save). Schema v2 adds `transactions.title TEXT NOT NULL DEFAULT ''` through a **manual** migration (`Migration1To2`) that fills existing rows from the category's name, else the note, else the localized type label, since the model rejects blank titles and ADR-017 forbids destructive migrations. The editor has a single-line Title field right after the hero (Save hint "Add a title"); the detail screen shows the title in its large top bar.
+- **Consequences**: Lists and search use the title as the primary line. Every future schema change follows the same pattern: a migration plus a `MigrationTest` case.

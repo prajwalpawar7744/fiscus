@@ -1,5 +1,6 @@
 package com.prajwalpawar.fiscus.data.db.entity
 
+import androidx.room3.ColumnInfo
 import androidx.room3.Entity
 import androidx.room3.ForeignKey
 import androidx.room3.Index
@@ -33,6 +34,9 @@ import com.prajwalpawar.fiscus.model.TransactionType
 data class TransactionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val type: TransactionType,
+    /** Required, never blank (schema v2, ADR-021). The default only serves the v1 → v2 migration. */
+    @ColumnInfo(defaultValue = "")
+    val title: String,
     /** Always positive, in minor units of [currencyCode]. */
     val amountMinor: Long,
     val currencyCode: String,

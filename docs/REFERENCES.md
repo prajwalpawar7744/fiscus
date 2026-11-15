@@ -218,3 +218,8 @@ for (const k of ['lightScheme','darkScheme']) console.log(k, ['primary','onPrima
 ## Hero amount field (checked 2026-11-15)
 - A `TextField` `prefix` stays at the start edge when `textAlign = Center`, so a centered amount can't use it. Use a display-only `VisualTransformation` (public `androidx.compose.ui.text.input` API) that prepends the symbol, with an `OffsetMapping` shifted by its length. The stored value stays plain digits.
 - A field without a visible label still needs an accessible name: `Modifier.semantics { contentDescription = … }` on the `TextField`. Tests then find it with `onNodeWithContentDescription`.
+
+## Room 3 migrations (checked 2026-11-15 via javap on room3-runtime-android and room3-testing-android 3.0.3)
+- `androidx.room3.migration.Migration(startVersion, endVersion)` with `suspend fun migrate(connection: SQLiteConnection)`. Register with `RoomDatabase.Builder.addMigrations(...)`. Use `connection.execSQL(...)` (`androidx.sqlite.execSQL`) or `connection.prepare(sql).use { bindText; step() }`.
+- A column added by migration must match the entity: `ALTER TABLE … ADD COLUMN title TEXT NOT NULL DEFAULT ''` ⇔ `@ColumnInfo(defaultValue = "") val title: String`.
+- `androidx.room3:room3-testing` (3.0.3 matches the runtime): `MigrationTestHelper(instrumentation, file, driver, databaseClass, databaseFactory = …, autoMigrationSpecs = …)` is a JUnit rule; `createDatabase(version)` and `runMigrationsAndValidate(version, migrations)` return a `SQLiteConnection`. It reads the exported schemas in `app/schemas/`.

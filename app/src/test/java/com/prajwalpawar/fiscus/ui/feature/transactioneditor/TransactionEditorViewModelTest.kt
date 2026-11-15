@@ -80,6 +80,7 @@ class TransactionEditorViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val viewModel = viewModel()
             viewModel.onEvent(TransactionEditorEvent.AmountChanged("250.50"))
+            viewModel.onEvent(TransactionEditorEvent.TitleChanged("  Team lunch "))
             viewModel.onEvent(TransactionEditorEvent.CategorySelected(FoodCategory.id))
             viewModel.onEvent(TransactionEditorEvent.NoteChanged("  Lunch "))
             advanceUntilIdle()
@@ -94,6 +95,7 @@ class TransactionEditorViewModelTest {
             assertEquals(CashAccount.id, saved.accountId)
             assertEquals(FoodCategory.id, saved.categoryId)
             assertEquals("Lunch", saved.note)
+            assertEquals("Team lunch", saved.title)
             assertEquals(TestNow, saved.occurredAt)
             assertEquals(TestNow, saved.createdAt)
             assertTrue(viewModel.uiState.value.isFinished)
@@ -146,6 +148,7 @@ class TransactionEditorViewModelTest {
             assertTrue(state.categories.isEmpty())
 
             viewModel.onEvent(TransactionEditorEvent.AmountChanged("100"))
+            viewModel.onEvent(TransactionEditorEvent.TitleChanged("Savings"))
             viewModel.onEvent(TransactionEditorEvent.Save)
             advanceUntilIdle()
 
@@ -175,6 +178,7 @@ class TransactionEditorViewModelTest {
             transactions.save(
                 Transaction(
                     type = TransactionType.EXPENSE,
+                    title = "Coffee",
                     amount = Money(1999, "INR"),
                     accountId = CashAccount.id,
                     categoryId = FoodCategory.id,
@@ -191,6 +195,7 @@ class TransactionEditorViewModelTest {
             assertEquals(FoodCategory.id, state.categoryId)
             assertEquals(LocalDate(2026, 11, 1), state.date)
             assertEquals("Coffee", state.note)
+            assertEquals("Coffee", state.title)
 
             viewModel.onEvent(TransactionEditorEvent.AmountChanged("25"))
             viewModel.onEvent(TransactionEditorEvent.DateSelected(LocalDate(2026, 11, 3)))
@@ -227,6 +232,10 @@ class TransactionEditorViewModelTest {
 
             viewModel.onEvent(TransactionEditorEvent.AmountChanged("10"))
             advanceUntilIdle()
+            assertEquals(R.string.editor_hint_title, viewModel.uiState.value.saveHint)
+
+            viewModel.onEvent(TransactionEditorEvent.TitleChanged("Lunch"))
+            advanceUntilIdle()
             assertEquals(R.string.editor_hint_category, viewModel.uiState.value.saveHint)
 
             viewModel.onEvent(TransactionEditorEvent.CategorySelected(FoodCategory.id))
@@ -241,8 +250,24 @@ class TransactionEditorViewModelTest {
             accounts.accounts.value = listOf(CashAccount)
             val viewModel = viewModel(TransactionEditorNavKey(type = TransactionType.TRANSFER))
             viewModel.onEvent(TransactionEditorEvent.AmountChanged("10"))
+            viewModel.onEvent(TransactionEditorEvent.TitleChanged("Savings"))
             advanceUntilIdle()
             assertEquals(R.string.editor_hint_to_account, viewModel.uiState.value.saveHint)
         }
+
+
+    @Test
+    fun `a blank title blocks saving`() = runTest(mainDispatcherRule.testDispatcher) {
+        val viewModel = viewModel()
+        viewModel.onEvent(TransactionEditorEvent.AmountChanged("10"))
+        viewModel.onEvent(TransactionEditorEvent.CategorySelected(FoodCategory.id))
+        viewModel.onEvent(TransactionEditorEvent.TitleChanged("   "))
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.canSave)
+
+        viewModel.onEvent(TransactionEditorEvent.Save)
+        advanceUntilIdle()
+        assertTrue(transactions.transactions.value.isEmpty())
+    }
 
 }

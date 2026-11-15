@@ -36,6 +36,7 @@
     <string name="editor_title_add">Add transaction</string>
     <string name="editor_title_edit">Edit transaction</string>
     <string name="editor_amount">Amount</string>
+    <string name="editor_title">Title</string>
     <string name="editor_amount_error">Enter a valid amount</string>
     <string name="editor_account">Account</string>
     <string name="editor_from_account">From account</string>
@@ -51,6 +52,7 @@
     <string name="editor_hero_summary_to">%1$s · to %2$s</string>
     <string name="editor_hint_account">Add an account to save</string>
     <string name="editor_hint_amount">Enter an amount</string>
+    <string name="editor_hint_title">Add a title</string>
     <string name="editor_hint_category">Choose a category</string>
     <string name="editor_hint_to_account">Choose an account to transfer to</string>
     <string name="editor_result_expense_added">Expense added</string>
