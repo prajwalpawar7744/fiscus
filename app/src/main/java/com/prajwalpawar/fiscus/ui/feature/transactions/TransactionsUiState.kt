@@ -1,9 +1,70 @@
 package com.prajwalpawar.fiscus.ui.feature.transactions
 
-import androidx.annotation.StringRes
-import com.prajwalpawar.fiscus.R
+import com.prajwalpawar.fiscus.model.Account
+import com.prajwalpawar.fiscus.model.Category
+import com.prajwalpawar.fiscus.model.Money
+import com.prajwalpawar.fiscus.model.Transaction
+import com.prajwalpawar.fiscus.model.TransactionType
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateRange
+import kotlinx.datetime.LocalDateTime
 
-/** Immutable UI state for the Transactions screen. */
+/** Immutable UI state for the Transactions screen (ADR-022). */
 data class TransactionsUiState(
-    @StringRes val emptyMessage: Int = R.string.transactions_empty,
+    val isLoading: Boolean = true,
+    /** The user's current day (injected clock and time zone), for "Today" / "Yesterday". */
+    val today: LocalDate? = null,
+    /** Matching transactions grouped by local day, newest day first. */
+    val sections: List<TransactionDaySection> = emptyList(),
+    val selectedTypes: Set<TransactionType> = emptySet(),
+    val selectedAccountIds: Set<Long> = emptySet(),
+    val selectedCategoryIds: Set<Long> = emptySet(),
+    val dateRange: LocalDateRange? = null,
+    /** The search query as typed; results show in the expanded search bar and highlight it. */
+    val query: String = "",
+    /** All accounts and categories for the pickers, including archived ones old rows refer to. */
+    val accounts: List<Account> = emptyList(),
+    val categories: List<Category> = emptyList(),
+    val openPicker: FilterPicker? = null,
+    /** Totals of what the list shows; null when it's empty or mixes currencies (ADR-023). */
+    val summary: PeriodSummary? = null,
+) {
+    val isSearching: Boolean get() = query.isNotBlank()
+
+    /** How many transactions the list (or search) shows. */
+    val resultCount: Int get() = sections.sumOf { it.items.size }
+
+    val hasChipFilters: Boolean
+        get() = selectedTypes.isNotEmpty() || selectedAccountIds.isNotEmpty() ||
+            selectedCategoryIds.isNotEmpty() || dateRange != null
+
+    /** Nothing to show although filters are set: offer to clear them, not "add a transaction". */
+    val isFilteredEmpty: Boolean get() = !isLoading && sections.isEmpty() && hasChipFilters
+}
+
+/** One day of transactions. [net] is income minus expense; null if none or mixed currencies. */
+data class TransactionDaySection(
+    val date: LocalDate,
+    val items: List<TransactionListEntry>,
+    val net: Money?,
 )
+
+/** A transaction with the names it refers to, resolved in the ViewModel. */
+data class TransactionListEntry(
+    val transaction: Transaction,
+    /** When it happened, in the user's time zone; the row shows its time. */
+    val occurredAt: LocalDateTime,
+    val account: Account?,
+    /** Destination account; only for transfers. */
+    val toAccount: Account?,
+    /** Null for transfers, or when the category was removed. */
+    val category: Category?,
+)
+
+/** Income and expense totals (transfers excluded, DOMAIN.md), in one currency. */
+data class PeriodSummary(val income: Money, val expense: Money) {
+    val net: Money get() = income - expense
+}
+
+/** The filter picker that is open, if any. */
+enum class FilterPicker { TYPE, ACCOUNT, CATEGORY, DATE }

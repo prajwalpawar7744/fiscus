@@ -19,6 +19,9 @@
   | Short indeterminate wait | `LoadingIndicator` / `ContainedLoadingIndicator` | `CircularProgressIndicator` (indeterminate) |
   | Determinate progress | `LinearWavyProgressIndicator` / `CircularWavyProgressIndicator` | flat indicators, unless a calm data context calls for them (ADR) |
   | Lists | `ListItem` content-lambda overload, `SegmentedListItem` | `ListItem(headlineContent = …)` (deprecated) |
+  | Search | `SearchBar(state, inputField)` + `ExpandedFullScreenSearchBar` / `ExpandedDockedSearchBar`, `AppBarWithSearch`, `SearchBarDefaults.InputField(textFieldState, searchBarState, …)` | `TopSearchBar` (renamed), query-style `SearchBar`/`DockedSearchBar`, `InputField(query, …)` / `InputField(state, expanded, …)` (all deprecated) |
+  | Sheet state | `rememberBottomSheetState(initialValue = Hidden, enabledValues = …)` | `rememberModalBottomSheetState(...)` (deprecated) |
+  | Filter chips | `FilterChip(selected, onClick, label, shapes = FilterChipDefaults.shapes(), …)` | `FilterChip` without `shapes` |
   | Theme | `MaterialExpressiveTheme` + `MotionScheme.expressive()` | `MaterialTheme` |
   | Nav suite type | `NavigationSuiteScaffoldDefaults.navigationSuiteType(...)` | `calculateFromAdaptiveInfo(...)` (returns old NavigationBar/Rail) |
   | Nav suite scaffold | overload with `state` | stateless overloads (deprecated) |
@@ -73,10 +76,16 @@
 | `SingleChoiceToggleGroup(title, options, selectedKey, key, label, onSelect, emptyMessage, icon?)` | One choice from an open-ended list (account, category, account type) | `ToggleButton`s in a wrapping `FlowRow`, radio semantics. For 2–5 fixed options, use the connected button group |
 | `CurrencyPrefixTransformation(symbol)` | Showing a currency symbol in an amount field | Display only; works with centered text, unlike `prefix` |
 | `categoryIconRes(iconKey)` | Category icon drawable | Unknown keys fall back to "category" |
-| `ShapeAccentIcon(icon, containerColor?, contentColor?)` | The one decorative shape accent (icon in a `MaterialShapes.Cookie9Sided`) | Pass a matching role pair; accents only, never data containers |
+| `ShapeAccentIcon(icon, containerColor?, contentColor?, size?, iconSize?)` | The one decorative shape accent (icon in a `MaterialShapes.Cookie9Sided`) | Pass a matching role pair; accents only, never data containers. Empty states: `FiscusLayout.LargeAccentSize` / `LargeAccentIconSize` |
+| `TransactionType.heroRoles()` | The type's hero-card container pair (expense tertiaryContainer, income secondaryContainer, transfer surfaceContainerHighest) | Editor and detail heroes (ADR-024/025) |
+| `containedSegmentedColors()` | `SegmentedListItem`s on the screen background | `surfaceContainer` instead of the default `surface`, so groups are visibly contained (ADR-025). Not inside sheets |
+| `TransactionType.accentRoles()` | The type's accent role pair (expense tertiary, income secondary, transfer primary) | The only type → accent mapping (editor hero, list, summary; ADR-023) |
 | `LocalSnackbarHostState` | Showing confirmations | `snackbarHost = { SnackbarHost(LocalSnackbarHostState.current) }`; provided by `FiscusApp` (ADR-020) |
 | `TransactionTypeDisplayOrder` | Any list of transaction types | Expense, Income, Transfer (ADR-020) |
 | `TransactionType.labelRes` / `.iconRes` | Type label and icon | |
+| `TransactionListItem(transaction, supportingText, icon, onClick, shapes)` | One transaction in a list | `SegmentedListItem`; pass `ListItemDefaults.segmentedShapes(index, count)`; contained rows, `titleMedium` headline, the amount after its type's arrow (no −/+, ADR-026) with an optional `caption` (time) below; optional `highlight` emphasizes the search match; icon in a `ShapeAccentIcon` with the type's `accentRoles()` (ADR-023), signed tabular amount, TalkBack reads "Expense, ₹450.00" (ADR-022) |
+| `signedAmountText(type, amount)` / `signedNetText(net)` | Any signed amount ("−₹450.00", "+₹50,000.00") | Sign from `strings.xml`; transfers and zero unsigned |
+| `dayLabel(date, today)` | Day headers | "Today", "Yesterday", else the localized full date; `today` from the injected clock |
 
 Kept inside a feature on purpose: the editor's `AmountHero` (hero moment 2, type colors). Extract a plain shared `AmountField` when a second screen (budgets, opening balance) needs amount input.
 
@@ -101,7 +110,8 @@ Reference only: what each component animates by itself. Hand-animating something
 | Primary actions | `Button`, `FilledTonalButton`, `OutlinedButton`, `TextButton`, `SplitButtonLayout` |
 | Period / type selectors | `ButtonGroup` (connected), `ToggleButton`, `SegmentedButton` |
 | Single choice from an open-ended list (account, category) | `ToggleButton` (icon + label) in a wrapping `FlowRow`, `Role.RadioButton` semantics (ADR-018) |
-| Filters | `FilterChip`, `InputChip` |
+| Filters | `FilterChip` (with `shapes`), `InputChip` |
+| Search | Collapsed `SearchBar` + `ExpandedFullScreenSearchBar` (ADR-022) |
 | Lists | `ListItem`, `SegmentedListItem` |
 | Containers | `Card`, `ElevatedCard`, `OutlinedCard` |
 | Forms | `OutlinedTextField`, `DatePicker`, `TimePicker`, `ExposedDropdownMenuBox` |

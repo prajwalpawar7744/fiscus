@@ -8,6 +8,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.prajwalpawar.fiscus.data.db.entity.AccountEntity
 import com.prajwalpawar.fiscus.data.db.entity.TransactionEntity
+import com.prajwalpawar.fiscus.data.repository.containsLikePattern
 import com.prajwalpawar.fiscus.model.AccountType
 import com.prajwalpawar.fiscus.model.CategoryKind
 import com.prajwalpawar.fiscus.model.TransactionType
@@ -91,6 +92,59 @@ class FiscusDatabaseTest {
         assertTrue("RESTRICT foreign key should block deleting a used account", failed)
     }
 
+    @Test
+    fun filteredQueryAppliesEveryCondition() = runTest {
+        val cashId = database.accountDao().observeAll().first().single().id
+        val bankId = database.accountDao().upsert(account("Bank", openingMinor = 0))
+        val categories = database.categoryDao().observeAll().first()
+        val food = categories.first { it.kind == CategoryKind.EXPENSE }.id
+        val salary = categories.first { it.kind == CategoryKind.INCOME }.id
+        val dao = database.transactionDao()
+        val expense = TransactionType.EXPENSE
+        val lunch = dao.upsert(
+            transaction(expense, 100, cashId, categoryId = food, at = 1_000, title = "Lunch"),
+        )
+        val pay = dao.upsert(
+            transaction(TransactionType.INCOME, 900, cashId, categoryId = salary, at = 2_000),
+        )
+        val move = dao.upsert(
+            transaction(TransactionType.TRANSFER, 50, cashId, toAccountId = bankId, at = 3_000),
+        )
+        val deal = dao.upsert(
+            transaction(expense, 10, cashId, categoryId = food, at = 4_000, note = "50% off_sale"),
+        )
+
+        suspend fun ids(
+            types: Set<TransactionType> = emptySet(),
+            accountIds: Set<Long> = emptySet(),
+            categoryIds: Set<Long> = emptySet(),
+            from: Long? = null,
+            to: Long? = null,
+            query: String = "",
+        ) = dao.observeFiltered(
+            allTypes = types.isEmpty(),
+            types = types,
+            allAccounts = accountIds.isEmpty(),
+            accountIds = accountIds,
+            allCategories = categoryIds.isEmpty(),
+            categoryIds = categoryIds,
+            fromMillis = from,
+            toMillisExclusive = to,
+            pattern = containsLikePattern(query),
+        ).first().map { it.id }
+
+        assertEquals(listOf(deal, move, pay, lunch), ids())
+        assertEquals(listOf(pay), ids(types = setOf(TransactionType.INCOME)))
+        // A transfer into the account counts for that account.
+        assertEquals(listOf(move), ids(accountIds = setOf(bankId)))
+        assertEquals(listOf(deal, lunch), ids(categoryIds = setOf(food)))
+        assertEquals(listOf(move, pay), ids(from = 2_000, to = 4_000))
+        assertEquals(listOf(lunch), ids(query = "LUN"))
+        // % and _ are literal, and the note is searched too.
+        assertEquals(listOf(deal), ids(query = "50% off_"))
+        assertEquals(emptyList<Long>(), ids(query = "5_%"))
+    }
+
     private fun account(name: String, openingMinor: Long) = AccountEntity(
         name = name,
         type = AccountType.BANK,
@@ -106,15 +160,17 @@ class FiscusDatabaseTest {
         toAccountId: Long? = null,
         categoryId: Long? = null,
         at: Long = 1_000,
+        title: String = "Test",
+        note: String = "",
     ) = TransactionEntity(
         type = type,
-        title = "Test",
+        title = title,
         amountMinor = amountMinor,
         currencyCode = "INR",
         accountId = accountId,
         toAccountId = toAccountId,
         categoryId = categoryId,
-        note = "",
+        note = note,
         occurredAtMillis = at,
         createdAtMillis = at,
         updatedAtMillis = at,

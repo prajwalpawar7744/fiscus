@@ -8,6 +8,7 @@ import com.prajwalpawar.fiscus.model.AccountWithBalance
 import com.prajwalpawar.fiscus.model.Category
 import com.prajwalpawar.fiscus.model.CategoryKind
 import com.prajwalpawar.fiscus.model.Transaction
+import com.prajwalpawar.fiscus.model.TransactionFilter
 import com.prajwalpawar.fiscus.model.TransactionType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +27,26 @@ class FakeTransactionRepository : TransactionRepository {
 
     override fun observeTransactions(accountId: Long): Flow<List<Transaction>> =
         observeTransactions().map { list -> list.filter { it.accountId == accountId || it.toAccountId == accountId } }
+
+    /** Same rules as `TransactionDao.observeFiltered`, in memory. */
+    override fun observeTransactions(filter: TransactionFilter): Flow<List<Transaction>> =
+        observeTransactions().map { list ->
+            val query = filter.query.trim()
+            list.filter { t ->
+                (filter.types.isEmpty() || t.type in filter.types) &&
+                    (
+                        filter.accountIds.isEmpty() || t.accountId in filter.accountIds ||
+                            t.toAccountId in filter.accountIds
+                        ) &&
+                    (filter.categoryIds.isEmpty() || t.categoryId in filter.categoryIds) &&
+                    (filter.from == null || t.occurredAt >= filter.from) &&
+                    (filter.toExclusive == null || t.occurredAt < filter.toExclusive) &&
+                    (
+                        query.isEmpty() || t.title.contains(query, ignoreCase = true) ||
+                            t.note.contains(query, ignoreCase = true)
+                        )
+            }
+        }
 
     override fun observeTransaction(id: Long): Flow<Transaction?> = transactions.map { list -> list.find { it.id == id } }
 

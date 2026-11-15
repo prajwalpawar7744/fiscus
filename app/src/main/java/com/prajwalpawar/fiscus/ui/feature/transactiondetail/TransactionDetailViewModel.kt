@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 /**
  * Screen-level state holder for one transaction. State is derived from repository streams with
@@ -32,6 +33,7 @@ class TransactionDetailViewModel @AssistedInject constructor(
     private val transactionRepository: TransactionRepository,
     accountRepository: AccountRepository,
     categoryRepository: CategoryRepository,
+    clock: Clock,
     timeZone: TimeZone,
 ) : ViewModel() {
 
@@ -61,6 +63,7 @@ class TransactionDetailViewModel @AssistedInject constructor(
                 isLoading = false,
                 transaction = transaction,
                 occurredAt = transaction.occurredAt.toLocalDateTime(timeZone),
+                today = clock.now().toLocalDateTime(timeZone).date,
                 account = accounts.find { it.id == transaction.accountId },
                 toAccount = transaction.toAccountId?.let { id -> accounts.find { it.id == id } },
                 category = transaction.categoryId?.let { id -> categories.find { it.id == id } },

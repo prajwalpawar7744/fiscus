@@ -5,8 +5,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.prajwalpawar.fiscus.model.Account
@@ -75,22 +77,23 @@ class TransactionDetailScreenTest {
 
         composeRule.onNodeWithText("Dinner out").assertIsDisplayed()
         composeRule.onNodeWithText("Cash").assertIsDisplayed()
-        composeRule.onNodeWithText("Food").assertIsDisplayed()
+        // The hero reads as one node: "Expense · Food, ₹1,250.00".
+        composeRule.onNode(hasContentDescription("Expense · Food", substring = true))
+            .assertIsDisplayed()
         composeRule.onNodeWithText("Dinner").assertIsDisplayed()
 
         composeRule.onNode(hasText("Edit") and hasClickAction()).performClick()
         assertTrue(edited)
 
-        composeRule.onNode(hasText("Delete") and hasClickAction()).performClick()
+        // Delete is an icon button in the floating toolbar, found by its content description.
+        composeRule.onNodeWithContentDescription("Delete").performClick()
         composeRule.onNodeWithText("Delete transaction?").assertIsDisplayed()
         composeRule.onNodeWithText("Cancel").performClick()
         composeRule.onNodeWithText("Delete transaction?").assertDoesNotExist()
 
+        composeRule.onNodeWithContentDescription("Delete").performClick()
+        // The dialog's confirm button is the only "Delete" text button.
         composeRule.onNode(hasText("Delete") and hasClickAction()).performClick()
-        // The dialog's confirm button is the last "Delete" button on screen.
-        composeRule.onAllNodes(hasText("Delete") and hasClickAction()).let { nodes ->
-            nodes[nodes.fetchSemanticsNodes().lastIndex].performClick()
-        }
 
         assertEquals(
             listOf(

@@ -112,3 +112,4 @@ Tests: `test/.../ui/feature/<name>/XxxViewModelTest.kt` using `MainDispatcherRul
 - Tests:
   - JVM: models and pure logic in `app/src/test`. Fakes are in `testing/FakeRepositories.kt`.
   - Device: DAO queries, seeding, and anything that uses `android.icu` live in `app/src/androidTest` (in-memory DB). Run with `./gradlew connectedDebugAndroidTest`.
+- Filtering is done in SQL, not in ViewModels: list screens pass a `model/` filter (e.g. `TransactionFilter`) to the repository, which turns it into one DAO query (ADR-022).

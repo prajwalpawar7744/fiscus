@@ -26,4 +26,11 @@ object FiscusLayout {
 
     /** Size of a [androidx.compose.material3.MaterialShapes] icon accent. */
     val AccentSize = 40.dp
+
+    /** An icon set inline with text, e.g. the arrow before a list amount (ADR-026). */
+    val InlineIconSize = 18.dp
+
+    /** Size of the large shape accent in empty states, and of its icon (ADR-023). */
+    val LargeAccentSize = 96.dp
+    val LargeAccentIconSize = 48.dp
 }

@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import com.prajwalpawar.fiscus.R
 import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
@@ -28,7 +29,8 @@ import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
  * accent (M3_EXPRESSIVE.md §3: expressive shapes for accents such as category icons, never on data
  * containers). Always pass a matching color-role pair (e.g. `secondaryContainer` +
  * `onSecondaryContainer`, or `tertiary` + `onTertiary`). Decorative: the label next to it describes
- * it, so the icon has no content description.
+ * it, so the icon has no content description. [size] and [iconSize] default to the list-sized
+ * accent; empty states use `FiscusLayout.LargeAccentSize` / `LargeAccentIconSize`.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class) // MaterialShapes
 @Composable
@@ -37,15 +39,21 @@ fun ShapeAccentIcon(
     modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+    size: Dp = FiscusLayout.AccentSize,
+    iconSize: Dp? = null,
 ) {
     Surface(
         shape = MaterialShapes.Cookie9Sided.toShape(),
         color = containerColor,
         contentColor = contentColor,
-        modifier = modifier.size(FiscusLayout.AccentSize),
+        modifier = modifier.size(size),
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Icon(painterResource(icon), contentDescription = null)
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = null,
+                modifier = if (iconSize != null) Modifier.size(iconSize) else Modifier,
+            )
         }
     }
 }

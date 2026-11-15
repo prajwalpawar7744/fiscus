@@ -112,6 +112,9 @@ fun FiscusApp(modifier: Modifier = Modifier) {
                         TransactionsRoute(
                             onOpenSettings = openSettings,
                             onAddTransaction = addTransaction,
+                            onOpenTransaction = { id ->
+                                navigator.navigate(TransactionDetailNavKey(id))
+                            },
                         )
                     }
                     entry<BudgetsNavKey> { BudgetsRoute(onOpenSettings = openSettings) }

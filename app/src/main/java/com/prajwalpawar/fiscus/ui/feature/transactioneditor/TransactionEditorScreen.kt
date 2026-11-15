@@ -91,7 +91,9 @@ import com.prajwalpawar.fiscus.ui.components.DockedDatePickerField
 import com.prajwalpawar.fiscus.ui.components.ShapeAccentIcon
 import com.prajwalpawar.fiscus.ui.components.SingleChoiceToggleGroup
 import com.prajwalpawar.fiscus.ui.components.TransactionTypeDisplayOrder
+import com.prajwalpawar.fiscus.ui.components.accentRoles
 import com.prajwalpawar.fiscus.ui.components.categoryIconRes
+import com.prajwalpawar.fiscus.ui.components.heroRoles
 import com.prajwalpawar.fiscus.ui.components.iconRes
 import com.prajwalpawar.fiscus.ui.components.labelRes
 import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
@@ -350,17 +352,9 @@ private fun AmountHero(
 ) {
     val motion = MaterialTheme.motionScheme
     val colors = MaterialTheme.colorScheme
-    val roles = when (uiState.type) {
-        TransactionType.EXPENSE -> HeroRoles(
-            colors.tertiaryContainer, colors.onTertiaryContainer, colors.tertiary, colors.onTertiary,
-        )
-        TransactionType.INCOME -> HeroRoles(
-            colors.secondaryContainer, colors.onSecondaryContainer, colors.secondary, colors.onSecondary,
-        )
-        TransactionType.TRANSFER -> HeroRoles(
-            colors.surfaceContainerHighest, colors.onSurface, colors.primary, colors.onPrimary,
-        )
-    }
+    val typeAccent = uiState.type.accentRoles()
+    val hero = uiState.type.heroRoles()
+    val roles = HeroRoles(hero.container, hero.content, typeAccent.container, typeAccent.content)
     val effects = motion.defaultEffectsSpec<Color>()
     val container by animateColorAsState(roles.container, effects, label = "heroContainer")
     val content by animateColorAsState(roles.onContainer, effects, label = "heroContent")

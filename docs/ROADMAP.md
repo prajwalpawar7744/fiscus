@@ -24,7 +24,8 @@
 - [x] M1a data foundation: models, Room 3 schema v1, seed data, repositories, DI, tests (ADR-016/017)
 - [x] Add / edit / delete transaction: FAB menu (Home, Transactions), full-screen editor, detail screen with edit/delete (ADR-018)
 - [x] Required transaction title, schema v2 with migration (ADR-021)
-- [ ] Transaction list grouped by day, with search and filter
+- [x] Transaction list grouped by day, with search and filter (ADR-022)
+- [ ] Transactions list-detail (two panes) on medium/expanded widths (ADR-022; needs the material3-adaptive Navigation 3 scene strategy)
 
 ## M2 Accounts & Categories
 - [ ] Manage accounts and balances

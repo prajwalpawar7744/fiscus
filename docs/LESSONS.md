@@ -64,6 +64,20 @@ Mistakes made while building Fiscus, and the rule each one produced. **Read this
    - What happened: a review found per-file spacing constants, a sign built in Kotlin, a missing preview, mixed ViewModel patterns and mis-indented top bars, all against rules already in the docs. The docs were read before the work, but the code was only checked by build, tests and lint, which can't see convention breaks. Existing code that broke the rules was copied instead of the written rule, and an unfollowable rule ("dimensions from theme tokens", with no tokens) was silently worked around.
    - Rule: before reporting done, run the conformance check (process checklist step 6). When code and docs disagree, or a rule can't be followed, stop and ask; then fix whichever side is wrong.
 
+## 2026-11-15: Transaction list (M1)
+
+16. **Overwriting files with a one-liner, unchecked.**
+   - What happened: an icon import loop wrote straight to `res/drawable/`. It overwrote the existing `ic_close_rounded.xml`, and deleting the `android:tint` line also removed the `>` that closes `<vector>`, which left broken XML. Both were caught and fixed before building.
+   - Rule: check that the target doesn't exist before writing it (`test -e`), and after removing the tint line, check that the `<vector …>` tag is still closed (`head -6`).
+
+17. **Proposing a component layout before reading how the component works.**
+   - What happened: the plan offered "a search icon opens `ExpandedFullScreenSearchBar`", and the user picked it. The sources then showed that the expanded bar animates out of a collapsed `SearchBar` on screen, so the user had to be asked again.
+   - Rule: before offering a component arrangement as an option, read its KDoc and samples in the sources jar for the pattern it expects (what state it shares, what must also be on screen).
+
+18. **Tests that skip the gesture the user makes.**
+   - What happened: the Category sheet "stopped responding" on the phone, but three instrumented tests passed. They reached the lower rows with `performScrollTo` (a semantic scroll), and the bug only happens after a real swipe that first expands the half-height sheet. An injected `swipeUp()` reproduced it at once.
+   - Rule: when a bug report involves reaching or moving something, reproduce it with touch input (`performTouchInput { swipeUp() }`) before changing code. Ask the user for the exact steps first: "can't select income categories" pointed straight at the below-the-fold rows.
+
 ## Process checklist (every task, including scaffolding)
 1. Read CLAUDE.md and every file in `docs/`, including this one.
 2. Plan: list the docs and ADRs that apply, the §9 checklist answers per screen, and any source still marked unread (ask for it).

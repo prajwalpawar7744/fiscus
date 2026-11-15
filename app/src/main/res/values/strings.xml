@@ -20,12 +20,21 @@
     <string name="action_delete">Delete</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_choose_date">Choose date</string>
+    <string name="action_apply">Apply</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_done">Done</string>
+    <string name="action_clear_search">Clear search</string>
     <string name="state_expanded">Expanded</string>
     <string name="state_collapsed">Collapsed</string>
 
     <!-- Signed amounts (the sign is text, so it can be localized; never rely on color alone) -->
     <string name="amount_signed_expense">−%1$s</string>
     <string name="amount_signed_income">+%1$s</string>
+
+    <!-- Days and ranges -->
+    <string name="day_today">Today</string>
+    <string name="day_yesterday">Yesterday</string>
+    <string name="date_range">%1$s – %2$s</string>
 
     <!-- Transaction types -->
     <string name="transaction_type_expense">Expense</string>
@@ -64,12 +73,46 @@
     <string name="detail_title">Transaction</string>
     <string name="detail_amount_description">%1$s, %2$s</string>
     <string name="detail_unknown">Unknown</string>
+    <string name="detail_subtitle">%1$s · %2$s</string>
+    <string name="detail_hero_line">%1$s · %2$s</string>
+    <string name="detail_type">Type</string>
     <string name="detail_delete_title">Delete transaction?</string>
     <string name="detail_delete_message">This transaction will be permanently removed.</string>
     <string name="detail_result_deleted">Transaction deleted</string>
 
-    <!-- Placeholders -->
+    <!-- Transaction list -->
     <string name="transactions_empty">Your transactions will appear here.</string>
+    <string name="transactions_filtered_empty">No transactions match these filters.</string>
+    <string name="transactions_search_placeholder">Search transactions</string>
+    <string name="transactions_search_empty">No matching transactions.</string>
+    <string name="transactions_search_hint">Search by title or note.</string>
+    <plurals name="transactions_search_results">
+        <item quantity="one">%d result</item>
+        <item quantity="other">%d results</item>
+    </plurals>
+    <string name="transactions_supporting">%1$s · %2$s</string>
+    <string name="transactions_supporting_transfer">%1$s → %2$s</string>
+    <string name="transactions_filter_type">Type</string>
+    <string name="transactions_filter_account">Account</string>
+    <string name="transactions_filter_category">Category</string>
+    <string name="transactions_filter_date">Date</string>
+    <string name="transactions_filter_clear">Clear filters</string>
+    <string name="transactions_summary_all_time">All time</string>
+    <string name="transactions_summary_net">Net</string>
+    <plurals name="transactions_filter_types">
+        <item quantity="one">%d type</item>
+        <item quantity="other">%d types</item>
+    </plurals>
+    <plurals name="transactions_filter_accounts">
+        <item quantity="one">%d account</item>
+        <item quantity="other">%d accounts</item>
+    </plurals>
+    <plurals name="transactions_filter_categories">
+        <item quantity="one">%d category</item>
+        <item quantity="other">%d categories</item>
+    </plurals>
+
+    <!-- Placeholders -->
     <string name="budgets_empty">Your budgets will appear here.</string>
     <string name="insights_empty">Your spending insights will appear here.</string>
     <string name="settings_empty">Settings will appear here.</string>
