@@ -33,7 +33,21 @@ fun parseMoneyInput(text: String, currencyCode: String): Money? {
     return minor?.takeIf { it > 0L }?.let { Money(it, currencyCode) }
 }
 
-/** Plain editable text for [money], e.g. 1999 INR → "19.99" (no symbol or grouping). */
+/**
+ * Plain editable text for [money], e.g. 1999 INR → "19.99", 20000 INR → "200" (no symbol or
+ * grouping; decimals only when there are any, ADR-029).
+ */
 fun formatMoneyInput(money: Money): String =
     BigDecimal.valueOf(money.amountMinor, currencyFractionDigits(money.currencyCode))
+        .setScale(displayFractionDigits(money))
         .toPlainString()
+
+/**
+ * How many decimals to show for [money] (ADR-029): none for a whole amount ("200"), otherwise all
+ * of the currency's ("50.02", "50.50"; never "50.5"). Display only; storage stays minor units.
+ */
+fun displayFractionDigits(money: Money): Int {
+    val digits = currencyFractionDigits(money.currencyCode)
+    val unit = BigDecimal.TEN.pow(digits).toLong()
+    return if (money.amountMinor % unit == 0L) 0 else digits
+}

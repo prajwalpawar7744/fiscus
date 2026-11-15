@@ -33,7 +33,7 @@ AccountWithBalance(account, balance: Money)
 - **Transfer**: it needs a `toAccountId` that differs from `accountId`, and has no category. It doesn't count toward income/expense totals.
 - **Balance** = opening + income − expense − transfers out + transfers in (one SQL query: `AccountDao.observeBalances`).
 - `Money` arithmetic requires the same currency, and overflow throws instead of wrapping.
-- Display: `formatMoney(money, locale)` (Android ICU: exact, locale grouping including Indian lakh/crore, the currency's fraction digits). Amount text uses `.tabularNumbers`.
+- Display: `formatMoney(money, locale)` (Android ICU: exact, locale grouping including Indian lakh/crore). **Decimals only when there are any** (ADR-029): "₹200", but "₹50.02" / "₹50.50" (all of the currency's digits, never "₹50.5"). The editor's amount text follows the same rule (`formatMoneyInput`); both use `displayFractionDigits`. Amount text uses `.tabularNumbers`.
 
 ## Migrations (ADR-017)
 - **v1 → v2** (`Migration1To2`, manual): adds `title`. Existing rows get, in order: the category's name, the trimmed note, or the localized type label ("Expense" / "Income" / "Transfer"). Tested in `MigrationTest`.

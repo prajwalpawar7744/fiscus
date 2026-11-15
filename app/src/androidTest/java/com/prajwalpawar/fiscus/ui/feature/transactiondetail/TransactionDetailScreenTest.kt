@@ -8,7 +8,6 @@ import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.prajwalpawar.fiscus.model.Account
@@ -85,15 +84,16 @@ class TransactionDetailScreenTest {
         composeRule.onNode(hasText("Edit") and hasClickAction()).performClick()
         assertTrue(edited)
 
-        // Delete is an icon button in the floating toolbar, found by its content description.
-        composeRule.onNodeWithContentDescription("Delete").performClick()
+        composeRule.onNode(hasText("Delete") and hasClickAction()).performClick()
         composeRule.onNodeWithText("Delete transaction?").assertIsDisplayed()
         composeRule.onNodeWithText("Cancel").performClick()
         composeRule.onNodeWithText("Delete transaction?").assertDoesNotExist()
 
-        composeRule.onNodeWithContentDescription("Delete").performClick()
-        // The dialog's confirm button is the only "Delete" text button.
         composeRule.onNode(hasText("Delete") and hasClickAction()).performClick()
+        // With the dialog open, its confirm button is the last "Delete" button on screen.
+        composeRule.onAllNodes(hasText("Delete") and hasClickAction()).let { nodes ->
+            nodes[nodes.fetchSemanticsNodes().lastIndex].performClick()
+        }
 
         assertEquals(
             listOf(

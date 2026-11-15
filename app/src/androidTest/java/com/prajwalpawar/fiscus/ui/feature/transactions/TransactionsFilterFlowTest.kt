@@ -5,7 +5,6 @@ import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeUp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -132,8 +131,7 @@ class TransactionsFilterFlowTest {
         // Reach the income categories the way a finger does: swipe the sheet up (this first
         // expands the half-height sheet, then scrolls the list), twice.
         repeat(2) {
-            composeRule.onNode(hasText("Category") and hasClickAction().not())
-                .performTouchInput { swipeUp() }
+            sheetRow("Groceries").performTouchInput { swipeUp() }
             composeRule.waitForIdle()
         }
         // "Salary" has no transactions, so the list under the sheet becomes empty.

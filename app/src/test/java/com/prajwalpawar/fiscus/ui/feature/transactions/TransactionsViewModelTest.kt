@@ -167,6 +167,32 @@ class TransactionsViewModelTest {
     }
 
     @Test
+    fun `shows only this month by default, and search looks through every month`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            transactions.save(transaction("Lunch", "2026-11-03T06:00:00Z"))
+            transactions.save(transaction("Old lunch", "2026-10-31T06:00:00Z"))
+            val viewModel = viewModel()
+
+            assertEquals(listOf("Lunch"), viewModel.uiState.value.titles())
+
+            viewModel.onEvent(TransactionsEvent.QueryChanged("lunch"))
+            advanceUntilIdle()
+            assertEquals(listOf("Lunch", "Old lunch"), viewModel.uiState.value.titles())
+        }
+
+    @Test
+    fun `current month spans the whole calendar month`() {
+        assertEquals(
+            LocalDate(2026, 2, 1)..LocalDate(2026, 2, 28),
+            currentMonth(LocalDate(2026, 2, 14)),
+        )
+        assertEquals(
+            LocalDate(2026, 12, 1)..LocalDate(2026, 12, 31),
+            currentMonth(LocalDate(2026, 12, 31)),
+        )
+    }
+
+    @Test
     fun `type filter toggles and clear removes every chip filter`() =
         runTest(mainDispatcherRule.testDispatcher) {
             transactions.save(transaction("Lunch", "2026-11-15T05:00:00Z"))

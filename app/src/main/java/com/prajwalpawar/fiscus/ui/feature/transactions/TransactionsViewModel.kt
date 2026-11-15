@@ -12,6 +12,8 @@ import com.prajwalpawar.fiscus.model.Transaction
 import com.prajwalpawar.fiscus.model.TransactionFilter
 import com.prajwalpawar.fiscus.model.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlin.time.Clock
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,13 +25,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateRange
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
-import javax.inject.Inject
-import kotlin.time.Clock
 
 /**
  * Screen-level state holder for the transaction list (ADR-022). What the user chose (query, chip
@@ -98,14 +100,22 @@ class TransactionsViewModel @Inject constructor(
         }
     }
 
-    private fun ListForm.toFilter() = TransactionFilter(
-        query = query,
-        types = types,
-        accountIds = accountIds,
-        categoryIds = categoryIds,
-        from = dateRange?.start?.atStartOfDayIn(timeZone),
-        toExclusive = dateRange?.endInclusive?.plus(DatePeriod(days = 1))?.atStartOfDayIn(timeZone),
-    )
+    /**
+     * The database filter (ADR-029). Without a picked range the list shows **the current month**;
+     * a search looks through every month unless a range was picked.
+     */
+    private fun ListForm.toFilter(): TransactionFilter {
+        val today = clock.now().toLocalDateTime(timeZone).date
+        val range = dateRange ?: currentMonth(today).takeIf { query.isBlank() }
+        return TransactionFilter(
+            query = query,
+            types = types,
+            accountIds = accountIds,
+            categoryIds = categoryIds,
+            from = range?.start?.atStartOfDayIn(timeZone),
+            toExclusive = range?.endInclusive?.plus(DatePeriod(days = 1))?.atStartOfDayIn(timeZone),
+        )
+    }
 
     private fun groupByDay(
         transactions: List<Transaction>,
@@ -123,7 +133,6 @@ class TransactionsViewModel @Inject constructor(
                     items = dayTransactions.map { transaction ->
                         TransactionListEntry(
                             transaction = transaction,
-                            occurredAt = transaction.occurredAt.toLocalDateTime(timeZone),
                             account = accountsById[transaction.accountId],
                             toAccount = transaction.toAccountId?.let(accountsById::get),
                             category = transaction.categoryId?.let(categoriesById::get),
@@ -170,5 +179,11 @@ internal fun summarize(transactions: List<Transaction>): PeriodSummary? {
 
 /** Income minus expense for one day; null like [summarize]. */
 internal fun dayNet(transactions: List<Transaction>): Money? = summarize(transactions)?.net
+
+/** The calendar month containing [today], first to last day. */
+internal fun currentMonth(today: LocalDate): LocalDateRange {
+    val first = LocalDate(today.year, today.month, 1)
+    return first..first.plus(DatePeriod(months = 1)).minus(DatePeriod(days = 1))
+}
 
 private fun <T> Set<T>.toggle(item: T): Set<T> = if (item in this) this - item else this + item

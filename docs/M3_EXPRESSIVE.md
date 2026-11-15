@@ -133,7 +133,7 @@ Official Expressive component set [M3 blog]: app bars, **button groups** (new), 
 - **Tokens** [LIB]: `MaterialTheme.motionScheme.`
   - **Spatial** (position, size, scale, rotation; may overshoot or bounce): `fastSpatialSpec()`, `defaultSpatialSpec()`, `slowSpatialSpec()`
   - **Effects** (color, alpha; no overshoot): `fastEffectsSpec()`, `defaultEffectsSpec()`, `slowEffectsSpec()`
-  - Shared elements: `motionScheme.sharedElementTransitionSpec` [S3]
+  - Shared elements: ⚠️ *not in material3 1.5.0-rc01.* `MotionScheme` has no `sharedElementTransitionSpec`, and material3 has no container-transform API (sources checked 2026-11-15). Androidify's version is app code [S3].
 - Pick the speed by the size of the change: small (fast), component-level (default), full-screen (slow).
 - From m3.material.io [M3]:
   - The motion physics system (springs) **replaces** easing and duration. Easing and duration is "no longer maintained", but is "still used for transitions."
@@ -148,7 +148,7 @@ Official Expressive component set [M3 blog]: app bars, **button groups** (new), 
 
 ### Transitions (M3 transition patterns, read 2026-11-15)
 - **Transitions still use the legacy easing-and-duration system**, not springs, and that system is no longer maintained. material3 does **not** expose its easing/duration tokens publicly (they are `internal`).
-- **Fiscus rule (ADR-019 amendment):** screen-to-screen transitions use **Navigation 3's default `NavDisplay` transitions**. Never write our own transition specs and never copy internal library tokens. Revisit when Google ships public M3 transition APIs.
+- **Fiscus rule (ADR-030, user decision 2026-11-15; supersedes the ADR-019 amendment):** **all** motion, page transitions included, uses the theme's **M3 Expressive spring tokens** (`MaterialTheme.motionScheme`). Pages cross-fade (`pageCrossFade`: enter on `defaultEffectsSpec`, exit on `fastEffectsSpec`) for open, Back and predictive back. An item that opens its page uses the container transform (`sharedContainer`), with bounds on `slowSpatialSpec` (full-screen) and fades on effects specs. Never write numeric specs (`tween`, durations, easing) and never copy internal library tokens. M3 says transitions still use the legacy easing system, which isn't public, so the theme springs are the closest public equivalent. Revisit when Google ships public M3 transition APIs.
 - Pattern guide (to judge library defaults and future APIs): container transform (FAB/card → detail, most expressive; needs user approval for Fiscus), forward/backward (Android: slide + fade), lateral (tabs, slide in unison), top level (fade out, then fade in), enter/exit (expand/collapse along x or y, **no scale**, direction away from the nearest edge), skeleton loaders.
 - In-screen motion (component state changes, section swaps, color changes) uses `MaterialTheme.motionScheme` springs (motion physics system). Prefer built-in component motion over hand animation.
 - Motion responds to touch. For example, neighboring notifications "subtly respond to your drag" with haptics. [S2] Pair key interactions with haptics.
@@ -196,14 +196,14 @@ MaterialExpressiveTheme(
 ```
 - Press feedback: scale with `MaterialTheme.motionScheme.defaultSpatialSpec<Float>()`.
 - Hero shapes: `MaterialShapes.*.toShape()`.
-- Screen-to-screen: shared bounds with `motionScheme.sharedElementTransitionSpec`.
+- Screen-to-screen: Androidify uses shared bounds with its own spec. ⚠️ material3 rc01 has no such public spec (see §5), so for Fiscus this is custom motion and needs the user's approval.
 - ⚠️ Androidify's `sharedBoundsRevealWithShapeMorph` / `MorphOverlayClip` is **custom code, not a library API**. Under our rules it needs user approval before we use something similar.
 
 ## 9. Checklist for every screen
 - [ ] One clear hero or primary action, emphasized with size, color role, or an emphasized type style
 - [ ] Data (amounts, lists, forms) is calm, labeled, and familiar
 - [ ] Every animation uses `motionScheme` tokens, spatial vs effects chosen correctly; no `tween`, no copied internal tokens; no scale for enter/exit
-- [ ] Screen transitions are the library defaults (no custom `transitionSpec`)
+- [ ] Screen transitions use the app's `pageCrossFade` / `sharedContainer` (theme springs only, ADR-030); no other `transitionSpec`
 - [ ] Shapes come from the shape scale or MaterialShapes; decorative shapes only on accents
 - [ ] Color comes from roles only; works with dynamic color on and off, light and dark and in standard, medium, and high contrast
 - [ ] Expressive shapes only where they carry meaning or decoration (not on data); motion uses default speed unless the element is small or full-screen

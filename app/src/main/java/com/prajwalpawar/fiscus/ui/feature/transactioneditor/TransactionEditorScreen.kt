@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -31,8 +30,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -86,8 +83,10 @@ import com.prajwalpawar.fiscus.model.Category
 import com.prajwalpawar.fiscus.model.CategoryKind
 import com.prajwalpawar.fiscus.model.Money
 import com.prajwalpawar.fiscus.model.TransactionType
+import com.prajwalpawar.fiscus.ui.components.ActionButtonGroup
 import com.prajwalpawar.fiscus.ui.components.CurrencyPrefixTransformation
 import com.prajwalpawar.fiscus.ui.components.DockedDatePickerField
+import com.prajwalpawar.fiscus.ui.components.GroupAction
 import com.prajwalpawar.fiscus.ui.components.ShapeAccentIcon
 import com.prajwalpawar.fiscus.ui.components.SingleChoiceToggleGroup
 import com.prajwalpawar.fiscus.ui.components.TransactionTypeDisplayOrder
@@ -152,10 +151,16 @@ fun TransactionEditorScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     SaveHint(hint = uiState.saveHint)
-                    SaveButton(
-                        enabled = uiState.canSave,
-                        isSaving = uiState.isSaving,
-                        onClick = { onEvent(TransactionEditorEvent.Save) },
+                    // The shared action group, like every page's actions (ADR-028).
+                    ActionButtonGroup(
+                        actions = listOf(
+                            GroupAction(
+                                label = stringResource(R.string.editor_save),
+                                onClick = { onEvent(TransactionEditorEvent.Save) },
+                                enabled = uiState.canSave,
+                                isLoading = uiState.isSaving,
+                            ),
+                        ),
                         modifier = Modifier.widthIn(max = FiscusLayout.MaxContentWidth),
                     )
                 }
@@ -165,7 +170,9 @@ fun TransactionEditorScreen(
         AnimatedContent(
             targetState = uiState.isLoading,
             transitionSpec = {
-                fadeIn(motion.defaultEffectsSpec()) togetherWith fadeOut(motion.fastEffectsSpec())
+                fadeIn(motion.defaultEffectsSpec())
+                    .togetherWith(fadeOut(motion.fastEffectsSpec()))
+                    .using(SizeTransform { _, _ -> motion.defaultSpatialSpec() })
             },
             label = "editorLoading",
             modifier = Modifier
@@ -386,6 +393,7 @@ private fun AmountHero(
                 transitionSpec = {
                     (slideInVertically(motion.fastSpatialSpec()) { it / 2 } + fadeIn(motion.fastEffectsSpec()))
                         .togetherWith(slideOutVertically(motion.fastSpatialSpec()) { -it / 2 } + fadeOut(motion.fastEffectsSpec()))
+                        .using(SizeTransform { _, _ -> motion.fastSpatialSpec() })
                 },
                 label = "heroType",
             ) { type ->
@@ -461,7 +469,11 @@ private fun HeroSummary(uiState: TransactionEditorUiState, modifier: Modifier = 
     val prompt = if (uiState.amountText.isBlank()) stringResource(R.string.editor_hint_amount) else null
     AnimatedContent(
         targetState = error ?: summary ?: prompt.orEmpty(),
-        transitionSpec = { fadeIn(motion.fastEffectsSpec()) togetherWith fadeOut(motion.fastEffectsSpec()) },
+        transitionSpec = {
+            fadeIn(motion.fastEffectsSpec())
+                .togetherWith(fadeOut(motion.fastEffectsSpec()))
+                .using(SizeTransform { _, _ -> motion.fastSpatialSpec() })
+        },
         label = "heroSummary",
         modifier = modifier.semantics { liveRegion = LiveRegionMode.Polite },
     ) { line ->
@@ -492,7 +504,11 @@ private fun SaveHint(@StringRes hint: Int?) {
         if (hint != null) lastHint = hint
         AnimatedContent(
             targetState = lastHint,
-            transitionSpec = { fadeIn(motion.fastEffectsSpec()) togetherWith fadeOut(motion.fastEffectsSpec()) },
+            transitionSpec = {
+                fadeIn(motion.fastEffectsSpec())
+                    .togetherWith(fadeOut(motion.fastEffectsSpec()))
+                    .using(SizeTransform { _, _ -> motion.fastSpatialSpec() })
+            },
             label = "saveHint",
         ) { res ->
             if (res != 0) {
@@ -511,45 +527,6 @@ private fun SaveHint(@StringRes hint: Int?) {
     }
 }
 
-/**
- * Large primary action. Its shape morphs on press (built into the Expressive button) and its
- * content swaps to a [LoadingIndicator] while saving.
- */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class) // button size helpers, LoadingIndicator
-@Composable
-private fun SaveButton(
-    enabled: Boolean,
-    isSaving: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val motion = MaterialTheme.motionScheme
-    val height = ButtonDefaults.MediumContainerHeight
-    Button(
-        onClick = onClick,
-        shapes = ButtonDefaults.shapesFor(height),
-        enabled = enabled && !isSaving,
-        contentPadding = ButtonDefaults.contentPaddingFor(height),
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = height),
-    ) {
-        AnimatedContent(
-            targetState = isSaving,
-            transitionSpec = {
-                // Cross-fade only: M3 enter/exit patterns avoid scale (it implies elevation change).
-                fadeIn(motion.fastEffectsSpec()) togetherWith fadeOut(motion.fastEffectsSpec())
-            },
-            label = "saveContent",
-        ) { saving ->
-            if (saving) {
-                LoadingIndicator(modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)))
-            } else {
-                Text(stringResource(R.string.editor_save), style = ButtonDefaults.textStyleFor(height))
-            }
-        }
-    }
-}
 
 private val PreviewAccounts = listOf(
     Account(1, "Cash", AccountType.CASH, "INR", Money(0, "INR")),

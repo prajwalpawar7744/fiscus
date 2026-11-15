@@ -7,7 +7,6 @@ import com.prajwalpawar.fiscus.model.Transaction
 import com.prajwalpawar.fiscus.model.TransactionType
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateRange
-import kotlinx.datetime.LocalDateTime
 
 /** Immutable UI state for the Transactions screen (ADR-022). */
 data class TransactionsUiState(
@@ -19,6 +18,7 @@ data class TransactionsUiState(
     val selectedTypes: Set<TransactionType> = emptySet(),
     val selectedAccountIds: Set<Long> = emptySet(),
     val selectedCategoryIds: Set<Long> = emptySet(),
+    /** A picked range; null means the default, **this month** (ADR-029). */
     val dateRange: LocalDateRange? = null,
     /** The search query as typed; results show in the expanded search bar and highlight it. */
     val query: String = "",
@@ -52,8 +52,6 @@ data class TransactionDaySection(
 /** A transaction with the names it refers to, resolved in the ViewModel. */
 data class TransactionListEntry(
     val transaction: Transaction,
-    /** When it happened, in the user's time zone; the row shows its time. */
-    val occurredAt: LocalDateTime,
     val account: Account?,
     /** Destination account; only for transfers. */
     val toAccount: Account?,

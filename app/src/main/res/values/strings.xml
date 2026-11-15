@@ -81,7 +81,7 @@
     <string name="detail_result_deleted">Transaction deleted</string>
 
     <!-- Transaction list -->
-    <string name="transactions_empty">Your transactions will appear here.</string>
+    <string name="transactions_empty_month">No transactions this month yet.</string>
     <string name="transactions_filtered_empty">No transactions match these filters.</string>
     <string name="transactions_search_placeholder">Search transactions</string>
     <string name="transactions_search_empty">No matching transactions.</string>
@@ -95,9 +95,8 @@
     <string name="transactions_filter_type">Type</string>
     <string name="transactions_filter_account">Account</string>
     <string name="transactions_filter_category">Category</string>
-    <string name="transactions_filter_date">Date</string>
     <string name="transactions_filter_clear">Clear filters</string>
-    <string name="transactions_summary_all_time">All time</string>
+    <string name="transactions_this_month">This month</string>
     <string name="transactions_summary_net">Net</string>
     <plurals name="transactions_filter_types">
         <item quantity="one">%d type</item>

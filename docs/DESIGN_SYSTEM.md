@@ -36,7 +36,7 @@
 - Hand-built replacements for Material components. Examples: a custom button drawn from `Box` + `clickable`, a custom chip, a hand-drawn progress bar, or a custom bottom sheet.
 - Hardcoded colors, font sizes, corner radii, or animation specs in screens.
 - **Writing our own design tokens or copying library-internal ones** (e.g. material3's `internal MotionTokens` easing/durations). If the library doesn't expose it publicly, use the library default or ask the user.
-- Custom screen-transition specs on `NavDisplay`: use Navigation 3's defaults (ADR-019).
+- Screen-transition specs other than the app's `pageCrossFade` (in `FiscusApp`) and `sharedContainer`, or any transition with numeric timings (`tween`, durations). Both run only on `MaterialTheme.motionScheme` springs (ADR-030).
 - Scale-based enter/exit animations (M3 transition patterns avoid scale).
 - Patterns that aren't in the M3 guidelines.
 - **If a need has no M3 component** (for example, charts), stop and ask the user. Record the outcome as an ADR.
@@ -77,6 +77,9 @@
 | `CurrencyPrefixTransformation(symbol)` | Showing a currency symbol in an amount field | Display only; works with centered text, unlike `prefix` |
 | `categoryIconRes(iconKey)` | Category icon drawable | Unknown keys fall back to "category" |
 | `ShapeAccentIcon(icon, containerColor?, contentColor?, size?, iconSize?)` | The one decorative shape accent (icon in a `MaterialShapes.Cookie9Sided`) | Pass a matching role pair; accents only, never data containers. Empty states: `FiscusLayout.LargeAccentSize` / `LargeAccentIconSize` |
+| `ActionButtonGroup(actions: List<GroupAction>)` | **Every page's actions** (Save; Delete/Edit; Clear/Done) | One Expressive `ButtonGroup`, medium buttons; `ActionStyle.Primary/Secondary/Danger`; loading state (ADR-028). Never a lone `Button` row |
+| `Modifier.sharedContainer(key)` + `transactionContainerKey(id)` | An item that opens its own page | Grows into the page and shrinks back (`sharedBounds`, bounds on `slowSpatialSpec`, fades on effects specs; ADR-028/030); no-op outside `NavDisplay` |
+| `AmountText(text, style, textAlign?)` | Any amount on a card or hero | One line; steps down from `style`'s size instead of wrapping (ADR-027). Tabular figures |
 | `TransactionType.heroRoles()` | The type's hero-card container pair (expense tertiaryContainer, income secondaryContainer, transfer surfaceContainerHighest) | Editor and detail heroes (ADR-024/025) |
 | `containedSegmentedColors()` | `SegmentedListItem`s on the screen background | `surfaceContainer` instead of the default `surface`, so groups are visibly contained (ADR-025). Not inside sheets |
 | `TransactionType.accentRoles()` | The type's accent role pair (expense tertiary, income secondary, transfer primary) | The only type → accent mapping (editor hero, list, summary; ADR-023) |

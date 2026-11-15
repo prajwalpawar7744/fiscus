@@ -44,8 +44,7 @@ import kotlin.time.Instant
  * type's accent roles, matching the editor hero (ADR-023). The data stays calm (M3_EXPRESSIVE.md
  * §1): the title as headline, [supportingText] (e.g. "Food · Cash") and the signed amount in
  * tabular figures. Rows sit on `surfaceContainer` ([containedSegmentedColors]); the headline is
- * `titleMedium`, the amount follows its type's arrow (ADR-026), with an optional [caption] (the
- * time) below.
+ * `titleMedium`, the amount follows its type's arrow (ADR-026).
  * TalkBack reads the type with the amount ("Expense, ₹450.00"), so the sign and
  * label carry the meaning, never color. In search results, pass [highlight] to emphasize the
  * matched part of the title.
@@ -58,7 +57,6 @@ fun TransactionListItem(
     onClick: () -> Unit,
     shapes: ListItemShapes,
     modifier: Modifier = Modifier,
-    caption: String? = null,
     highlight: String = "",
 ) {
     val amountDescription = stringResource(
@@ -83,25 +81,11 @@ fun TransactionListItem(
             Text(supportingText, maxLines = 1, overflow = TextOverflow.Ellipsis)
         },
         trailingContent = {
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(FiscusLayout.TightSpacing),
-            ) {
-                DirectionalAmount(
-                    type = transaction.type,
-                    amount = transaction.amount,
-                    modifier = Modifier.clearAndSetSemantics {
-                        contentDescription = amountDescription
-                    },
-                )
-                if (caption != null) {
-                    Text(
-                        text = caption,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            DirectionalAmount(
+                type = transaction.type,
+                amount = transaction.amount,
+                modifier = Modifier.clearAndSetSemantics { contentDescription = amountDescription },
+            )
         },
     ) {
         Text(
@@ -189,7 +173,6 @@ private fun TransactionListItemPreview() {
                 TransactionListItem(
                     transaction = lunch,
                     supportingText = "Food & dining · Cash",
-                    caption = "7:30 pm",
                     icon = R.drawable.ic_restaurant_rounded,
                     onClick = {},
                     shapes = ListItemDefaults.segmentedShapes(index = 0, count = 2),

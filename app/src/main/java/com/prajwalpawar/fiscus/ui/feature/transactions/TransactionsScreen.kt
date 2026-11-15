@@ -5,11 +5,11 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,15 +28,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -49,7 +45,6 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
@@ -82,7 +77,6 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.prajwalpawar.fiscus.R
 import com.prajwalpawar.fiscus.core.money.formatMoney
@@ -93,7 +87,11 @@ import com.prajwalpawar.fiscus.model.CategoryKind
 import com.prajwalpawar.fiscus.model.Money
 import com.prajwalpawar.fiscus.model.Transaction
 import com.prajwalpawar.fiscus.model.TransactionType
+import com.prajwalpawar.fiscus.ui.components.ActionButtonGroup
+import com.prajwalpawar.fiscus.ui.components.ActionStyle
 import com.prajwalpawar.fiscus.ui.components.AddTransactionFabMenu
+import com.prajwalpawar.fiscus.ui.components.AmountText
+import com.prajwalpawar.fiscus.ui.components.GroupAction
 import com.prajwalpawar.fiscus.ui.components.LocalSnackbarHostState
 import com.prajwalpawar.fiscus.ui.components.ShapeAccentIcon
 import com.prajwalpawar.fiscus.ui.components.TransactionListItem
@@ -103,7 +101,9 @@ import com.prajwalpawar.fiscus.ui.components.categoryIconRes
 import com.prajwalpawar.fiscus.ui.components.dayLabel
 import com.prajwalpawar.fiscus.ui.components.iconRes
 import com.prajwalpawar.fiscus.ui.components.labelRes
+import com.prajwalpawar.fiscus.ui.components.sharedContainer
 import com.prajwalpawar.fiscus.ui.components.signedNetText
+import com.prajwalpawar.fiscus.ui.components.transactionContainerKey
 import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 import com.prajwalpawar.fiscus.ui.theme.tabularNumbers
@@ -113,11 +113,9 @@ import kotlin.time.Instant
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateRange
-import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toJavaLocalDate
-import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
 
 /**
@@ -162,7 +160,9 @@ fun TransactionsScreen(
         AnimatedContent(
             targetState = uiState.isLoading,
             transitionSpec = {
-                fadeIn(motion.defaultEffectsSpec()) togetherWith fadeOut(motion.fastEffectsSpec())
+                fadeIn(motion.defaultEffectsSpec())
+                    .togetherWith(fadeOut(motion.fastEffectsSpec()))
+                    .using(SizeTransform { _, _ -> motion.defaultSpatialSpec() })
             },
             label = "transactionsLoading",
             modifier = Modifier
@@ -202,7 +202,7 @@ fun TransactionsScreen(
                                 SummaryCard(
                                     summary = summary,
                                     period = uiState.dateRange?.let { dateRangeLabel(it) }
-                                        ?: stringResource(R.string.transactions_summary_all_time),
+                                        ?: stringResource(R.string.transactions_this_month),
                                     modifier = Modifier.animateItem(
                                         fadeInSpec = motion.defaultEffectsSpec(),
                                         placementSpec = motion.defaultSpatialSpec(),
@@ -219,7 +219,7 @@ fun TransactionsScreen(
                                 )
                             }
                         } else {
-                            transactionSections(uiState, onOpenTransaction)
+                            transactionSections(uiState, onOpenTransaction = onOpenTransaction)
                         }
                     }
                 }
@@ -350,7 +350,7 @@ private fun SearchResults(
                 }
             }
             if (uiState.isSearching) {
-                transactionSections(uiState) { id ->
+                transactionSections(uiState, shareContainers = false) { id ->
                     // The expanded bar is a dialog above the app: close it before navigating, or
                     // it would cover the detail screen.
                     scope.launch {
@@ -408,7 +408,7 @@ private fun FilterChipRow(uiState: TransactionsUiState, onEvent: (TransactionsEv
         )
         PickerChip(
             label = uiState.dateRange?.let { dateRangeLabel(it) }
-                ?: stringResource(R.string.transactions_filter_date),
+                ?: stringResource(R.string.transactions_this_month),
             selected = uiState.dateRange != null,
             onClick = { onEvent(TransactionsEvent.PickerOpened(FilterPicker.DATE)) },
         )
@@ -477,6 +477,8 @@ private fun dateRangeLabel(range: LocalDateRange): String {
 /** One header plus a group of joined [TransactionListItem]s per day. */
 private fun LazyListScope.transactionSections(
     uiState: TransactionsUiState,
+    // Search results live in a dialog window, outside the shared-transition layout.
+    shareContainers: Boolean = true,
     onOpenTransaction: (Long) -> Unit,
 ) {
     val today = uiState.today ?: return
@@ -497,14 +499,22 @@ private fun LazyListScope.transactionSections(
                     ?: entry.transaction.type.iconRes,
                 onClick = { onOpenTransaction(entry.transaction.id) },
                 shapes = ListItemDefaults.segmentedShapes(index, section.items.size),
-                caption = timeLabel(entry.occurredAt),
                 highlight = uiState.query,
                 // Rows move and fade on the theme's springs as filters change (M3_EXPRESSIVE §5).
-                modifier = Modifier.animateItem(
-                    fadeInSpec = motion.defaultEffectsSpec(),
-                    placementSpec = motion.defaultSpatialSpec(),
-                    fadeOutSpec = motion.fastEffectsSpec(),
-                ),
+                modifier = Modifier
+                    .animateItem(
+                        fadeInSpec = motion.defaultEffectsSpec(),
+                        placementSpec = motion.defaultSpatialSpec(),
+                        fadeOutSpec = motion.fastEffectsSpec(),
+                    )
+                    .then(
+                        if (shareContainers) {
+                            // Grows into the detail page and shrinks back on Back (ADR-028).
+                            Modifier.sharedContainer(transactionContainerKey(entry.transaction.id))
+                        } else {
+                            Modifier
+                        },
+                    ),
             )
         }
     }
@@ -536,9 +546,9 @@ private fun SummaryCard(summary: PeriodSummary, period: String, modifier: Modifi
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Text(
+            AmountText(
                 text = netText,
-                style = MaterialTheme.typography.headlineMediumEmphasized.tabularNumbers,
+                style = MaterialTheme.typography.headlineMediumEmphasized,
                 modifier = Modifier.clearAndSetSemantics {
                     contentDescription = "$netLabel, $netText"
                 },
@@ -575,12 +585,7 @@ private fun SummaryTotal(type: TransactionType, amount: Money, modifier: Modifie
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Text(
-                text = formatted,
-                style = MaterialTheme.typography.titleMedium.tabularNumbers,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            AmountText(text = formatted, style = MaterialTheme.typography.titleMedium)
         }
     }
 }
@@ -625,11 +630,6 @@ private fun DayHeader(section: TransactionDaySection, today: LocalDate) {
     }
 }
 
-@Composable
-private fun timeLabel(dateTime: LocalDateTime): String = remember(dateTime) {
-    DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).format(dateTime.toJavaLocalDateTime())
-}
-
 /** "Food · Cash" for income and expense, "Cash → Bank" for a transfer. */
 @Composable
 private fun supportingText(entry: TransactionListEntry): String {
@@ -648,7 +648,11 @@ private fun EmptyMessage(isFiltered: Boolean, onClearFilters: () -> Unit) {
     AccentMessage(
         icon = if (isFiltered) R.drawable.ic_search_rounded else R.drawable.ic_receipt_long_rounded,
         message = stringResource(
-            if (isFiltered) R.string.transactions_filtered_empty else R.string.transactions_empty,
+            if (isFiltered) {
+                R.string.transactions_filtered_empty
+            } else {
+                R.string.transactions_empty_month
+            },
         ),
     ) {
         if (isFiltered) {
@@ -750,13 +754,6 @@ private fun FilterPickers(uiState: TransactionsUiState, onEvent: (TransactionsEv
             }.filter { it.isNotEmpty() }
         }
         CheckableSheetContent(
-            title = stringResource(
-                when (picker) {
-                    FilterPicker.TYPE -> R.string.transactions_filter_type
-                    FilterPicker.ACCOUNT -> R.string.transactions_filter_account
-                    else -> R.string.transactions_filter_category
-                },
-            ),
             groups = groups,
             onClear = { onEvent(TransactionsEvent.FilterCleared(picker)) },
             onDone = dismiss,
@@ -779,7 +776,6 @@ private data class CheckableOption(
  */
 @Composable
 private fun CheckableSheetContent(
-    title: String,
     groups: List<List<CheckableOption>>,
     onClear: () -> Unit,
     onDone: () -> Unit,
@@ -790,15 +786,6 @@ private fun CheckableSheetContent(
             contentPadding = PaddingValues(horizontal = FiscusLayout.ScreenMargin),
             verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
         ) {
-            item(key = "title") {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier
-                        .padding(bottom = FiscusLayout.ItemSpacing)
-                        .semantics { heading() },
-                )
-            }
             groups.forEachIndexed { groupIndex, options ->
                 if (groupIndex > 0) {
                     item(key = "gap-$groupIndex") {
@@ -837,8 +824,7 @@ private fun CheckableSheetContent(
     }
 }
 
-/** Clear and Done as an M3 Expressive [ButtonGroup] (press widens the pressed button). */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class) // ButtonGroup scope modifiers
+/** Clear and Done in the shared [ActionButtonGroup], like every page's actions (ADR-028). */
 @Composable
 private fun SheetActions(
     onClear: () -> Unit,
@@ -846,63 +832,18 @@ private fun SheetActions(
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val clearLabel = stringResource(R.string.action_clear)
-    val doneLabel = stringResource(R.string.action_done)
-    ButtonGroup(
-        overflowIndicator = { menuState -> ButtonGroupDefaults.OverflowIndicator(menuState) },
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        customItem(
-            buttonGroupContent = {
-                val interactionSource = remember { MutableInteractionSource() }
-                OutlinedButton(
-                    onClick = onClear,
-                    enabled = clearEnabled,
-                    shapes = ButtonDefaults.shapes(),
-                    interactionSource = interactionSource,
-                    modifier = Modifier
-                        .weight(1f)
-                        .animateWidth(interactionSource),
-                ) {
-                    Text(clearLabel)
-                }
-            },
-            menuContent = { menuState ->
-                DropdownMenuItem(
-                    text = { Text(clearLabel) },
-                    enabled = clearEnabled,
-                    onClick = {
-                        menuState.dismiss()
-                        onClear()
-                    },
-                )
-            },
-        )
-        customItem(
-            buttonGroupContent = {
-                val interactionSource = remember { MutableInteractionSource() }
-                Button(
-                    onClick = onDone,
-                    shapes = ButtonDefaults.shapes(),
-                    interactionSource = interactionSource,
-                    modifier = Modifier
-                        .weight(1f)
-                        .animateWidth(interactionSource),
-                ) {
-                    Text(doneLabel)
-                }
-            },
-            menuContent = { menuState ->
-                DropdownMenuItem(
-                    text = { Text(doneLabel) },
-                    onClick = {
-                        menuState.dismiss()
-                        onDone()
-                    },
-                )
-            },
-        )
-    }
+    ActionButtonGroup(
+        actions = listOf(
+            GroupAction(
+                label = stringResource(R.string.action_clear),
+                onClick = onClear,
+                style = ActionStyle.Secondary,
+                enabled = clearEnabled,
+            ),
+            GroupAction(label = stringResource(R.string.action_done), onClick = onDone),
+        ),
+        modifier = modifier,
+    )
 }
 
 /**
@@ -994,14 +935,12 @@ private val PreviewState = TransactionsUiState(
             items = listOf(
                 TransactionListEntry(
                     previewTransaction(1, "Lunch with team", TransactionType.EXPENSE, 45_000),
-                    LocalDateTime(2026, 11, 15, 13, 0),
                     PreviewCash,
                     null,
                     PreviewFood,
                 ),
                 TransactionListEntry(
                     previewTransaction(2, "Dinner", TransactionType.EXPENSE, 100_000),
-                    LocalDateTime(2026, 11, 15, 13, 0),
                     PreviewCash,
                     null,
                     PreviewFood,
@@ -1014,7 +953,6 @@ private val PreviewState = TransactionsUiState(
             items = listOf(
                 TransactionListEntry(
                     previewTransaction(3, "Savings", TransactionType.TRANSFER, 500_000),
-                    LocalDateTime(2026, 11, 15, 13, 0),
                     PreviewCash,
                     PreviewBank,
                     null,

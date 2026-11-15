@@ -9,6 +9,8 @@ import kotlinx.datetime.LocalDateTime
 
 /** Immutable UI state for the transaction detail screen. */
 data class TransactionDetailUiState(
+    /** From the nav key, known before loading: links the page to its list item (ADR-028). */
+    val transactionId: Long = 0L,
     val isLoading: Boolean = true,
     val transaction: Transaction? = null,
     /** When it happened, in the user's time zone (converted with the injected `TimeZone`). */

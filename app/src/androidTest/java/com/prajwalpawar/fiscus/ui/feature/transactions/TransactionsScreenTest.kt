@@ -19,7 +19,6 @@ import com.prajwalpawar.fiscus.model.Transaction
 import com.prajwalpawar.fiscus.model.TransactionType
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -55,7 +54,6 @@ class TransactionsScreenTest {
                 items = listOf(
                     TransactionListEntry(
                         transaction = lunch,
-                        occurredAt = LocalDateTime(2026, 11, 15, 13, 0),
                         account = cash,
                         toAccount = null,
                         category = food,

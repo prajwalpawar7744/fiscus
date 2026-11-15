@@ -11,6 +11,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlin.time.Clock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +21,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
 
 /**
  * Screen-level state holder for one transaction. State is derived from repository streams with
@@ -54,12 +54,14 @@ class TransactionDetailViewModel @AssistedInject constructor(
     ) { transaction, accounts, categories, showConfirmation, isDeleted ->
         if (transaction == null) {
             TransactionDetailUiState(
+                transactionId = navKey.transactionId,
                 isLoading = false,
                 isFinished = true,
                 resultMessage = if (isDeleted) R.string.detail_result_deleted else null,
             )
         } else {
             TransactionDetailUiState(
+                transactionId = navKey.transactionId,
                 isLoading = false,
                 transaction = transaction,
                 occurredAt = transaction.occurredAt.toLocalDateTime(timeZone),
@@ -73,7 +75,7 @@ class TransactionDetailViewModel @AssistedInject constructor(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = TransactionDetailUiState(),
+        initialValue = TransactionDetailUiState(transactionId = navKey.transactionId),
     )
 
     fun onEvent(event: TransactionDetailEvent) {

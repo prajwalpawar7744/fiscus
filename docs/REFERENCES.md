@@ -244,3 +244,8 @@ for (const k of ['lightScheme','darkScheme']) console.log(k, ['primary','onPrima
 ## Bottom sheet state (checked 2026-11-15 with the rc01 compiler and sources)
 - `rememberModalBottomSheetState(skipPartiallyExpanded, confirmValueChange)` is **deprecated** in material3 1.5.0-rc01: "Use rememberBottomSheetState with Hidden initial value."
 - Replacement: `rememberBottomSheetState(initialValue: SheetValue, enabledValues: Set<SheetValue> = setOf(Hidden, PartiallyExpanded, Expanded), confirmValueChange)` (`@ExperimentalMaterial3Api`). For a sheet that opens fully expanded: `initialValue = SheetValue.Hidden, enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)`, passed as `ModalBottomSheet(sheetState = …)`.
+
+## Text auto-size and Navigation 3 default transitions (checked 2026-11-15 in the sources jars)
+- material3 1.5.0-rc01 `Text(…, autoSize: TextAutoSize? = null)` (foundation `TextAutoSize.StepBased(minFontSize = 12.sp, maxFontSize = 112.sp, stepSize)`). Pass `maxFontSize = style.fontSize` so auto-size only shrinks. It needs `maxLines = 1` / `softWrap = false` for single-line fitting.
+- navigation3-ui 1.2.1 on Android: `defaultTransitionSpec()` and `defaultPopTransitionSpec()` are both a plain **cross-fade** (`fadeIn`/`fadeOut`, `tween(700)`); the predictive-back pop is its own spec. So opening and closing a pushed screen fade the same way, with no movement or container transform.
+- material3 rc01 has **no** container-transform / shared-element API and no `MotionScheme.sharedElementTransitionSpec`. Shared bounds exist only in Compose foundation (`SharedTransitionLayout`, `Modifier.sharedBounds`), and Navigation 3 exposes `LocalNavAnimatedContentScope` for them.

@@ -62,5 +62,16 @@ class MoneyParserTest {
         assertEquals("19.99", formatMoneyInput(Money(1999, "INR")))
         assertEquals("0.05", formatMoneyInput(Money(5, "INR")))
         assertEquals("500", formatMoneyInput(Money(500, "JPY")))
+        // Whole amounts drop the decimals; others keep all of them (ADR-029).
+        assertEquals("200", formatMoneyInput(Money(20_000, "INR")))
+        assertEquals("50.50", formatMoneyInput(Money(5_050, "INR")))
+    }
+
+    @Test
+    fun `display decimals only when there are any`() {
+        assertEquals(0, displayFractionDigits(Money(20_000, "INR")))
+        assertEquals(2, displayFractionDigits(Money(5_002, "INR")))
+        assertEquals(2, displayFractionDigits(Money(-5_050, "INR")))
+        assertEquals(0, displayFractionDigits(Money(1_500, "JPY")))
     }
 }

@@ -1,6 +1,14 @@
 package com.prajwalpawar.fiscus.ui
 
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MotionScheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
@@ -8,7 +16,6 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -21,7 +28,9 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.prajwalpawar.fiscus.model.TransactionType
+import com.prajwalpawar.fiscus.ui.components.LocalSharedTransitionScope
 import com.prajwalpawar.fiscus.ui.components.LocalSnackbarHostState
+import com.prajwalpawar.fiscus.ui.components.navVisibilityScopeDecorator
 import com.prajwalpawar.fiscus.ui.feature.budgets.BudgetsRoute
 import com.prajwalpawar.fiscus.ui.feature.home.HomeRoute
 import com.prajwalpawar.fiscus.ui.feature.insights.InsightsRoute
@@ -46,6 +55,7 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun FiscusApp(modifier: Modifier = Modifier) {
+    val motion = MaterialTheme.motionScheme
     val navigator = rememberFiscusNavigator()
     val currentTopLevel = navigator.currentTopLevel
     val navigationSuiteState = rememberNavigationSuiteScaffoldState()
@@ -90,53 +100,73 @@ fun FiscusApp(modifier: Modifier = Modifier) {
                 }
             },
         ) {
-            NavDisplay(
-                backStack = navigator.backStack,
-                onBack = navigator::goBack,
-                entryDecorators = listOf(
-                    rememberSaveableStateHolderNavEntryDecorator(),
-                    rememberViewModelStoreNavEntryDecorator(),
-                ),
-                entryProvider = entryProvider {
-                    val openSettings = { navigator.navigate(SettingsNavKey) }
-                    val addTransaction = { type: TransactionType ->
-                        navigator.navigate(TransactionEditorNavKey(type = type))
-                    }
-                    entry<HomeNavKey> {
-                        HomeRoute(
-                            onOpenSettings = openSettings,
-                            onAddTransaction = addTransaction,
-                        )
-                    }
-                    entry<TransactionsNavKey> {
-                        TransactionsRoute(
-                            onOpenSettings = openSettings,
-                            onAddTransaction = addTransaction,
-                            onOpenTransaction = { id ->
-                                navigator.navigate(TransactionDetailNavKey(id))
-                            },
-                        )
-                    }
-                    entry<BudgetsNavKey> { BudgetsRoute(onOpenSettings = openSettings) }
-                    entry<InsightsNavKey> { InsightsRoute(onOpenSettings = openSettings) }
-                    entry<SettingsNavKey> { SettingsRoute(onBack = navigator::goBack) }
-                    entry<TransactionEditorNavKey> { key ->
-                        TransactionEditorRoute(
-                            navKey = key,
-                            onBack = navigator::goBack,
-                            onFinished = finishWith,
-                        )
-                    }
-                    entry<TransactionDetailNavKey> { key ->
-                        TransactionDetailRoute(
-                            navKey = key,
-                            onBack = navigator::goBack,
-                            onEdit = { id -> navigator.navigate(TransactionEditorNavKey(transactionId = id)) },
-                            onFinished = finishWith,
-                        )
-                    }
-                },
-            )
+            // Shared bounds let a list item grow into its page and shrink back (ADR-028).
+            SharedTransitionLayout {
+                CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+                    NavDisplay(
+                        backStack = navigator.backStack,
+                        onBack = navigator::goBack,
+                        entryDecorators = listOf(
+                            rememberSaveableStateHolderNavEntryDecorator(),
+                            rememberViewModelStoreNavEntryDecorator(),
+                            navVisibilityScopeDecorator(),
+                        ),
+                        // Same cross-fade as Navigation 3's default, timed by the theme's
+                        // M3 Expressive effects springs instead of its 700 ms tween (ADR-030).
+                        transitionSpec = { pageCrossFade(motion) },
+                        popTransitionSpec = { pageCrossFade(motion) },
+                        predictivePopTransitionSpec = { _ -> pageCrossFade(motion) },
+                        entryProvider = entryProvider {
+                            val openSettings = { navigator.navigate(SettingsNavKey) }
+                            val addTransaction = { type: TransactionType ->
+                                navigator.navigate(TransactionEditorNavKey(type = type))
+                            }
+                            entry<HomeNavKey> {
+                                HomeRoute(
+                                    onOpenSettings = openSettings,
+                                    onAddTransaction = addTransaction,
+                                )
+                            }
+                            entry<TransactionsNavKey> {
+                                TransactionsRoute(
+                                    onOpenSettings = openSettings,
+                                    onAddTransaction = addTransaction,
+                                    onOpenTransaction = { id ->
+                                        navigator.navigate(TransactionDetailNavKey(id))
+                                    },
+                                )
+                            }
+                            entry<BudgetsNavKey> { BudgetsRoute(onOpenSettings = openSettings) }
+                            entry<InsightsNavKey> { InsightsRoute(onOpenSettings = openSettings) }
+                            entry<SettingsNavKey> { SettingsRoute(onBack = navigator::goBack) }
+                            entry<TransactionEditorNavKey> { key ->
+                                TransactionEditorRoute(
+                                    navKey = key,
+                                    onBack = navigator::goBack,
+                                    onFinished = finishWith,
+                                )
+                            }
+                            entry<TransactionDetailNavKey> { key ->
+                                TransactionDetailRoute(
+                                    navKey = key,
+                                    onBack = navigator::goBack,
+                                    onEdit = { id ->
+                                        navigator.navigate(TransactionEditorNavKey(transactionId = id))
+                                    },
+                                    onFinished = finishWith,
+                                )
+                            }
+                        },
+                    )
+                }
+            }
         }
     }
 }
+
+/**
+ * Page-to-page motion (ADR-030): the entering page fades in on the default effects spring while
+ * the leaving one fades out on the fast one (exits are quicker than enters, M3 motion guidance).
+ */
+private fun pageCrossFade(motion: MotionScheme): ContentTransform =
+    fadeIn(motion.defaultEffectsSpec()) togetherWith fadeOut(motion.fastEffectsSpec())

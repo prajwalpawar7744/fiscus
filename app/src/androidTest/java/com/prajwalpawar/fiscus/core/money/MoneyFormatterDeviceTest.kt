@@ -19,12 +19,14 @@ class MoneyFormatterDeviceTest {
 
     @Test
     fun usesIndianDigitGrouping() {
-        assertEquals("₹1,24,580.00", formatMoney(Money(12_458_000, "INR"), india))
+        assertEquals("₹1,24,580", formatMoney(Money(12_458_000, "INR"), india))
+        assertEquals("₹50.02", formatMoney(Money(5_002, "INR"), india))
+        assertEquals("₹50.50", formatMoney(Money(5_050, "INR"), india))
     }
 
     @Test
     fun formatsNegativeAmounts() {
-        assertEquals("-$5.00", formatMoney(Money(-500, "USD"), Locale.US))
+        assertEquals("-$5", formatMoney(Money(-500, "USD"), Locale.US))
     }
 
     @Test

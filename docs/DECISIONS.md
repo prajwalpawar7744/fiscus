@@ -195,3 +195,37 @@ Format: `## ADR-NNN: Title`, then Date, Status, Context, Decision, Consequences.
   2. **Detail rows**: **Type** and **Category** join the contained segmented group (Type, Category, Account(s), Date, Note; transfers have no category). The hero keeps its category-led look.
   3. **Filter sheets open fully expanded**: `ModalBottomSheet(sheetState = rememberBottomSheetState(initialValue = Hidden, enabledValues = {Hidden, Expanded}))`. **Bug fixed**: starting half-height, a real swipe on the Category sheet first dragged the sheet open and then scrolled the list. After that, taps on the rows (the income categories, which sit below the fold) were ignored. Reproduced with injected swipes in `TransactionsFilterFlowTest` (0 of 2 taps registered). With no partial state it passes. `rememberModalBottomSheetState(skipPartiallyExpanded)` is deprecated in rc01, so it isn't used.
 - **Consequences**: Any future sheet with a scrolling list uses the same expanded-only state.
+
+## ADR-027: Amounts never wrap, danger in the error role, simpler rows and sheets
+- **Date**: 2026-11-15 · **Status**: Accepted (user requests)
+- **Decision**:
+  1. **`AmountText`** (`ui/components/`): amounts on cards and heroes are one line. It's material3 `Text(autoSize = TextAutoSize.StepBased(maxFontSize = style.fontSize))`, so the type token stays the size and a long amount ("₹40,000.00") steps down instead of wrapping. Used for the detail hero amount and the summary card's net and totals.
+  2. **Danger actions in the error role**: the top-bar Delete (`IconButtonDefaults.iconButtonColors(contentColor = error)`), the delete dialog's icon (`iconContentColor = error`) and its confirm button (`textButtonColors(contentColor = error)`). The error role is static in M3 (it doesn't follow dynamic color), adapts to light and dark, and is the role M3 defines for destructive actions.
+  3. **List rows show no time**; `TransactionListEntry` no longer carries it.
+  4. **Filter sheets have no title**: the chip that opened a sheet already names it.
+
+## ADR-028: One action group for every page, list item grows into its page
+- **Date**: 2026-11-15 · **Status**: Accepted (user: "i want a consistent button group for all pages action"; Delete "in the group: [Delete | Edit]"; "when we click on transaction item it grows into page… when we go back it should shrink back", with no custom motion). Amends ADR-019 item 6 and ADR-025 item 5.
+- **Decision**:
+  1. **`ActionButtonGroup`** (`ui/components/`) holds every page's actions: the editor's [Save], the detail page's [Delete | Edit] and the filter sheets' [Clear | Done]. It's one M3 Expressive `ButtonGroup` of medium-height buttons that share the width; the pressed one widens (built-in). Styles: `Primary` (filled), `Secondary` (outlined), `Danger` (filled, `errorContainer`/`onErrorContainer`). A loading action cross-fades to a `LoadingIndicator`. Delete leaves the top bar and is still confirmed by the dialog. Dialog buttons stay M3 dialog `TextButton`s.
+  2. **Container transform with library defaults only**: `FiscusApp` wraps `NavDisplay` in Compose's `SharedTransitionLayout`. An entry decorator (`navVisibilityScopeDecorator()`) hands each destination its `LocalNavAnimatedContentScope`. `Modifier.sharedContainer(key)` applies `sharedBounds` with **every parameter at its default** (`SharedTransitionDefaults.BoundsTransform`, `fadeIn`/`fadeOut`, `scaleToBounds`). A transaction's list item and its detail page share `transactionContainerKey(id)`. The page grows out of the row on open and shrinks back into it on Back. No app-written specs; the `NavDisplay` cross-fade stays the default. The detail state carries `transactionId` from the nav key, so the key is there on the first frame.
+  3. Search results don't share bounds: they live in the search dialog's own window, outside the layout.
+- **Consequences**: Any future "item → its page" pair uses `sharedContainer` with one key helper. Previews and tests are unaffected (the modifier is a no-op outside `NavDisplay`). Revisit when material3 ships a container-transform API.
+
+## ADR-029: Decimals only when needed; the list shows this month by default
+- **Date**: 2026-11-15 · **Status**: Accepted (user: "dont show decimals until there is one… everywhere"; "only this months transaction should be visible")
+- **Decision**:
+  1. **Money display**: `displayFractionDigits(money)` is 0 for a whole amount and the currency's full digits otherwise. `formatMoney` ("₹200", "₹50.02") and the editor's `formatMoneyInput` ("200") both use it. Storage and maths are unchanged (Long minor units, ADR-003).
+  2. **Default period = the current calendar month**: with no picked range, the Transactions list, its day groups and the summary card cover this month (`currentMonth(today)` from the injected clock and time zone). The Date chip reads "This month" and isn't "selected" (it's the default, not a filter). Picking a range replaces it, and Clear goes back to this month. An empty month says "No transactions this month yet."
+  3. **Search looks through every month** unless a range was picked, because finding an old transaction is what search is for.
+- **Consequences**: There's no "all time" view yet; it's reachable by picking a wide range. If one is wanted, add it as a preset later.
+
+## ADR-030: All transitions on the M3 Expressive springs
+- **Date**: 2026-11-15 · **Status**: Accepted (user: "move all the transitions from page to elements to the spring/expressive"). **Supersedes the ADR-019 amendment** (Navigation 3 defaults) and ADR-028's "library defaults" for the container transform.
+- **Context**: Navigation 3's default is a 700 ms `tween` cross-fade, and Compose's `sharedBounds` default is a generic foundation spring. Neither comes from M3 Expressive. The user asked for Expressive motion everywhere.
+- **Decision**:
+  1. **Pages** (`FiscusApp`): `NavDisplay(transitionSpec, popTransitionSpec, predictivePopTransitionSpec)` all use `pageCrossFade(motionScheme)`: the same cross-fade pattern as before, with enter on `defaultEffectsSpec` and exit on `fastEffectsSpec` (exits faster than enters, M3 guidance). Tabs and pushed screens both use it.
+  2. **Item → page** (`sharedContainer`): bounds on `slowSpatialSpec` (M3: slow for full-screen), content `fadeIn(defaultEffectsSpec)` / `fadeOut(fastEffectsSpec)`.
+  3. **In-screen content swaps**: every `AnimatedContent` sets its `SizeTransform` on a spatial spec (fast for small swaps such as button content, default for screen-level swaps), so no size change falls back to Compose's default spring.
+  4. Only theme tokens are used: no numbers, no `tween`, no copied internal tokens (LESSONS #3 still holds).
+- **Consequences**: There's no M3 easing-and-duration API for transitions in material3 (M3 says transitions still use that legacy system); springs are the closest public equivalent. Revisit on each material3 / navigation3 bump.
