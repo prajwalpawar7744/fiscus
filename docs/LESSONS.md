@@ -48,6 +48,18 @@ Mistakes made while building Fiscus, and the rule each one produced. **Read this
    - What happened: the docked date picker, the toggle-button option group and the currency transformation were written as `private` functions inside the editor screen. Any other feature needing a date picker would have had to copy them.
    - Rule: when writing a composable, ask "could another screen use this?". If yes, put it in `ui/components/` immediately (generic: no feature types and no feature strings), and list it in DESIGN_SYSTEM.md "Shared components". Before building, check that list first.
 
+12. **Acting on derived state that can lag input.**
+   - What happened: after moving the editor to `stateIn`, Save read `uiState.value`, which hadn't yet re-emitted the last keystroke, so a fast "type then Save" would have saved the old amount. A test caught it.
+   - Rule: actions read the source of truth (the form), not the derived UI state. Keep a test that types and saves with no idle time in between.
+
+13. **A colour that passes in one scheme can fail in another.**
+   - What happened: the default placeholder colour (`onSurfaceVariant`) looked like the fix for the hero placeholder, but measured 1.8–2.3:1 on the coloured hero cards at medium and high contrast.
+   - Rule: whenever text sits on a container it isn't paired with, measure contrast in all six schemes before shipping, and report the numbers.
+
+14. **Repeating constants instead of sharing them.**
+   - What happened: every screen file declared its own `ContentPadding = 16.dp`.
+   - Rule: layout spacing comes from `FiscusLayout`; anything used twice is shared.
+
 ## Process checklist (every task, including scaffolding)
 1. Read CLAUDE.md and every file in `docs/`, including this one.
 2. Plan: list the docs and ADRs that apply, the §9 checklist answers per screen, and any source still marked unread (ask for it).

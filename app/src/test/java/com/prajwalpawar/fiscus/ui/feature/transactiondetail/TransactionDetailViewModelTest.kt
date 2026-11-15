@@ -22,6 +22,8 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -57,6 +59,7 @@ class TransactionDetailViewModelTest {
         transactionRepository = transactions,
         accountRepository = accounts,
         categoryRepository = categories,
+        timeZone = TimeZone.UTC,
     ).also { viewModel ->
         // stateIn(WhileSubscribed) only runs while collected, like the screen does.
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect() }
@@ -71,6 +74,7 @@ class TransactionDetailViewModelTest {
         assertEquals(1L, state.transaction?.id)
         assertEquals(CashAccount, state.account)
         assertEquals(FoodCategory, state.category)
+        assertEquals(LocalDateTime(2026, 11, 15, 10, 30), state.occurredAt)
     }
 
     @Test

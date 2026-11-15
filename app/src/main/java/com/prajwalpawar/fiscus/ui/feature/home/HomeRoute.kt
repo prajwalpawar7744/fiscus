@@ -1,6 +1,5 @@
 package com.prajwalpawar.fiscus.ui.feature.home
 
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -11,7 +10,6 @@ import com.prajwalpawar.fiscus.model.TransactionType
 /** Stateful entry point for Home: connects [HomeViewModel] to the stateless [HomeScreen]. */
 @Composable
 fun HomeRoute(
-    snackbarHostState: SnackbarHostState,
     onOpenSettings: () -> Unit,
     onAddTransaction: (TransactionType) -> Unit,
     modifier: Modifier = Modifier,
@@ -20,7 +18,6 @@ fun HomeRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     HomeScreen(
         uiState = uiState,
-        snackbarHostState = snackbarHostState,
         onOpenSettings = onOpenSettings,
         onAddTransaction = onAddTransaction,
         modifier = modifier,

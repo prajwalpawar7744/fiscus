@@ -1,6 +1,5 @@
 package com.prajwalpawar.fiscus.ui.feature.transactiondetail
 
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,7 +19,6 @@ import com.prajwalpawar.fiscus.ui.navigation.TransactionDetailNavKey
 @Composable
 fun TransactionDetailRoute(
     navKey: TransactionDetailNavKey,
-    snackbarHostState: SnackbarHostState,
     onBack: () -> Unit,
     onEdit: (transactionId: Long) -> Unit,
     onFinished: (message: String?) -> Unit,
@@ -41,7 +39,6 @@ fun TransactionDetailRoute(
     }
     TransactionDetailScreen(
         uiState = uiState,
-        snackbarHostState = snackbarHostState,
         onEvent = viewModel::onEvent,
         onBack = onBack,
         onEdit = { onEdit(navKey.transactionId) },

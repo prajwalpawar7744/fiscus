@@ -1,6 +1,7 @@
 package com.prajwalpawar.fiscus.ui.feature.transactioneditor
 
 import androidx.annotation.StringRes
+import com.prajwalpawar.fiscus.R
 import com.prajwalpawar.fiscus.core.money.parseMoneyInput
 import com.prajwalpawar.fiscus.model.Account
 import com.prajwalpawar.fiscus.model.Category
@@ -37,6 +38,26 @@ data class TransactionEditorUiState(
         get() = selectedAccount?.let { from ->
             accounts.filter { it.id != from.id && it.currencyCode == from.currencyCode }
         }.orEmpty()
+
+    /**
+     * What's still missing before Save is enabled, shown above the button; null when ready (or
+     * while loading or saving). Tells the user why Save is disabled.
+     */
+    @get:StringRes
+    val saveHint: Int?
+        get() {
+            if (isLoading || isSaving) return null
+            val account = selectedAccount ?: return R.string.editor_hint_account
+            // A blank amount is already prompted for in the hero, so don't repeat it here.
+            if (amountText.isBlank()) return null
+            if (parseMoneyInput(amountText, account.currencyCode) == null) return R.string.editor_hint_amount
+            return when (type) {
+                TransactionType.TRANSFER ->
+                    if (toAccounts.none { it.id == toAccountId }) R.string.editor_hint_to_account else null
+                TransactionType.INCOME, TransactionType.EXPENSE ->
+                    if (categoryId == null) R.string.editor_hint_category else null
+            }
+        }
 
     val canSave: Boolean
         get() {

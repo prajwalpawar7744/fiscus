@@ -1,12 +1,16 @@
 package com.prajwalpawar.fiscus.ui.feature.transactioneditor
 
 import android.content.res.Configuration
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -38,22 +42,21 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -72,10 +75,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.prajwalpawar.fiscus.R
 import com.prajwalpawar.fiscus.core.money.formatMoney
-import com.prajwalpawar.fiscus.core.money.formatMoneyInput
 import com.prajwalpawar.fiscus.core.money.parseMoneyInput
 import com.prajwalpawar.fiscus.model.Account
 import com.prajwalpawar.fiscus.model.AccountType
@@ -85,20 +86,18 @@ import com.prajwalpawar.fiscus.model.Money
 import com.prajwalpawar.fiscus.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.CurrencyPrefixTransformation
 import com.prajwalpawar.fiscus.ui.components.DockedDatePickerField
+import com.prajwalpawar.fiscus.ui.components.ShapeAccentIcon
 import com.prajwalpawar.fiscus.ui.components.SingleChoiceToggleGroup
+import com.prajwalpawar.fiscus.ui.components.TransactionTypeDisplayOrder
 import com.prajwalpawar.fiscus.ui.components.categoryIconRes
 import com.prajwalpawar.fiscus.ui.components.iconRes
 import com.prajwalpawar.fiscus.ui.components.labelRes
+import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 import com.prajwalpawar.fiscus.ui.theme.tabularNumbers
 import java.util.Currency
 import kotlinx.datetime.LocalDate
 
-private val ContentPadding = 16.dp
-private val SectionSpacing = 24.dp
-private val HeroSpacing = 8.dp
-private val HeroAccentSize = 40.dp
-private val MaxContentWidth = 600.dp
 
 /**
  * Stateless add/edit transaction screen: hero moment 2 (ADR-010). Expressive on the amount hero
@@ -141,18 +140,19 @@ fun TransactionEditorScreen(
             if (!uiState.isLoading) {
                 // Primary action within thumb reach (M3_EXPRESSIVE.md §6). The keyboard covers it
                 // while typing; the form pads for the keyboard so every field stays reachable.
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding()
-                        .padding(ContentPadding),
-                    contentAlignment = Alignment.Center,
+                        .padding(FiscusLayout.ScreenMargin),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
+                    SaveHint(hint = uiState.saveHint)
                     SaveButton(
                         enabled = uiState.canSave,
                         isSaving = uiState.isSaving,
                         onClick = { onEvent(TransactionEditorEvent.Save) },
-                        modifier = Modifier.widthIn(max = MaxContentWidth),
+                        modifier = Modifier.widthIn(max = FiscusLayout.MaxContentWidth),
                     )
                 }
             }
@@ -179,7 +179,7 @@ fun TransactionEditorScreen(
                         uiState = uiState,
                         onEvent = onEvent,
                         modifier = Modifier
-                            .widthIn(max = MaxContentWidth)
+                            .widthIn(max = FiscusLayout.MaxContentWidth)
                             .fillMaxWidth(),
                     )
                 }
@@ -199,19 +199,19 @@ private fun EditorForm(
         modifier = modifier
             .imePadding()
             .verticalScroll(rememberScrollState())
-            .padding(vertical = ContentPadding)
+            .padding(vertical = FiscusLayout.ScreenMargin)
             .animateContentSize(motion.defaultSpatialSpec()),
-        verticalArrangement = Arrangement.spacedBy(SectionSpacing),
+        verticalArrangement = Arrangement.spacedBy(FiscusLayout.SectionSpacing),
     ) {
         TypeSelector(
             selected = uiState.type,
             onSelect = { onEvent(TransactionEditorEvent.TypeChanged(it)) },
-            modifier = Modifier.padding(horizontal = ContentPadding),
+            modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),
         )
         AmountHero(
             uiState = uiState,
             onAmountChange = { onEvent(TransactionEditorEvent.AmountChanged(it)) },
-            modifier = Modifier.padding(horizontal = ContentPadding),
+            modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),
         )
         SingleChoiceToggleGroup(
             title = stringResource(
@@ -223,7 +223,7 @@ private fun EditorForm(
             label = Account::name,
             onSelect = { onEvent(TransactionEditorEvent.AccountSelected(it)) },
             emptyMessage = stringResource(R.string.editor_no_accounts),
-            modifier = Modifier.padding(horizontal = ContentPadding),
+            modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),
         )
         // Category (income/expense) or destination account (transfer): swaps with a fade while the
         // container resizes on a spatial spring.
@@ -245,7 +245,7 @@ private fun EditorForm(
                     label = Account::name,
                     onSelect = { onEvent(TransactionEditorEvent.ToAccountSelected(it)) },
                     emptyMessage = stringResource(R.string.editor_no_transfer_accounts),
-                    modifier = Modifier.padding(horizontal = ContentPadding),
+                    modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),
                 )
             } else {
                 SingleChoiceToggleGroup(
@@ -257,7 +257,7 @@ private fun EditorForm(
                     icon = { categoryIconRes(it.iconKey) },
                     onSelect = { onEvent(TransactionEditorEvent.CategorySelected(it)) },
                     emptyMessage = stringResource(R.string.editor_no_categories),
-                    modifier = Modifier.padding(horizontal = ContentPadding),
+                    modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),
                 )
             }
         }
@@ -266,7 +266,7 @@ private fun EditorForm(
                 date = date,
                 onDateSelected = { onEvent(TransactionEditorEvent.DateSelected(it)) },
                 label = stringResource(R.string.editor_date),
-                modifier = Modifier.padding(horizontal = ContentPadding),
+                modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),
             )
         }
         OutlinedTextField(
@@ -277,7 +277,7 @@ private fun EditorForm(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = ContentPadding),
+                .padding(horizontal = FiscusLayout.ScreenMargin),
         )
     }
 }
@@ -290,7 +290,7 @@ private fun TypeSelector(
     onSelect: (TransactionType) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val types = TransactionType.entries
+    val types = TransactionTypeDisplayOrder
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
@@ -317,13 +317,12 @@ private fun TypeSelector(
 }
 
 /**
- * The hero (ADR-010, hero moment 2): a type header with a [MaterialShapes] accent, the amount
+ * The hero (ADR-010, hero moment 2): a type header with a [ShapeAccentIcon], the amount
  * centered in emphasized display type, and one line below that shows either the formatted amount
  * with its account or the error. The container role follows the type (expense → tertiary,
  * income → secondary, transfer → surface/primary). Colors blend on an effects spring; the header
  * and summary swap with spatial/effects springs. No text-field chrome: the hero *is* the field.
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class) // MaterialShapes
 @Composable
 private fun AmountHero(
     uiState: TransactionEditorUiState,
@@ -355,7 +354,6 @@ private fun AmountHero(
     val amountStyle = MaterialTheme.typography.displayLargeEmphasized.tabularNumbers
         .copy(textAlign = TextAlign.Center)
     val amountDescription = stringResource(R.string.editor_amount)
-    val zero = account?.let { formatMoneyInput(Money(0, it.currencyCode)) } ?: "0"
 
     Card(
         // Hero moment: remapped to a larger step of the shape scale (M3_EXPRESSIVE.md §3).
@@ -366,9 +364,9 @@ private fun AmountHero(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(ContentPadding),
+                .padding(FiscusLayout.ScreenMargin),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(HeroSpacing),
+            verticalArrangement = Arrangement.spacedBy(FiscusLayout.ItemSpacing),
         ) {
             AnimatedContent(
                 targetState = uiState.type,
@@ -380,27 +378,15 @@ private fun AmountHero(
             ) { type ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(HeroSpacing),
+                    horizontalArrangement = Arrangement.spacedBy(FiscusLayout.ItemSpacing),
                 ) {
-                    Surface(
-                        shape = MaterialShapes.Cookie9Sided.toShape(),
-                        color = accent,
-                        contentColor = onAccent,
-                        modifier = Modifier.size(HeroAccentSize),
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(painterResource(type.iconRes), contentDescription = null)
-                        }
-                    }
+                    ShapeAccentIcon(icon = type.iconRes, containerColor = accent, contentColor = onAccent)
                     Text(text = stringResource(type.labelRes), style = MaterialTheme.typography.titleMedium)
                 }
             }
             TextField(
                 value = uiState.amountText,
                 onValueChange = onAmountChange,
-                placeholder = {
-                    Text("$symbol$zero", style = amountStyle, modifier = Modifier.fillMaxWidth())
-                },
                 visualTransformation = CurrencyPrefixTransformation(symbol),
                 textStyle = amountStyle,
                 singleLine = true,
@@ -419,8 +405,6 @@ private fun AmountHero(
                     focusedTextColor = content,
                     unfocusedTextColor = content,
                     errorTextColor = content,
-                    focusedPlaceholderColor = content,
-                    unfocusedPlaceholderColor = content,
                     cursorColor = content,
                     errorCursorColor = colors.error,
                 ),
@@ -459,8 +443,11 @@ private fun HeroSummary(uiState: TransactionEditorUiState, modifier: Modifier = 
             account.name,
         )
     }
+    // Empty field: prompt in the card's own text colour (no placeholder: M3's placeholder role
+    // fails contrast on these containers, see DESIGN_SYSTEM.md "Contrast check").
+    val prompt = if (uiState.amountText.isBlank()) stringResource(R.string.editor_hint_amount) else null
     AnimatedContent(
-        targetState = error ?: summary.orEmpty(),
+        targetState = error ?: summary ?: prompt.orEmpty(),
         transitionSpec = { fadeIn(motion.fastEffectsSpec()) togetherWith fadeOut(motion.fastEffectsSpec()) },
         label = "heroSummary",
         modifier = modifier.semantics { liveRegion = LiveRegionMode.Polite },
@@ -472,6 +459,42 @@ private fun HeroSummary(uiState: TransactionEditorUiState, modifier: Modifier = 
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
+    }
+}
+
+/**
+ * Says why Save is disabled ("Choose a category"). Enters and exits by expanding and collapsing
+ * vertically (M3 enter/exit pattern: no scale) on the theme's springs; text changes cross-fade.
+ */
+@Composable
+private fun SaveHint(@StringRes hint: Int?) {
+    val motion = MaterialTheme.motionScheme
+    AnimatedVisibility(
+        visible = hint != null,
+        enter = expandVertically(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
+        exit = shrinkVertically(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec()),
+    ) {
+        // Keep the last hint while collapsing, so the text doesn't vanish before the space does.
+        var lastHint by remember { mutableIntStateOf(0) }
+        if (hint != null) lastHint = hint
+        AnimatedContent(
+            targetState = lastHint,
+            transitionSpec = { fadeIn(motion.fastEffectsSpec()) togetherWith fadeOut(motion.fastEffectsSpec()) },
+            label = "saveHint",
+        ) { res ->
+            if (res != 0) {
+                Text(
+                    text = stringResource(res),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = FiscusLayout.ItemSpacing)
+                        .semantics { liveRegion = LiveRegionMode.Polite },
+                )
+            }
+        }
     }
 }
 

@@ -18,7 +18,10 @@ import com.prajwalpawar.fiscus.testing.SalaryCategory
 import com.prajwalpawar.fiscus.testing.TestNow
 import com.prajwalpawar.fiscus.ui.navigation.TransactionEditorNavKey
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
@@ -52,7 +55,11 @@ class TransactionEditorViewModelTest {
             categoryRepository = categories,
             clock = FixedClock(),
             timeZone = TimeZone.UTC,
-        ).also { advanceUntilIdle() }
+        ).also { viewModel ->
+            // stateIn(WhileSubscribed) only runs while collected, like the screen does.
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect() }
+            advanceUntilIdle()
+        }
 
     @Test
     fun `new expense starts on today with the first account and expense categories`() =
@@ -75,6 +82,7 @@ class TransactionEditorViewModelTest {
             viewModel.onEvent(TransactionEditorEvent.AmountChanged("250.50"))
             viewModel.onEvent(TransactionEditorEvent.CategorySelected(FoodCategory.id))
             viewModel.onEvent(TransactionEditorEvent.NoteChanged("  Lunch "))
+            advanceUntilIdle()
             assertTrue(viewModel.uiState.value.canSave)
 
             viewModel.onEvent(TransactionEditorEvent.Save)
@@ -111,6 +119,7 @@ class TransactionEditorViewModelTest {
             val viewModel = viewModel()
             viewModel.onEvent(TransactionEditorEvent.AmountChanged("12"))
             viewModel.onEvent(TransactionEditorEvent.AmountChanged("12a"))
+            advanceUntilIdle()
             assertEquals("12", viewModel.uiState.value.amountText)
         }
 
@@ -152,6 +161,7 @@ class TransactionEditorViewModelTest {
             accounts.accounts.value = listOf(CashAccount)
             val viewModel = viewModel(TransactionEditorNavKey(type = TransactionType.TRANSFER))
             viewModel.onEvent(TransactionEditorEvent.AmountChanged("100"))
+            advanceUntilIdle()
 
             val state = viewModel.uiState.value
             assertTrue(state.toAccounts.isEmpty())
@@ -203,4 +213,36 @@ class TransactionEditorViewModelTest {
             assertTrue(viewModel.uiState.value.isFinished)
             assertNull(viewModel.uiState.value.resultMessage)
         }
+
+    @Test
+    fun `save hint says what is missing, in order, until the form is complete`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val viewModel = viewModel()
+            // Blank amount: the hero prompts for it, so the Save hint stays quiet.
+            assertNull(viewModel.uiState.value.saveHint)
+
+            viewModel.onEvent(TransactionEditorEvent.AmountChanged("0"))
+            advanceUntilIdle()
+            assertEquals(R.string.editor_hint_amount, viewModel.uiState.value.saveHint)
+
+            viewModel.onEvent(TransactionEditorEvent.AmountChanged("10"))
+            advanceUntilIdle()
+            assertEquals(R.string.editor_hint_category, viewModel.uiState.value.saveHint)
+
+            viewModel.onEvent(TransactionEditorEvent.CategorySelected(FoodCategory.id))
+            advanceUntilIdle()
+            assertNull(viewModel.uiState.value.saveHint)
+            assertTrue(viewModel.uiState.value.canSave)
+        }
+
+    @Test
+    fun `save hint asks for a destination when a transfer has none`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            accounts.accounts.value = listOf(CashAccount)
+            val viewModel = viewModel(TransactionEditorNavKey(type = TransactionType.TRANSFER))
+            viewModel.onEvent(TransactionEditorEvent.AmountChanged("10"))
+            advanceUntilIdle()
+            assertEquals(R.string.editor_hint_to_account, viewModel.uiState.value.saveHint)
+        }
+
 }

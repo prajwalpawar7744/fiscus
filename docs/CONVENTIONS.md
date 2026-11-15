@@ -17,7 +17,7 @@
 - Every public composable has an `@Preview` in light and dark. Screens also get a large-font preview (see DESIGN_SYSTEM.md).
 - UI is built **only from M3 components** (see DESIGN_SYSTEM.md). No custom look-alikes.
 - **Expressive-first**: use the Expressive component when one exists (mapping in DESIGN_SYSTEM.md). Zero deprecation warnings are allowed; treat `w: … is deprecated` as a build failure.
-- Text lives in `strings.xml`; dimensions and colors come from theme tokens.
+- Text lives in `strings.xml` (including signs such as "−%1$s"). Colors, type, shapes and motion come from `MaterialTheme`; layout spacing comes from `FiscusLayout` (ADR-020). Never define per-file spacing constants.
 
 ## Naming
 - Screens: `XxxRoute` (stateful) and `XxxScreen` (stateless). ViewModels `XxxViewModel`, state `XxxUiState`, events `XxxEvent`.
@@ -28,7 +28,8 @@
 - Icons: `res/drawable/ic_<symbol_name>_rounded.xml` (outline) and `ic_<symbol_name>_rounded_filled.xml` (filled), the official Material Symbols Rounded drawables with the AppCompat `android:tint` line removed.
 
 ## Testing
-- Unit tests for use cases, ViewModels and money math (JUnit + Turbine + coroutines-test). Prefer fakes to mocks.
+- Unit tests for use cases, ViewModels and money math (JUnit + coroutines-test). Prefer fakes to mocks.
+- ViewModel state (ARCHITECTURE.md): start a collector in `backgroundScope` with `UnconfinedTestDispatcher` (needed for `stateIn(WhileSubscribed)`), advance with `advanceUntilIdle()`, then assert on `uiState.value`. Use Turbine (`test { awaitItem() }`) only when the sequence of emissions is what's being tested.
 - Compose UI tests for critical flows (add transaction, budget).
 - Name tests with backticks: `` `adding expense reduces balance` ``.
 

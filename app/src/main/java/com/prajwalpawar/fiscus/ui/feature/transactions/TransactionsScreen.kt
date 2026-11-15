@@ -12,30 +12,27 @@ import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.prajwalpawar.fiscus.R
 import com.prajwalpawar.fiscus.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.AddTransactionFabMenu
+import com.prajwalpawar.fiscus.ui.components.LocalSnackbarHostState
+import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 
-private val ContentPadding = 16.dp
 
 /** Stateless Transactions screen. All state comes from [uiState]; all actions go out through lambdas. */
 @OptIn(ExperimentalMaterial3Api::class) // TopAppBarDefaults scroll behavior
 @Composable
 fun TransactionsScreen(
     uiState: TransactionsUiState,
-    snackbarHostState: SnackbarHostState,
     onOpenSettings: () -> Unit,
     onAddTransaction: (TransactionType) -> Unit,
     modifier: Modifier = Modifier,
@@ -46,26 +43,26 @@ fun TransactionsScreen(
         topBar = {
             LargeFlexibleTopAppBar(
                 title = { Text(stringResource(R.string.nav_transactions)) },
-            actions = {
-                IconButton(onClick = onOpenSettings) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_settings_rounded),
-                        contentDescription = stringResource(R.string.nav_settings),
-                    )
-                }
-            },
+                actions = {
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_settings_rounded),
+                            contentDescription = stringResource(R.string.nav_settings),
+                        )
+                    }
+                },
                 scrollBehavior = scrollBehavior,
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(LocalSnackbarHostState.current) },
         floatingActionButton = { AddTransactionFabMenu(onAddTransaction = onAddTransaction) },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(ContentPadding),
-            verticalArrangement = Arrangement.spacedBy(ContentPadding),
+                .padding(FiscusLayout.ScreenMargin),
+            verticalArrangement = Arrangement.spacedBy(FiscusLayout.ScreenMargin),
         ) {
             Text(
                 text = stringResource(uiState.emptyMessage),
@@ -84,7 +81,6 @@ private fun TransactionsScreenPreview() {
     FiscusTheme(dynamicColor = false) {
         TransactionsScreen(
             uiState = TransactionsUiState(),
-            snackbarHostState = remember { SnackbarHostState() },
             onOpenSettings = {},
             onAddTransaction = {},
         )

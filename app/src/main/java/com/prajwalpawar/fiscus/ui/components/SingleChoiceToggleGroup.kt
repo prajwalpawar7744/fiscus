@@ -18,10 +18,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 
-private val OptionSpacing = 8.dp
 
 /**
  * Shared component: a titled single choice from an open-ended list, as Expressive [ToggleButton]s
@@ -47,7 +46,7 @@ fun <T> SingleChoiceToggleGroup(
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(OptionSpacing),
+        verticalArrangement = Arrangement.spacedBy(FiscusLayout.ItemSpacing),
     ) {
         Text(text = title, style = MaterialTheme.typography.titleSmall)
         if (options.isEmpty()) {
@@ -58,8 +57,8 @@ fun <T> SingleChoiceToggleGroup(
             )
         } else {
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(OptionSpacing),
-                verticalArrangement = Arrangement.spacedBy(OptionSpacing),
+                horizontalArrangement = Arrangement.spacedBy(FiscusLayout.ItemSpacing),
+                verticalArrangement = Arrangement.spacedBy(FiscusLayout.ItemSpacing),
             ) {
                 options.forEach { option ->
                     val optionKey = key(option)
@@ -104,7 +103,7 @@ private fun SingleChoiceToggleGroupPreview() {
                 onSelect = {},
                 emptyMessage = "",
                 icon = { categoryIconRes(it.iconKey) },
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(FiscusLayout.ScreenMargin),
             )
         }
     }
@@ -123,7 +122,7 @@ private fun SingleChoiceToggleGroupEmptyPreview() {
                 label = PreviewOption::name,
                 onSelect = {},
                 emptyMessage = "Add another account with the same currency to make a transfer.",
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(FiscusLayout.ScreenMargin),
             )
         }
     }

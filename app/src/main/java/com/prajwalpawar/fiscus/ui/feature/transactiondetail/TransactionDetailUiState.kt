@@ -4,11 +4,14 @@ import androidx.annotation.StringRes
 import com.prajwalpawar.fiscus.model.Account
 import com.prajwalpawar.fiscus.model.Category
 import com.prajwalpawar.fiscus.model.Transaction
+import kotlinx.datetime.LocalDateTime
 
 /** Immutable UI state for the transaction detail screen. */
 data class TransactionDetailUiState(
     val isLoading: Boolean = true,
     val transaction: Transaction? = null,
+    /** When it happened, in the user's time zone (converted with the injected `TimeZone`). */
+    val occurredAt: LocalDateTime? = null,
     val account: Account? = null,
     /** Destination account; only for transfers. */
     val toAccount: Account? = null,

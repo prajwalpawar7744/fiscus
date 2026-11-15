@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.prajwalpawar.fiscus.R
+import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -146,7 +147,7 @@ private fun DockedDatePickerFieldPreview() {
                 date = LocalDate(2026, 11, 15),
                 onDateSelected = {},
                 label = "Date",
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(FiscusLayout.ScreenMargin),
             )
         }
     }

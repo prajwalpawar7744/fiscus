@@ -1,5 +1,6 @@
 package com.prajwalpawar.fiscus.ui.feature.transactioneditor
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prajwalpawar.fiscus.R
@@ -9,6 +10,8 @@ import com.prajwalpawar.fiscus.core.money.parseMoneyInput
 import com.prajwalpawar.fiscus.data.repository.AccountRepository
 import com.prajwalpawar.fiscus.data.repository.CategoryRepository
 import com.prajwalpawar.fiscus.data.repository.TransactionRepository
+import com.prajwalpawar.fiscus.model.Account
+import com.prajwalpawar.fiscus.model.Category
 import com.prajwalpawar.fiscus.model.CategoryKind
 import com.prajwalpawar.fiscus.model.Transaction
 import com.prajwalpawar.fiscus.model.TransactionType
@@ -19,17 +22,19 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
@@ -38,13 +43,18 @@ import kotlin.time.Clock
 /**
  * Screen-level state holder for adding or editing a transaction. Receives its
  * [TransactionEditorNavKey] through assisted injection (ADR-018).
+ *
+ * State follows ARCHITECTURE.md: what the user typed or chose lives in [form]; accounts and
+ * categories come from repository streams; [uiState] combines them with `stateIn`. Defaults
+ * (first account, transfer destination, dropping a category that no longer applies) are derived
+ * in [toUiState], never copied into the form.
  */
 @HiltViewModel(assistedFactory = TransactionEditorViewModel.Factory::class)
 class TransactionEditorViewModel @AssistedInject constructor(
     @Assisted private val navKey: TransactionEditorNavKey,
     private val transactionRepository: TransactionRepository,
-    private val accountRepository: AccountRepository,
-    private val categoryRepository: CategoryRepository,
+    accountRepository: AccountRepository,
+    categoryRepository: CategoryRepository,
     private val clock: Clock,
     private val timeZone: TimeZone,
 ) : ViewModel() {
@@ -54,56 +64,66 @@ class TransactionEditorViewModel @AssistedInject constructor(
         fun create(navKey: TransactionEditorNavKey): TransactionEditorViewModel
     }
 
-    private val _uiState = MutableStateFlow(TransactionEditorUiState())
-    val uiState: StateFlow<TransactionEditorUiState> = _uiState.asStateFlow()
+    private val form = MutableStateFlow(EditorForm(type = navKey.type))
 
     /** The transaction being edited, or null when adding. */
     private var original: Transaction? = null
 
-    init {
-        viewModelScope.launch {
-            if (!loadInitialForm()) return@launch
-            launch { observeAccounts() }
-            launch { observeCategories() }
+    @OptIn(ExperimentalCoroutinesApi::class) // flatMapLatest
+    private val categories = form.map { it.type }
+        .distinctUntilChanged()
+        .flatMapLatest { type ->
+            type.categoryKind?.let(categoryRepository::observeActiveCategories) ?: flowOf(emptyList())
         }
+
+    val uiState: StateFlow<TransactionEditorUiState> = combine(
+        form,
+        accountRepository.observeAccounts(),
+        categories,
+    ) { form, accounts, categories -> form.toUiState(accounts, categories) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = TransactionEditorUiState(),
+        )
+
+    init {
+        viewModelScope.launch { loadInitialForm() }
     }
 
     fun onEvent(event: TransactionEditorEvent) {
         when (event) {
-            is TransactionEditorEvent.TypeChanged -> _uiState.update { state ->
-                state.copy(type = event.type, categoryId = null).withDefaultToAccount()
+            is TransactionEditorEvent.TypeChanged -> form.update {
+                it.copy(type = event.type, categoryId = null)
             }
             is TransactionEditorEvent.AmountChanged -> {
                 if (!isValidAmountInput(event.text)) return
-                _uiState.update { it.copy(amountText = event.text, amountError = null) }
+                form.update { it.copy(amountText = event.text, amountError = null) }
             }
-            is TransactionEditorEvent.AccountSelected -> _uiState.update { state ->
-                state.copy(accountId = event.accountId).withDefaultToAccount()
-            }
-            is TransactionEditorEvent.ToAccountSelected ->
-                _uiState.update { it.copy(toAccountId = event.accountId) }
-            is TransactionEditorEvent.CategorySelected ->
-                _uiState.update { it.copy(categoryId = event.categoryId) }
-            is TransactionEditorEvent.DateSelected -> _uiState.update { it.copy(date = event.date) }
-            is TransactionEditorEvent.NoteChanged -> _uiState.update { it.copy(note = event.note) }
+            is TransactionEditorEvent.AccountSelected -> form.update { it.copy(accountId = event.accountId) }
+            is TransactionEditorEvent.ToAccountSelected -> form.update { it.copy(toAccountId = event.accountId) }
+            is TransactionEditorEvent.CategorySelected -> form.update { it.copy(categoryId = event.categoryId) }
+            is TransactionEditorEvent.DateSelected -> form.update { it.copy(date = event.date) }
+            is TransactionEditorEvent.NoteChanged -> form.update { it.copy(note = event.note) }
             TransactionEditorEvent.Save -> save()
         }
     }
 
-    /** Fills the form from the nav key; returns false when the edited transaction is gone. */
-    private suspend fun loadInitialForm(): Boolean {
+    /** Fills the form from the nav key; finishes when the edited transaction is gone. */
+    private suspend fun loadInitialForm() {
         val id = navKey.transactionId
         val existing = id?.let { transactionRepository.observeTransaction(it).first() }
         if (id != null && existing == null) {
-            _uiState.update { it.copy(isFinished = true) }
-            return false
+            form.update { it.copy(isLoaded = true, isFinished = true) }
+            return
         }
         original = existing
-        _uiState.update { state ->
+        form.update { current ->
             if (existing == null) {
-                state.copy(type = navKey.type, date = clock.now().toLocalDateTime(timeZone).date)
+                current.copy(isLoaded = true, date = clock.now().toLocalDateTime(timeZone).date)
             } else {
-                state.copy(
+                current.copy(
+                    isLoaded = true,
                     isNew = false,
                     type = existing.type,
                     amountText = formatMoneyInput(existing.amount),
@@ -115,58 +135,27 @@ class TransactionEditorViewModel @AssistedInject constructor(
                 )
             }
         }
-        return true
-    }
-
-    private suspend fun observeAccounts() {
-        accountRepository.observeAccounts().collect { accounts ->
-            _uiState.update { state ->
-                // Archived accounts stay selectable only if this transaction already uses them.
-                val usable = accounts.filter {
-                    !it.archived || it.id == state.accountId || it.id == state.toAccountId
-                }
-                val accountId = state.accountId?.takeIf { id -> usable.any { it.id == id } }
-                    ?: usable.firstOrNull()?.id
-                state.copy(isLoading = false, accounts = usable, accountId = accountId)
-                    .withDefaultToAccount()
-            }
-        }
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class) // flatMapLatest
-    private suspend fun observeCategories() {
-        _uiState.map { it.type }
-            .distinctUntilChanged()
-            .flatMapLatest { type ->
-                type.categoryKind?.let(categoryRepository::observeActiveCategories)
-                    ?: flowOf(emptyList())
-            }
-            .collect { categories ->
-                _uiState.update { state ->
-                    state.copy(
-                        categories = categories,
-                        categoryId = state.categoryId?.takeIf { id -> categories.any { it.id == id } },
-                    )
-                }
-            }
     }
 
     private fun save() {
-        val state = _uiState.value
+        // Use the latest form, not uiState.value: the combined state may not have re-emitted the
+        // last keystroke yet. Reference data (accounts, categories) comes from the current state.
+        val reference = uiState.value
+        val state = form.value.toUiState(reference.accounts, reference.categories)
         val account = state.selectedAccount ?: return
         val date = state.date ?: return
         val amount = parseMoneyInput(state.amountText, account.currencyCode)
         if (amount == null) {
-            _uiState.update { it.copy(amountError = R.string.editor_amount_error) }
+            form.update { it.copy(amountError = R.string.editor_amount_error) }
             return
         }
         if (!state.canSave) return
 
-        _uiState.update { it.copy(isSaving = true) }
+        form.update { it.copy(isSaving = true) }
         viewModelScope.launch {
             val now = clock.now()
             // Keep the original time of day when editing; new entries use the current time.
-            val time: LocalTime = (original?.occurredAt ?: now).toLocalDateTime(timeZone).time
+            val time = (original?.occurredAt ?: now).toLocalDateTime(timeZone).time
             val isTransfer = state.type == TransactionType.TRANSFER
             val transaction = Transaction(
                 id = original?.id ?: 0L,
@@ -187,17 +176,58 @@ class TransactionEditorViewModel @AssistedInject constructor(
                 state.type == TransactionType.INCOME -> R.string.editor_result_income_added
                 else -> R.string.editor_result_transfer_added
             }
-            _uiState.update { it.copy(isSaving = false, isFinished = true, resultMessage = message) }
+            form.update { it.copy(isSaving = false, isFinished = true, resultMessage = message) }
         }
     }
 }
 
-/** For transfers, makes sure a valid destination is selected; clears it otherwise. */
-private fun TransactionEditorUiState.withDefaultToAccount(): TransactionEditorUiState {
-    if (type != TransactionType.TRANSFER) return copy(toAccountId = null)
-    val destinations = toAccounts
-    if (destinations.any { it.id == toAccountId }) return this
-    return copy(toAccountId = destinations.firstOrNull()?.id)
+/** What the user has entered or chosen. Reference data (accounts, categories) is not stored here. */
+private data class EditorForm(
+    val isLoaded: Boolean = false,
+    val isNew: Boolean = true,
+    val type: TransactionType,
+    val amountText: String = "",
+    @StringRes val amountError: Int? = null,
+    val accountId: Long? = null,
+    val toAccountId: Long? = null,
+    val categoryId: Long? = null,
+    val date: LocalDate? = null,
+    val note: String = "",
+    val isSaving: Boolean = false,
+    val isFinished: Boolean = false,
+    @StringRes val resultMessage: Int? = null,
+)
+
+/** Combines the form with the latest reference data, deriving the defaults. */
+private fun EditorForm.toUiState(accounts: List<Account>, categories: List<Category>): TransactionEditorUiState {
+    // Archived accounts stay selectable only if this transaction already uses them.
+    val usable = accounts.filter { !it.archived || it.id == accountId || it.id == toAccountId }
+    val selectedAccount = usable.find { it.id == accountId } ?: usable.firstOrNull()
+    val destinations = selectedAccount?.let { from ->
+        usable.filter { it.id != from.id && it.currencyCode == from.currencyCode }
+    }.orEmpty()
+    val toAccountId = when (type) {
+        TransactionType.TRANSFER ->
+            destinations.find { it.id == toAccountId }?.id ?: destinations.firstOrNull()?.id
+        TransactionType.INCOME, TransactionType.EXPENSE -> null
+    }
+    return TransactionEditorUiState(
+        isLoading = !isLoaded,
+        isNew = isNew,
+        type = type,
+        amountText = amountText,
+        amountError = amountError,
+        accounts = usable,
+        accountId = selectedAccount?.id,
+        toAccountId = toAccountId,
+        categories = categories,
+        categoryId = categoryId?.takeIf { id -> categories.any { it.id == id } },
+        date = date,
+        note = note,
+        isSaving = isSaving,
+        isFinished = isFinished,
+        resultMessage = resultMessage,
+    )
 }
 
 private val TransactionType.categoryKind: CategoryKind?

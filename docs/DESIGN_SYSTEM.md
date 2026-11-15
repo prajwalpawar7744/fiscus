@@ -46,6 +46,8 @@
 - Amounts: `style.tabularNumbers` (Type.kt), e.g. `MaterialTheme.typography.displayLargeEmphasized.tabularNumbers`.
 - **Startup window and splash** use `@color/window_background`: `system_surface_light/dark` on Android 14+, `system_neutral1_10/900` on 12–13 (wallpaper-based), brand surface below 12. So the splash follows Material You like the app. Note: when the M5 "use brand colors" toggle is on, the splash still shows dynamic colors (resources can't read app settings). Handle that with the core-splashscreen API if needed.
 - Theme check: `ui/theme/ThemePreview.kt` (brand light, dark, and large font; dynamic).
+- Layout spacing: `ui/theme/Layout.kt` → `FiscusLayout` (ADR-020). The only place for spacing/size constants.
+- **Contrast check for custom text-on-container colors:** compute WCAG contrast in **all six** brand schemes (standard, medium, high × light, dark), since role pairs are only guaranteed in their intended combination. `onSurfaceVariant` on tertiary/secondary containers drops to 1.8–2.3:1 at medium/high contrast (measured 2026-11-15), so it must not be used there.
 - Dynamic color is the default on API 31+; brand schemes are used below that or when `dynamicColor = false` (a Settings toggle comes in M5).
 - Income/expense colors use existing roles (for example tertiary/primary vs. error containers). Any extended color must be generated with the M3 tooling and harmonized with the scheme.
 
@@ -71,6 +73,9 @@
 | `SingleChoiceToggleGroup(title, options, selectedKey, key, label, onSelect, emptyMessage, icon?)` | One choice from an open-ended list (account, category, account type) | `ToggleButton`s in a wrapping `FlowRow`, radio semantics. For 2–5 fixed options, use the connected button group |
 | `CurrencyPrefixTransformation(symbol)` | Showing a currency symbol in an amount field | Display only; works with centered text, unlike `prefix` |
 | `categoryIconRes(iconKey)` | Category icon drawable | Unknown keys fall back to "category" |
+| `ShapeAccentIcon(icon, containerColor?, contentColor?)` | The one decorative shape accent (icon in a `MaterialShapes.Cookie9Sided`) | Pass a matching role pair; accents only, never data containers |
+| `LocalSnackbarHostState` | Showing confirmations | `snackbarHost = { SnackbarHost(LocalSnackbarHostState.current) }`; provided by `FiscusApp` (ADR-020) |
+| `TransactionTypeDisplayOrder` | Any list of transaction types | Expense, Income, Transfer (ADR-020) |
 | `TransactionType.labelRes` / `.iconRes` | Type label and icon | |
 
 Kept inside a feature on purpose: the editor's `AmountHero` (hero moment 2, type colors). Extract a plain shared `AmountField` when a second screen (budgets, opening balance) needs amount input.

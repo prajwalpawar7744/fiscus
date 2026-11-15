@@ -96,7 +96,10 @@ Verified 2026-11-13 against the developer.android.com architecture pages (UI, ev
 | `XxxUiState.kt` | immutable `data class` with defaults |
 | `XxxViewModel.kt` | `@HiltViewModel`, `@Inject constructor(...)`, exposes `val uiState: StateFlow<XxxUiState>` |
 | `XxxRoute.kt` | stateful: `hiltViewModel()`, `collectAsStateWithLifecycle()`, navigation lambdas in, calls `XxxScreen` |
-| `XxxScreen.kt` | stateless: `Scaffold` + `LargeFlexibleTopAppBar` + content; previews in light, dark, and large font |
+| `XxxScreen.kt` | stateless: `Scaffold` + `LargeFlexibleTopAppBar` + content; previews in light, dark, and large font. Spacing from `FiscusLayout`; confirmations via `SnackbarHost(LocalSnackbarHostState.current)` (ADR-020) |
+| `XxxEvent.kt` | `sealed interface` of user actions, handled by `viewModel::onEvent` (screens with input) |
+
+**Forms** (e.g. the transaction editor): keep only what the user typed or chose in a private `MutableStateFlow` form, combine it with repository streams, and expose the result with `stateIn`. Derive defaults (preselected items, dropping stale selections) in the combine step, never by copying reference data into the form. Actions such as save read the latest **form** value, not `uiState.value`, which can lag the last keystroke.
 Tests: `test/.../ui/feature/<name>/XxxViewModelTest.kt` using `MainDispatcherRule` and Turbine.
 
 ## Data layer (M1a)

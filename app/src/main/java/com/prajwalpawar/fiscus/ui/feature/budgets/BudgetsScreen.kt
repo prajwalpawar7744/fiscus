@@ -19,11 +19,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.prajwalpawar.fiscus.R
+import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 
-private val ContentPadding = 16.dp
 
 /** Stateless Budgets screen. All state comes from [uiState]; all actions go out through lambdas. */
 @OptIn(ExperimentalMaterial3Api::class) // TopAppBarDefaults scroll behavior
@@ -39,14 +38,14 @@ fun BudgetsScreen(
         topBar = {
             LargeFlexibleTopAppBar(
                 title = { Text(stringResource(R.string.nav_budgets)) },
-            actions = {
-                IconButton(onClick = onOpenSettings) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_settings_rounded),
-                        contentDescription = stringResource(R.string.nav_settings),
-                    )
-                }
-            },
+                actions = {
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_settings_rounded),
+                            contentDescription = stringResource(R.string.nav_settings),
+                        )
+                    }
+                },
                 scrollBehavior = scrollBehavior,
             )
         },
@@ -55,8 +54,8 @@ fun BudgetsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(ContentPadding),
-            verticalArrangement = Arrangement.spacedBy(ContentPadding),
+                .padding(FiscusLayout.ScreenMargin),
+            verticalArrangement = Arrangement.spacedBy(FiscusLayout.ScreenMargin),
         ) {
             Text(
                 text = stringResource(uiState.emptyMessage),

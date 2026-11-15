@@ -64,7 +64,7 @@ fun AddTransactionFabMenu(
             }
         },
     ) {
-        TransactionType.entries.forEach { type ->
+        TransactionTypeDisplayOrder.forEach { type ->
             FloatingActionButtonMenuItem(
                 onClick = {
                     expanded = false
@@ -79,6 +79,7 @@ fun AddTransactionFabMenu(
 
 @Preview(name = "Light", showBackground = true)
 @Preview(name = "Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Large font", showBackground = true, fontScale = 2f)
 @Composable
 private fun AddTransactionFabMenuPreview() {
     FiscusTheme(dynamicColor = false) {

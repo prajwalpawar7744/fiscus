@@ -36,12 +36,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.material3.LargeFlexibleTopAppBar
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.toShape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -52,7 +48,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.prajwalpawar.fiscus.R
 import com.prajwalpawar.fiscus.core.money.formatMoney
 import com.prajwalpawar.fiscus.model.Account
@@ -62,20 +57,19 @@ import com.prajwalpawar.fiscus.model.CategoryKind
 import com.prajwalpawar.fiscus.model.Money
 import com.prajwalpawar.fiscus.model.Transaction
 import com.prajwalpawar.fiscus.model.TransactionType
+import com.prajwalpawar.fiscus.ui.components.LocalSnackbarHostState
+import com.prajwalpawar.fiscus.ui.components.ShapeAccentIcon
 import com.prajwalpawar.fiscus.ui.components.categoryIconRes
 import com.prajwalpawar.fiscus.ui.components.labelRes
+import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 import com.prajwalpawar.fiscus.ui.theme.tabularNumbers
-import kotlinx.datetime.TimeZone
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toJavaLocalDateTime
-import kotlinx.datetime.toLocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import kotlin.time.Instant
 
-private val ContentPadding = 16.dp
-private val MaxContentWidth = 600.dp
-private val AccentSize = 40.dp
 
 /**
  * Stateless transaction detail screen. Not a hero moment (ADR-010): standard M3, calm data, with
@@ -86,7 +80,6 @@ private val AccentSize = 40.dp
 @Composable
 fun TransactionDetailScreen(
     uiState: TransactionDetailUiState,
-    snackbarHostState: SnackbarHostState,
     onEvent: (TransactionDetailEvent) -> Unit,
     onBack: () -> Unit,
     onEdit: () -> Unit,
@@ -96,7 +89,7 @@ fun TransactionDetailScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(LocalSnackbarHostState.current) },
         topBar = {
             LargeFlexibleTopAppBar(
                 title = { Text(stringResource(R.string.detail_title)) },
@@ -136,7 +129,7 @@ fun TransactionDetailScreen(
                         onEdit = onEdit,
                         onDelete = { onEvent(TransactionDetailEvent.DeleteRequested) },
                         modifier = Modifier
-                            .widthIn(max = MaxContentWidth)
+                            .widthIn(max = FiscusLayout.MaxContentWidth)
                             .fillMaxWidth(),
                     )
                 }
@@ -175,12 +168,12 @@ private fun DetailContent(
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
-            .padding(vertical = ContentPadding),
-        verticalArrangement = Arrangement.spacedBy(ContentPadding),
+            .padding(vertical = FiscusLayout.ScreenMargin),
+        verticalArrangement = Arrangement.spacedBy(FiscusLayout.ScreenMargin),
     ) {
         AmountHeader(
             transaction = transaction,
-            modifier = Modifier.padding(horizontal = ContentPadding),
+            modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),
         )
         Column {
             if (transaction.type == TransactionType.TRANSFER) {
@@ -195,7 +188,7 @@ private fun DetailContent(
                     accent = true,
                 )
             }
-            DetailRow(R.drawable.ic_calendar_today_rounded, R.string.editor_date, formatDateTime(transaction.occurredAt))
+            DetailRow(R.drawable.ic_calendar_today_rounded, R.string.editor_date, uiState.occurredAt?.let(::formatDateTime))
             if (transaction.note.isNotBlank()) {
                 DetailRow(R.drawable.ic_edit_rounded, R.string.editor_note, transaction.note)
             }
@@ -203,7 +196,7 @@ private fun DetailContent(
         DetailActions(
             onEdit = onEdit,
             onDelete = onDelete,
-            modifier = Modifier.padding(horizontal = ContentPadding),
+            modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),
         )
     }
 }
@@ -214,14 +207,14 @@ private fun AmountHeader(transaction: Transaction, modifier: Modifier = Modifier
     val typeLabel = stringResource(transaction.type.labelRes)
     val amount = formatMoney(transaction.amount)
     val signed = when (transaction.type) {
-        TransactionType.EXPENSE -> "−$amount"
-        TransactionType.INCOME -> "+$amount"
+        TransactionType.EXPENSE -> stringResource(R.string.amount_signed_expense, amount)
+        TransactionType.INCOME -> stringResource(R.string.amount_signed_income, amount)
         TransactionType.TRANSFER -> amount
     }
     val description = stringResource(R.string.detail_amount_description, typeLabel, amount)
     Column(
         modifier = modifier.clearAndSetSemantics { contentDescription = description },
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(FiscusLayout.TightSpacing),
     ) {
         Text(
             text = typeLabel,
@@ -235,11 +228,7 @@ private fun AmountHeader(transaction: Transaction, modifier: Modifier = Modifier
     }
 }
 
-/**
- * One labeled detail. With [accent], the icon sits in a [MaterialShapes] container: a decorative
- * accent on a category icon, which M3_EXPRESSIVE.md §3 allows (never on data containers).
- */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class) // MaterialShapes
+/** One labeled detail. With [accent], the icon is shown as a [ShapeAccentIcon] (category only). */
 @Composable
 private fun DetailRow(
     @DrawableRes icon: Int,
@@ -250,16 +239,7 @@ private fun DetailRow(
     ListItem(
         leadingContent = {
             if (accent) {
-                Surface(
-                    shape = MaterialShapes.Cookie9Sided.toShape(),
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.size(AccentSize),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(painterResource(icon), contentDescription = null)
-                    }
-                }
+                ShapeAccentIcon(icon = icon)
             } else {
                 Icon(painterResource(icon), contentDescription = null)
             }
@@ -347,9 +327,9 @@ private fun DetailActions(onEdit: () -> Unit, onDelete: () -> Unit, modifier: Mo
     }
 }
 
-private fun formatDateTime(instant: Instant): String =
+private fun formatDateTime(dateTime: LocalDateTime): String =
     DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
-        .format(instant.toLocalDateTime(TimeZone.currentSystemDefault()).toJavaLocalDateTime())
+        .format(dateTime.toJavaLocalDateTime())
 
 @Preview(name = "Light", showBackground = true)
 @Preview(name = "Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -372,13 +352,13 @@ private fun TransactionDetailScreenPreview() {
                     createdAt = now,
                     updatedAt = now,
                 ),
+                occurredAt = LocalDateTime(2026, 11, 15, 19, 30),
                 account = Account(1, "Cash", AccountType.CASH, "INR", Money(0, "INR")),
                 category = Category(1, "Food & dining", CategoryKind.EXPENSE, "restaurant"),
             ),
             onEvent = {},
             onBack = {},
             onEdit = {},
-            snackbarHostState = remember { SnackbarHostState() },
         )
     }
 }

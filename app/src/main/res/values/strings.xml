@@ -23,6 +23,10 @@
     <string name="state_expanded">Expanded</string>
     <string name="state_collapsed">Collapsed</string>
 
+    <!-- Signed amounts (the sign is text, so it can be localized; never rely on color alone) -->
+    <string name="amount_signed_expense">−%1$s</string>
+    <string name="amount_signed_income">+%1$s</string>
+
     <!-- Transaction types -->
     <string name="transaction_type_expense">Expense</string>
     <string name="transaction_type_income">Income</string>
@@ -45,6 +49,10 @@
     <string name="editor_no_categories">No categories for this type.</string>
     <string name="editor_hero_summary_from">%1$s · from %2$s</string>
     <string name="editor_hero_summary_to">%1$s · to %2$s</string>
+    <string name="editor_hint_account">Add an account to save</string>
+    <string name="editor_hint_amount">Enter an amount</string>
+    <string name="editor_hint_category">Choose a category</string>
+    <string name="editor_hint_to_account">Choose an account to transfer to</string>
     <string name="editor_result_expense_added">Expense added</string>
     <string name="editor_result_income_added">Income added</string>
     <string name="editor_result_transfer_added">Transfer added</string>

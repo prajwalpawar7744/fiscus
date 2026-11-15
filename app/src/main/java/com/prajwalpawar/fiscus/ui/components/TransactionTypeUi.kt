@@ -5,6 +5,13 @@ import androidx.annotation.StringRes
 import com.prajwalpawar.fiscus.R
 import com.prajwalpawar.fiscus.model.TransactionType
 
+/**
+ * The order transaction types are shown in (FAB menu, type selector): Expense first, since it's
+ * the default and by far the most common. Never rely on the enum's declaration order in the UI.
+ */
+val TransactionTypeDisplayOrder: List<TransactionType> =
+    listOf(TransactionType.EXPENSE, TransactionType.INCOME, TransactionType.TRANSFER)
+
 /** Label for a [TransactionType], shared by the FAB menu, editor and detail screens. */
 @get:StringRes
 val TransactionType.labelRes: Int
