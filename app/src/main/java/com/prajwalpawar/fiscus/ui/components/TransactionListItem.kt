@@ -98,7 +98,7 @@ fun TransactionListItem(
 }
 
 /**
- * The amount with the type's arrow before it (expense ↑ out, income ↓ in, transfer ⇄; the same
+ * The amount with the type's arrow before it (expense ↓ out, income ↑ in, transfer ⇄; the same
  * icons as everywhere else, `iconRes`) instead of a −/+ sign (ADR-026). The arrow's tint comes
  * from the content color (no colored icons); TalkBack reads "Expense, ₹450.00" from [modifier].
  */

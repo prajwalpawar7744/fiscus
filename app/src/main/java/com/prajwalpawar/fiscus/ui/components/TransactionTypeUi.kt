@@ -29,8 +29,8 @@ val TransactionType.labelRes: Int
 @get:DrawableRes
 val TransactionType.iconRes: Int
     get() = when (this) {
-        TransactionType.EXPENSE -> R.drawable.ic_arrow_upward_rounded
-        TransactionType.INCOME -> R.drawable.ic_arrow_downward_rounded
+        TransactionType.EXPENSE -> R.drawable.ic_arrow_downward_rounded
+        TransactionType.INCOME -> R.drawable.ic_arrow_upward_rounded
         TransactionType.TRANSFER -> R.drawable.ic_swap_horiz_rounded
     }
 

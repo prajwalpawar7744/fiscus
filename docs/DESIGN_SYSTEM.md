@@ -80,7 +80,7 @@
 | `ActionButtonGroup(actions: List<GroupAction>)` | **Every page's actions** (Save; Delete/Edit; Clear/Done) | One Expressive `ButtonGroup`, medium buttons; `ActionStyle.Primary/Secondary/Danger`; loading state (ADR-028). Never a lone `Button` row |
 | `Modifier.sharedContainer(key)` + `transactionContainerKey(id)` | An item that opens its own page | Grows into the page and shrinks back (`sharedBounds`, bounds on `slowSpatialSpec`, fades on effects specs; ADR-028/030); no-op outside `NavDisplay` |
 | `EmptyState(icon, message, action?)` | **Every page's empty state** (nothing yet, no matches, search hint, placeholder pages) | Large `ShapeAccentIcon` + centered `bodyLarge` message + optional action (ADR-031). Never a bare `Text` |
-| `AmountText(text, style, textAlign?)` | Any amount on a card or hero | One line; steps down from `style`'s size instead of wrapping (ADR-027). Tabular figures |
+| `AmountText(text, style, textAlign?, icon?, color?)` | Any amount on a card or hero | One line; steps down from `style`'s size instead of wrapping (ADR-027). Tabular figures. Optional direction arrow inline before it at `1.em` (ADR-032) |
 | `TransactionType.heroRoles()` | The type's hero-card container pair (expense tertiaryContainer, income secondaryContainer, transfer surfaceContainerHighest) | Editor and detail heroes (ADR-024/025) |
 | `containedSegmentedColors()` | `SegmentedListItem`s on the screen background | `surfaceContainer` instead of the default `surface`, so groups are visibly contained (ADR-025). Not inside sheets |
 | `TransactionType.accentRoles()` | The type's accent role pair (expense tertiary, income secondary, transfer primary) | The only type → accent mapping (editor hero, list, summary; ADR-023) |
@@ -88,7 +88,8 @@
 | `TransactionTypeDisplayOrder` | Any list of transaction types | Expense, Income, Transfer (ADR-020) |
 | `TransactionType.labelRes` / `.iconRes` | Type label and icon | |
 | `TransactionListItem(transaction, supportingText, icon, onClick, shapes)` | One transaction in a list | `SegmentedListItem`; pass `ListItemDefaults.segmentedShapes(index, count)`; contained rows, `titleMedium` headline, the amount after its type's arrow (no −/+, ADR-026) with an optional `caption` (time) below; optional `highlight` emphasizes the search match; icon in a `ShapeAccentIcon` with the type's `accentRoles()` (ADR-023), signed tabular amount, TalkBack reads "Expense, ₹450.00" (ADR-022) |
-| `signedAmountText(type, amount)` / `signedNetText(net)` | Any signed amount ("−₹450.00", "+₹50,000.00") | Sign from `strings.xml`; transfers and zero unsigned |
+| `signedAmountText(type, amount)` / `signedNetText(net)` | TalkBack text for an amount ("−₹450.00", "+₹50,000.00") | Sign from `strings.xml`; transfers and zero unsigned. Not drawn: on screen amounts show an arrow (ADR-032) |
+| `netIconRes(net)` / `netAmountText(net)` | A net shown on screen | Arrow by direction (↓ negative, ↑ positive, none at zero) and the unsigned amount (ADR-032) |
 | `dayLabel(date, today)` | Day headers | "Today", "Yesterday", else the localized full date; `today` from the injected clock |
 
 Kept inside a feature on purpose: the editor's `AmountHero` (hero moment 2, type colors). Extract a plain shared `AmountField` when a second screen (budgets, opening balance) needs amount input.

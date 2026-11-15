@@ -102,6 +102,8 @@ import com.prajwalpawar.fiscus.ui.components.dayLabel
 import com.prajwalpawar.fiscus.ui.components.iconRes
 import com.prajwalpawar.fiscus.ui.components.labelRes
 import com.prajwalpawar.fiscus.ui.components.sharedContainer
+import com.prajwalpawar.fiscus.ui.components.netAmountText
+import com.prajwalpawar.fiscus.ui.components.netIconRes
 import com.prajwalpawar.fiscus.ui.components.signedNetText
 import com.prajwalpawar.fiscus.ui.components.transactionContainerKey
 import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
@@ -551,7 +553,7 @@ private fun SummaryCard(summary: PeriodSummary, period: String, modifier: Modifi
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             AmountText(
-                text = netText,
+                text = netAmountText(summary.net),
                 style = MaterialTheme.typography.headlineMediumEmphasized,
                 modifier = Modifier.clearAndSetSemantics {
                     contentDescription = "$netLabel, $netText"
@@ -625,10 +627,13 @@ private fun DayHeader(section: TransactionDaySection, today: LocalDate) {
             },
         )
         section.net?.let { net ->
-            Text(
-                text = signedNetText(net),
-                style = MaterialTheme.typography.labelLarge.tabularNumbers,
+            val netText = signedNetText(net)
+            AmountText(
+                text = netAmountText(net),
+                style = MaterialTheme.typography.labelLarge,
+                icon = netIconRes(net),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.clearAndSetSemantics { contentDescription = netText },
             )
         }
     }

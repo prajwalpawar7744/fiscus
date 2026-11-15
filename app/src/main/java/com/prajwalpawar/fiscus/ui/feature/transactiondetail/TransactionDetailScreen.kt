@@ -72,7 +72,6 @@ import com.prajwalpawar.fiscus.ui.components.heroRoles
 import com.prajwalpawar.fiscus.ui.components.iconRes
 import com.prajwalpawar.fiscus.ui.components.labelRes
 import com.prajwalpawar.fiscus.ui.components.sharedContainer
-import com.prajwalpawar.fiscus.ui.components.signedAmountText
 import com.prajwalpawar.fiscus.ui.components.transactionContainerKey
 import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
@@ -236,8 +235,8 @@ private fun DetailContent(
 /**
  * The amount hero, the viewing side of hero moment 2 (ADR-010, ADR-025). It's led by the category:
  * a large [ShapeAccentIcon] (the category's icon, or the type's for a transfer) in the type's
- * accent roles, the signed amount in emphasized display type, and "Expense · Food & dining" below,
- * on the type-coloured card from `heroRoles()`. The sign and label carry the meaning, never color.
+ * accent roles, the unsigned amount in emphasized display type (ADR-032), and "Expense · Food & dining" below,
+ * on the type-coloured card from `heroRoles()`. The label carries the meaning, never color.
  */
 @Composable
 private fun AmountHero(
@@ -246,7 +245,6 @@ private fun AmountHero(
     modifier: Modifier = Modifier,
 ) {
     val typeLabel = stringResource(transaction.type.labelRes)
-    val amount = signedAmountText(transaction.type, transaction.amount)
     val line = uiState.category
         ?.let { stringResource(R.string.detail_hero_line, typeLabel, it.name) }
         ?: typeLabel
@@ -286,7 +284,7 @@ private fun AmountHero(
             )
             // One line at any size: big amounts step down instead of wrapping (ADR-027).
             AmountText(
-                text = amount,
+                text = formatMoney(transaction.amount),
                 style = MaterialTheme.typography.displayLargeEmphasized,
                 textAlign = TextAlign.Center,
             )
