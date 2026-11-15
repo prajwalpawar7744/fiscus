@@ -22,7 +22,7 @@ Fiscus is an offline-first personal finance tracker for Android, built with **Ko
 ./gradlew lint                   # Android lint
 ```
 
-## Docs index (read the relevant ones before feature work)
+## Docs index (read **all** of them before any work; see rule 0)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): layers, packages, libraries
 - [docs/M3_EXPRESSIVE.md](docs/M3_EXPRESSIVE.md): M3 Expressive design language: intent, look & feel, tokens, per-screen checklist
 - [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md): M3 Expressive theme, motion, components, a11y
@@ -36,6 +36,8 @@ Fiscus is an offline-first personal finance tracker for Android, built with **Ko
 
 ## Working rules for Claude
 0. **Before planning or implementing anything** (features, fixes, UI, and even scaffolding or placeholders), read CLAUDE.md and **every** file in `docs/` in full, including LESSONS.md, and follow its process checklist. Never write our own design tokens or transition specs, and never copy library-internal values (LESSONS.md #3).
+0a. **Before saying a change is done**, run the conformance check in LESSONS.md (checklist step 6): every rule in CONVENTIONS, ARCHITECTURE, DESIGN_SYSTEM and the M3_EXPRESSIVE §9 checklist, checked against the changed files and reported per rule.
+0b. **When code and docs disagree**, or a rule can't be followed as written, stop and ask the user. Never silently copy the existing code or work around the rule.
 1. **User Guidelines below override everything else** in these docs.
 2. Add dependencies only via the version catalog (`libs.versions.toml`), never hardcoded.
 3. Money is a `Long` in minor units (paise/cents). Never `Float`/`Double` for amounts.

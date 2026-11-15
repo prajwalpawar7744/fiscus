@@ -31,7 +31,7 @@ com.prajwalpawar.fiscus
 ├── domain/                 # optional use cases only
 │   └── usecase/
 └── ui/
-    ├── theme/              # Color, Type, Shape, Motion, Theme
+    ├── theme/              # Theme, Color (generated), Type, Shape, Layout (FiscusLayout). No Motion file: motion comes from MaterialTheme.motionScheme (ADR-019)
     ├── components/         # shared composables; catalog in DESIGN_SYSTEM.md "Shared components"
     ├── navigation/
     └── feature/<name>/     # Screen + ViewModel + UiState per feature
@@ -94,13 +94,13 @@ Verified 2026-11-13 against the developer.android.com architecture pages (UI, ev
 | File | Contents |
 |---|---|
 | `XxxUiState.kt` | immutable `data class` with defaults |
-| `XxxViewModel.kt` | `@HiltViewModel`, `@Inject constructor(...)`, exposes `val uiState: StateFlow<XxxUiState>` |
-| `XxxRoute.kt` | stateful: `hiltViewModel()`, `collectAsStateWithLifecycle()`, navigation lambdas in, calls `XxxScreen` |
+| `XxxViewModel.kt` | `@HiltViewModel`, `@Inject constructor(...)` (screens with arguments: `@HiltViewModel(assistedFactory = …)` + `@AssistedInject` with the NavKey, ADR-018), exposes `val uiState: StateFlow<XxxUiState>` |
+| `XxxRoute.kt` | stateful: `hiltViewModel()` (or `hiltViewModel<VM, VM.Factory>(creationCallback = …)` for assisted ViewModels), `collectAsStateWithLifecycle()`, navigation lambdas in, calls `XxxScreen` |
 | `XxxScreen.kt` | stateless: `Scaffold` + `LargeFlexibleTopAppBar` + content; previews in light, dark, and large font. Spacing from `FiscusLayout`; confirmations via `SnackbarHost(LocalSnackbarHostState.current)` (ADR-020) |
 | `XxxEvent.kt` | `sealed interface` of user actions, handled by `viewModel::onEvent` (screens with input) |
 
 **Forms** (e.g. the transaction editor): keep only what the user typed or chose in a private `MutableStateFlow` form, combine it with repository streams, and expose the result with `stateIn`. Derive defaults (preselected items, dropping stale selections) in the combine step, never by copying reference data into the form. Actions such as save read the latest **form** value, not `uiState.value`, which can lag the last keystroke.
-Tests: `test/.../ui/feature/<name>/XxxViewModelTest.kt` using `MainDispatcherRule` and Turbine.
+Tests: `test/.../ui/feature/<name>/XxxViewModelTest.kt` using `MainDispatcherRule`, following CONVENTIONS.md "Testing" (assert on `uiState.value` with a collector running; Turbine only for emission sequences).
 
 ## Data layer (M1a)
 - **Room 3** (`androidx.room3`): `FiscusDatabase` (v1) with `BundledSQLiteDriver` and `setQueryCoroutineContext(@IoDispatcher)`, provided as a `@Singleton` in `di/DatabaseModule`.

@@ -60,10 +60,16 @@ Mistakes made while building Fiscus, and the rule each one produced. **Read this
    - What happened: every screen file declared its own `ContentPadding = 16.dp`.
    - Rule: layout spacing comes from `FiscusLayout`; anything used twice is shared.
 
+15. **Reading the docs isn't the same as checking against them.**
+   - What happened: a review found per-file spacing constants, a sign built in Kotlin, a missing preview, mixed ViewModel patterns and mis-indented top bars, all against rules already in the docs. The docs were read before the work, but the code was only checked by build, tests and lint, which can't see convention breaks. Existing code that broke the rules was copied instead of the written rule, and an unfollowable rule ("dimensions from theme tokens", with no tokens) was silently worked around.
+   - Rule: before reporting done, run the conformance check (process checklist step 6). When code and docs disagree, or a rule can't be followed, stop and ask; then fix whichever side is wrong.
+
 ## Process checklist (every task, including scaffolding)
 1. Read CLAUDE.md and every file in `docs/`, including this one.
 2. Plan: list the docs and ADRs that apply, the §9 checklist answers per screen, and any source still marked unread (ask for it).
 3. Check every API's name, status, deprecation and built-in motion in the real library (sources jar or `javap`) and record it in REFERENCES.md and DESIGN_SYSTEM.md.
 4. Build only from public M3 and Jetpack APIs. Anything else needs the user's approval and an ADR. Check DESIGN_SYSTEM.md "Shared components" first; put anything reusable in `ui/components/`.
 5. Verify: a full build with zero warnings, unit tests, lint, and device tests when possible. Report honestly what wasn't verified.
-6. Record what you learned: REFERENCES.md (facts), DECISIONS.md (choices), LESSONS.md (mistakes).
+6. **Conformance check:** go through every rule in CONVENTIONS.md, ARCHITECTURE.md (feature pattern, ViewModel rules), DESIGN_SYSTEM.md (allowed/forbidden, shared components, accessibility) and the M3_EXPRESSIVE.md §9 checklist against the changed files. Report the result per rule (✓ or what was fixed) in the summary. Build, tests and lint don't catch these.
+7. **Code vs. docs:** if existing code contradicts a doc, or a rule can't be followed as written, stop and ask the user. Never silently copy the code or work around the rule; once decided, fix the wrong side (code or doc) in the same change.
+8. Record what you learned: REFERENCES.md (facts), DECISIONS.md (choices), LESSONS.md (mistakes).

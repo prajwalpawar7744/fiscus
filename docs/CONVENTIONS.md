@@ -14,7 +14,7 @@
 - `modifier: Modifier = Modifier` is the first optional parameter and is applied to the root.
 - Hoist state; composables don't touch repositories.
 - Collect flows with `collectAsStateWithLifecycle()`.
-- Every public composable has an `@Preview` in light and dark. Screens also get a large-font preview (see DESIGN_SYSTEM.md).
+- Every public composable (screens and shared components) has `@Preview`s in light, dark and large font (`fontScale = 2f`), wrapped in `FiscusTheme(dynamicColor = false)`.
 - UI is built **only from M3 components** (see DESIGN_SYSTEM.md). No custom look-alikes.
 - **Expressive-first**: use the Expressive component when one exists (mapping in DESIGN_SYSTEM.md). Zero deprecation warnings are allowed; treat `w: … is deprecated` as a build failure.
 - Text lives in `strings.xml` (including signs such as "−%1$s"). Colors, type, shapes and motion come from `MaterialTheme`; layout spacing comes from `FiscusLayout` (ADR-020). Never define per-file spacing constants.
