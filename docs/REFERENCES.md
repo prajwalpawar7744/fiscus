@@ -157,3 +157,64 @@ for (const k of ['lightScheme','darkScheme']) console.log(k, ['primary','onPrima
 
 ## Money formatting (checked 2026-11-13)
 - JVM `java.text.NumberFormat` (en-IN) gives "₹124,580.00" (no lakh grouping). Android `android.icu.text.NumberFormat` (API 24+) gives "₹1,24,580.00". Confirmed on a moto g57 power, Android 17. The yen symbol differs between runtimes (fullwidth "￥" on the JVM), so tests shouldn't assert exact currency glyphs except for stable cases.
+
+## Transaction flow APIs (checked 2026-11-15 in the material3-android 1.5.0-rc01 sources jar from Google Maven, and the compiler)
+- `FloatingActionButtonMenu(expanded, button, modifier, horizontalAlignment, content: FloatingActionButtonMenuScope.() -> Unit)`, `FloatingActionButtonMenuItem(onClick, text, icon, …)`, `ToggleFloatingActionButton(checked, onCheckedChange, …, content: ToggleFloatingActionButtonScope.() -> Unit)` (scope has `checkedProgress`), `ToggleFloatingActionButtonDefaults.animateIcon(checkedProgress)` (Expressive opt-in).
+- `ButtonGroup(overflowIndicator, modifier, expandedRatio, horizontalArrangement, verticalAlignment, content: ButtonGroupScope.() -> Unit)`; items are `clickableItem`, `toggleableItem` or `customItem(buttonGroupContent, menuContent)`; the scope has `Modifier.weight` and `Modifier.animateWidth(interactionSource)`. `ButtonGroupDefaults.OverflowIndicator(menuState)`.
+- Connected (single-select) button group: the official sample is a `Row(horizontalArrangement = spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween))` of `ToggleButton(checked, onCheckedChange, shapes = ButtonGroupDefaults.connectedLeading/Middle/TrailingButtonShapes())` with `Role.RadioButton` semantics.
+- Expressive overloads: `FilterChip(selected, onClick, label, shapes: ChipShapes = FilterChipDefaults.shapes(), …)` (tonal colors by default), `Button(onClick, shapes: ButtonShapes, …)` with `ButtonDefaults.shapes()` / `shapesFor(height)`, `contentPaddingFor`, `iconSizeFor`, `textStyleFor`, `MediumContainerHeight`. `ListItem(…, content)` is the Expressive list item; `ListItem(headlineContent = …)` is deprecated.
+- `LoadingIndicator()` needs `@OptIn(ExperimentalMaterial3ExpressiveApi::class)` in rc01.
+- `OutlinedTextField` has `String`, `TextFieldValue` and `TextFieldState` overloads; none are deprecated in rc01.
+- Date pickers: `DatePicker(state, …, title, headline, showModeToggle)`, `DatePickerDialog`, `DateRangePicker`. There is **no separate docked date picker composable**; the docked variant is a `DatePicker` shown in a `Popup` anchored below a read-only text field (Compose docs pattern, https://developer.android.com/develop/ui/compose/components/datepickers; page not re-fetched on this date). `DatePicker` works in UTC-midnight millis.
+- androidx.hilt 1.4.0: `hiltViewModel<VM, VMF>(viewModelStoreOwner, key, creationCallback: (VMF) -> VM)` for assisted ViewModels.
+- compose-ui-test: `androidx.compose.ui.test.junit4.createComposeRule` is deprecated; use `androidx.compose.ui.test.junit4.v2.createComposeRule` (StandardTestDispatcher).
+- Material Symbols: `local_grocery_store` has no file in the repo (404); it is an alias of `shopping_cart`, which the app uses for that seed `iconKey`.
+
+## Motion, transitions and haptics (checked 2026-11-15)
+- M3 blog "Adding Motion Physics with Jetpack Compose" (https://m3.material.io/blog/m3-expressive-motion-theming, rendered with headless Chromium): `MaterialExpressiveTheme` defaults to the Expressive scheme; **spatial** specs for position/orientation/size/shape (overshoot), **effects** specs for color/opacity (no overshoot); speeds: fast = small components, default = partial-screen, slow = full-screen. Custom animations should use `MaterialTheme.motionScheme.*Spec()` instead of `tween()`. Springs retarget smoothly when interrupted.
+- Navigation 3 animations (https://developer.android.com/guide/navigation/navigation-3/animate-destinations): `NavDisplay(transitionSpec, popTransitionSpec, predictivePopTransitionSpec)`, each returning a `ContentTransform`; per-entry overrides via metadata `NavDisplay.TransitionKey` / `PopTransitionKey` / `PredictivePopTransitionKey`. In navigation3-ui 1.2.1 `predictivePopTransitionSpec` also receives the swipe edge (`Int`).
+- Haptics (https://developer.android.com/develop/ui/views/haptics/haptic-feedback, https://developer.android.com/develop/ui/views/haptics/haptics-principles): use action-oriented constants (no `VIBRATE` permission; they respect user settings); "less is more"; prefer no haptics over buzzy ones. Compose `HapticFeedbackType` in ui 1.12+: `Confirm`, `Reject`, `ToggleOn/Off`, `SegmentTick`, `SegmentFrequentTick`, `GestureThresholdActivate`, `GestureEnd`, `ContextClick`, `KeyboardTap`, `VirtualKey`, `LongPress`, `TextHandleMove`.
+- `LocalResources` (compose-ui) gives `Resources` in composition; use it instead of `LocalContext.current.resources`.
+- material3-adaptive 1.3.0: `currentWindowAdaptiveInfo()` is **deprecated** ("use V2 version… to support L and XL width size classes"); use `currentWindowAdaptiveInfoV2()`.
+- material3 1.5.0-rc01: `MaterialShapes.Cookie9Sided` + `RoundedPolygon.toShape()`; `MediumFlexibleTopAppBar`/`LargeFlexibleTopAppBar` take `subtitle`, `titleHorizontalAlignment`; `ButtonDefaults.LargeContainerHeight` exists (96dp class, too big for a form action).
+- Transition patterns page: now read (pasted by the user, 2026-11-15); see "M3 motion pages (read 2026-11-15)" below. The custom shared-axis transition was removed (ADR-019 amendment).
+- Testing note: with the soft keyboard open in a plain `ComponentActivity` test host, taps on content below the focused field did not register in `TransactionEditorScreenTest` (device run 2026-11-15); the test selects the category before typing. Not yet reproduced or ruled out in the real (edge-to-edge) app.
+
+## M3 motion pages (read 2026-11-15; the user pasted the rendered text because headless rendering failed)
+**Motion physics system** (https://m3.material.io/styles/motion/overview/how-it-works)
+- Introduced with M3 Expressive (May 2025); it is **replacing** easing and duration. Availability: Jetpack Compose available; MDC-Android available but not added to components; Flutter unavailable; Web compatible with Compose springs.
+- Two preset schemes: **expressive** (opinionated, overshoots; for most situations, especially hero moments and key interactions) and **standard** (minimal bounce; utilitarian products). Custom schemes are possible.
+- Springs = stiffness + damping + initial velocity; they handle gestures, interruptions and retargeting. "All component motion is driven by two tokens: expressive fast spatial and expressive fast effects."
+- Tokens: spatial and effects × default/fast/slow, e.g. `md.sys.motion.spring.fast.spatial`. The scheme is applied at product level, not part of the token. **Spatial**: x/y, rotation, size, rounded corners (overshoots). **Effects**: color, opacity (no overshoot).
+- Speed: default for partial-screen (bottom sheet, expanded rail), fast for small components (switches, buttons), slow for full-screen animations. Token values differ per device class.
+- On Compose, 21 Material components use it by default; custom components should use the spring tokens. Customization levels: 1 default scheme (should be sufficient), 2 custom `MotionScheme`, 3 swap scheme per element via CompositionLocal.
+
+**Easing and duration** (https://m3.material.io/styles/motion/easing-and-duration/applying-easing-and-duration)
+- "In the expressive update, components and motion now use the motion physics system… Products should migrate. The easing and duration system is **still used for transitions**… but is **no longer maintained**."
+- Suggested pairs: Emphasized 500ms (begin and end on screen), Emphasized decelerate 400ms (enter), Emphasized accelerate 200ms (exit), Standard 300/250/200ms. Emphasized is recommended for most transitions; Standard for small utility transitions. Exit permanently = accelerate; exit temporarily = emphasized. Duration scales with area; exits are shorter than enters.
+- In material3 1.5.0-rc01 these exist only as **internal** `MotionTokens` (e.g. EmphasizedDecelerate `CubicBezierEasing(0.05, 0.7, 0.1, 1.0)`, DurationMedium4 = 400). They are **not public API**; do not copy them into the app (ADR-019 amendment).
+
+**Transitions / transition patterns** (https://m3.material.io/styles/motion/transitions/transition-patterns)
+- "M3 transitions use the legacy easing and duration system. They'll eventually be updated to use the motion physics system." Transitions "should be the top priority for a strong motion implementation."
+- Six patterns:
+  1. **Container transform**: an element transforms to show more detail (card → details page). Used with cards, lists, galleries, search, sheets, **FABs**, chips. Strongest relationship, most expressive. Persistent container/element connects start and end.
+  2. **Forward and backward**: consecutive hierarchy levels (inbox → thread). Horizontal slide; **Android uses a fade as screens slide** (iOS uses parallax).
+  3. **Lateral**: peers at the same level (tabs, carousels, galleries). Slide in unison, no fade or parallax.
+  4. **Top level**: navigation bar/rail/drawer destinations. "The exiting screen quickly fades out and then the entering screen fades in", with no grouping or persistent elements.
+  5. **Enter and exit**: within screen bounds (FABs, dialogs, menus, snackbars, time pickers, tooltips), Android components **expand and collapse along x or y**; **scale and z-axis motion is avoided** (implies elevation change, which doesn't fit M3's reduced elevation). Direction follows screen position (top menu expands down, snackbar expands up). Beyond screen bounds (app bars, banners, nav bar/rail/drawer, sheets): expand/collapse along an axis while sliding; can be scroll-driven. Entry edges build a spatial model (notifications top, drawer left, sheets and keyboard bottom).
+  6. **Skeleton loaders**: hint at content layout while loading, subtle pulse from top-left to bottom-right, content fades in on top.
+
+## ToggleButton (checked 2026-11-15 in the material3 1.5.0-rc01 sources jar)
+- One public overload: `ToggleButton(checked, onCheckedChange, modifier, buttonSize: ToggleButtonSize = ToggleButtonDefaults.size, enabled, icon: (@Composable () -> Unit)? = null, shapes = ToggleButtonDefaults.shapesFor(buttonSize), colors, elevation, border, contentPadding = contentPaddingFor(buttonSize, hasStartIcon), interactionSource, content)`. Not deprecated, no opt-in.
+- The `icon` slot sizes and spaces the icon itself (`ButtonDefaults.iconSizeFor/iconSpacingFor(buttonSize.height)`).
+- `ToggleButtonSize`: `ExtraSmall`, `Small`, `Medium` (= `ButtonDefaults.MediumContainerHeight`), `Large`. Variants: `ElevatedToggleButton`, `FilledTonalToggleButton`, `OutlinedToggleButton`.
+- Chips (`FilterChip` etc.) are **not** in the M3 Expressive component set (M3_EXPRESSIVE.md §1). ⚠️ The m3.material.io chips and button-groups guideline pages are still unread (headless rendering fails); ask the user to paste them before relying on their single-selection guidance.
+
+## ButtonGroup motion (checked 2026-11-15 in the material3 1.5.0-rc01 sources jar)
+- `ButtonGroupScope.toggleableItem(checked, label, onCheckedChange, icon, weight, enabled)` renders a `ToggleButton` wrapped in `EnlargeOnPressElement`: on press the item grows by `expandedRatio` (`ButtonGroupDefaults.ExpandedRatio = 0.15f`) and neighbours compress, animated with `MotionSchemeKeyTokens.FastSpatial` (the theme's fast spatial spring). `clickableItem` does the same with a `Button`; `customItem` content needs `Modifier.animateWidth(interactionSource)`.
+- `toggleableItem` doesn't accept a modifier or semantics, so items get toggle-button semantics, not `Role.RadioButton`.
+- The "connected" button group samples (`SingleSelectConnectedButtonGroupSample`) are a `Row` of `ToggleButton`s with `connected*ButtonShapes()`. They have **no** enlarge-on-press motion.
+
+## Hero amount field (checked 2026-11-15)
+- A `TextField` `prefix` stays at the start edge when `textAlign = Center`, so a centered amount can't use it. Use a display-only `VisualTransformation` (public `androidx.compose.ui.text.input` API) that prepends the symbol, with an `OffsetMapping` shifted by its length. The stored value stays plain digits.
+- A field without a visible label still needs an accessible name: `Modifier.semantics { contentDescription = … }` on the `TextField`. Tests then find it with `onNodeWithContentDescription`.

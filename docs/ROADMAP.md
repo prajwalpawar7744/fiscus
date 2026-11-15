@@ -22,7 +22,7 @@
 
 ## M1 Transactions
 - [x] M1a data foundation: models, Room 3 schema v1, seed data, repositories, DI, tests (ADR-016/017)
-- [ ] Add / edit / delete transaction (FAB menu)
+- [x] Add / edit / delete transaction: FAB menu (Home, Transactions), full-screen editor, detail screen with edit/delete (ADR-018)
 - [ ] Transaction list grouped by day, with search and filter
 
 ## M2 Accounts & Categories

@@ -13,9 +13,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
@@ -23,6 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.prajwalpawar.fiscus.R
+import com.prajwalpawar.fiscus.model.TransactionType
+import com.prajwalpawar.fiscus.ui.components.AddTransactionFabMenu
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 import com.prajwalpawar.fiscus.ui.theme.tabularNumbers
 
@@ -33,7 +38,9 @@ private val ContentPadding = 16.dp
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
+    snackbarHostState: SnackbarHostState,
     onOpenSettings: () -> Unit,
+    onAddTransaction: (TransactionType) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -53,6 +60,8 @@ fun HomeScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = { AddTransactionFabMenu(onAddTransaction = onAddTransaction) },
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -88,6 +97,11 @@ fun HomeScreen(
 @Composable
 private fun HomeScreenPreview() {
     FiscusTheme(dynamicColor = false) {
-        HomeScreen(uiState = HomeUiState(), onOpenSettings = {})
+        HomeScreen(
+            uiState = HomeUiState(),
+            snackbarHostState = remember { SnackbarHostState() },
+            onOpenSettings = {},
+            onAddTransaction = {},
+        )
     }
 }

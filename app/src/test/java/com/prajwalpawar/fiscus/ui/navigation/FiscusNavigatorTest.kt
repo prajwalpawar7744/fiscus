@@ -59,4 +59,14 @@ class FiscusNavigatorTest {
         navigator.goBack()
         assertEquals(listOf(HomeNavKey), navigator.backStack)
     }
+
+    @Test
+    fun `transaction detail and editor are pushed with no selected tab`() {
+        val navigator = navigator()
+        navigator.navigate(TransactionDetailNavKey(transactionId = 7))
+        navigator.navigate(TransactionEditorNavKey(transactionId = 7))
+        assertNull(navigator.currentTopLevel)
+        navigator.goBack()
+        assertEquals(listOf(HomeNavKey, TransactionDetailNavKey(7)), navigator.backStack)
+    }
 }

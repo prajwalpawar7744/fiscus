@@ -32,6 +32,9 @@
 - Third-party UI or component libraries.
 - Hand-built replacements for Material components. Examples: a custom button drawn from `Box` + `clickable`, a custom chip, a hand-drawn progress bar, or a custom bottom sheet.
 - Hardcoded colors, font sizes, corner radii, or animation specs in screens.
+- **Writing our own design tokens or copying library-internal ones** (e.g. material3's `internal MotionTokens` easing/durations). If the library doesn't expose it publicly, use the library default or ask the user.
+- Custom screen-transition specs on `NavDisplay`: use Navigation 3's defaults (ADR-019).
+- Scale-based enter/exit animations (M3 transition patterns avoid scale).
 - Patterns that aren't in the M3 guidelines.
 - **If a need has no M3 component** (for example, charts), stop and ask the user. Record the outcome as an ADR.
 
@@ -59,6 +62,31 @@
 - **Icons** (ADR-010): Material Symbols **Rounded** only, app-wide, as vector drawables from the official repo (see REFERENCES). Navigation items are filled when selected and outline otherwise. Tint always comes from the M3 component; never set a color on an icon.
 - **Adaptive**: every screen supports compact, medium, and expanded breakpoints using a canonical layout (transactions → list-detail).
 
+## Shared components (`ui/components/`)
+**Check this list before building any UI.** If what you need is here, use it. If you write a composable that isn't tied to one feature, put it in `ui/components/` right away (public, documented, previews in light, dark and large font), and add it here. Features never copy each other's composables (ARCHITECTURE.md).
+| Component | Use for | Notes |
+|---|---|---|
+| `AddTransactionFabMenu` | Quick add (Expense / Income / Transfer) | Home and Transactions only (ADR-018) |
+| `DockedDatePickerField(date, onDateSelected, label)` | Picking one date inside a form | Docked `DatePicker` in a `Popup`, expands on the theme springs; UTC conversion is inside |
+| `SingleChoiceToggleGroup(title, options, selectedKey, key, label, onSelect, emptyMessage, icon?)` | One choice from an open-ended list (account, category, account type) | `ToggleButton`s in a wrapping `FlowRow`, radio semantics. For 2–5 fixed options, use the connected button group |
+| `CurrencyPrefixTransformation(symbol)` | Showing a currency symbol in an amount field | Display only; works with centered text, unlike `prefix` |
+| `categoryIconRes(iconKey)` | Category icon drawable | Unknown keys fall back to "category" |
+| `TransactionType.labelRes` / `.iconRes` | Type label and icon | |
+
+Kept inside a feature on purpose: the editor's `AmountHero` (hero moment 2, type colors). Extract a plain shared `AmountField` when a second screen (budgets, opening balance) needs amount input.
+
+## Built-in motion (what each component animates by itself, checked in the 1.5.0-rc01 sources)
+Reference only: what each component animates by itself. Hand-animating something a component already does is forbidden.
+| Component | Built-in motion |
+|---|---|
+| Standard `ButtonGroup` items (`clickableItem`, `toggleableItem`; `customItem` + `Modifier.animateWidth`) | Pressed item **widens by `ExpandedRatio` (15%)** and neighbours compress, on the theme's fast spatial spring. The most visible Expressive press motion. |
+| `ToggleButton` (alone or in a `Row`/`FlowRow`, including the "connected" sample) | Corner shape changes on press and checked, plus a colour change. **No width or size motion.** |
+| Expressive `Button(shapes = …)` | Corner shape changes on press. |
+| `FloatingActionButtonMenu` + `ToggleFloatingActionButton` | Container morph, items stagger in, icon rotates (`animateIcon`). |
+| `FilterChip(shapes = …)` | Subtle corner change on select. |
+| `LoadingIndicator` | Shape-morphing polygons. |
+| Flexible top app bars | Collapse on scroll (`exitUntilCollapsedScrollBehavior`). |
+
 ## Component map (Fiscus need → M3 component)
 | Need | Component |
 |---|---|
@@ -67,6 +95,7 @@
 | Quick add | `FloatingActionButtonMenu` (+ `ToggleFloatingActionButton`) |
 | Primary actions | `Button`, `FilledTonalButton`, `OutlinedButton`, `TextButton`, `SplitButtonLayout` |
 | Period / type selectors | `ButtonGroup` (connected), `ToggleButton`, `SegmentedButton` |
+| Single choice from an open-ended list (account, category) | `ToggleButton` (icon + label) in a wrapping `FlowRow`, `Role.RadioButton` semantics (ADR-018) |
 | Filters | `FilterChip`, `InputChip` |
 | Lists | `ListItem`, `SegmentedListItem` |
 | Containers | `Card`, `ElevatedCard`, `OutlinedCard` |

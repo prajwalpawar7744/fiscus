@@ -32,7 +32,7 @@ com.prajwalpawar.fiscus
 │   └── usecase/
 └── ui/
     ├── theme/              # Color, Type, Shape, Motion, Theme
-    ├── components/         # shared composables
+    ├── components/         # shared composables; catalog in DESIGN_SYSTEM.md "Shared components"
     ├── navigation/
     └── feature/<name>/     # Screen + ViewModel + UiState per feature
 ```

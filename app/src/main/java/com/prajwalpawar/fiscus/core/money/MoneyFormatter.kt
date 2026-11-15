@@ -16,7 +16,7 @@ const val FALLBACK_CURRENCY_CODE = "INR"
  */
 fun formatMoney(money: Money, locale: Locale = Locale.getDefault()): String {
     val currency = android.icu.util.Currency.getInstance(money.currencyCode)
-    val digits = Currency.getInstance(money.currencyCode).defaultFractionDigits.coerceAtLeast(0)
+    val digits = currencyFractionDigits(money.currencyCode)
     val format = NumberFormat.getCurrencyInstance(locale).apply {
         this.currency = currency
         minimumFractionDigits = digits

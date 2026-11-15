@@ -32,8 +32,10 @@ Fiscus is an offline-first personal finance tracker for Android, built with **Ko
 - [docs/DECISIONS.md](docs/DECISIONS.md): architecture decision log
 - [docs/VERSIONING.md](docs/VERSIONING.md): semantic versioning and release rules
 - [docs/REFERENCES.md](docs/REFERENCES.md): verified facts from official sources, with URLs and dates
+- [docs/LESSONS.md](docs/LESSONS.md): past mistakes, the rules they produced, and the per-task process checklist
 
 ## Working rules for Claude
+0. **Before planning or implementing anything** (features, fixes, UI, and even scaffolding or placeholders), read CLAUDE.md and **every** file in `docs/` in full, including LESSONS.md, and follow its process checklist. Never write our own design tokens or transition specs, and never copy library-internal values (LESSONS.md #3).
 1. **User Guidelines below override everything else** in these docs.
 2. Add dependencies only via the version catalog (`libs.versions.toml`), never hardcoded.
 3. Money is a `Long` in minor units (paise/cents). Never `Float`/`Double` for amounts.

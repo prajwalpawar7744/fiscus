@@ -14,6 +14,50 @@
     <string name="home_balance_placeholder">₹0.00</string>
     <string name="home_empty">Your accounts and recent activity will appear here.</string>
 
+    <!-- Common actions and states -->
+    <string name="action_add_transaction">Add transaction</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_choose_date">Choose date</string>
+    <string name="state_expanded">Expanded</string>
+    <string name="state_collapsed">Collapsed</string>
+
+    <!-- Transaction types -->
+    <string name="transaction_type_expense">Expense</string>
+    <string name="transaction_type_income">Income</string>
+    <string name="transaction_type_transfer">Transfer</string>
+
+    <!-- Transaction editor -->
+    <string name="editor_title_add">Add transaction</string>
+    <string name="editor_title_edit">Edit transaction</string>
+    <string name="editor_amount">Amount</string>
+    <string name="editor_amount_error">Enter a valid amount</string>
+    <string name="editor_account">Account</string>
+    <string name="editor_from_account">From account</string>
+    <string name="editor_to_account">To account</string>
+    <string name="editor_category">Category</string>
+    <string name="editor_date">Date</string>
+    <string name="editor_note">Note</string>
+    <string name="editor_save">Save</string>
+    <string name="editor_no_accounts">No accounts yet.</string>
+    <string name="editor_no_transfer_accounts">Add another account with the same currency to make a transfer.</string>
+    <string name="editor_no_categories">No categories for this type.</string>
+    <string name="editor_hero_summary_from">%1$s · from %2$s</string>
+    <string name="editor_hero_summary_to">%1$s · to %2$s</string>
+    <string name="editor_result_expense_added">Expense added</string>
+    <string name="editor_result_income_added">Income added</string>
+    <string name="editor_result_transfer_added">Transfer added</string>
+    <string name="editor_result_updated">Transaction updated</string>
+
+    <!-- Transaction detail -->
+    <string name="detail_title">Transaction</string>
+    <string name="detail_amount_description">%1$s, %2$s</string>
+    <string name="detail_unknown">Unknown</string>
+    <string name="detail_delete_title">Delete transaction?</string>
+    <string name="detail_delete_message">This transaction will be permanently removed.</string>
+    <string name="detail_result_deleted">Transaction deleted</string>
+
     <!-- Placeholders -->
     <string name="transactions_empty">Your transactions will appear here.</string>
     <string name="budgets_empty">Your budgets will appear here.</string>

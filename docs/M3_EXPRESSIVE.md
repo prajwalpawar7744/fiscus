@@ -22,7 +22,8 @@ Sources (checked 2026-11-13):
   - Elevation: https://m3.material.io/styles/elevation/overview · Icons: https://m3.material.io/styles/icons/overview
   - Breakpoints: https://m3.material.io/foundations/layout/applying-layout/window-size-classes · Canonical layouts: https://m3.material.io/foundations/layout/canonical-layouts/overview
   - States: https://m3.material.io/foundations/interaction/states/overview · Accessibility: https://m3.material.io/foundations/designing/overview
-  - ⚠️ Not yet read (rendering timed out twice): https://m3.material.io/styles/motion/transitions/transition-patterns
+  - Transition patterns: https://m3.material.io/styles/motion/transitions/transition-patterns (read 2026-11-15 from text pasted by the user; headless rendering fails on this page)
+  - Read 2026-11-15: motion theming blog https://m3.material.io/blog/m3-expressive-motion-theming (summary in REFERENCES.md, "Motion, transitions and haptics")
 
 ---
 
@@ -144,6 +145,12 @@ Official Expressive component set [M3 blog]: app bars, **button groups** (new), 
   - Customization levels: **(1)** use a default scheme (should be sufficient), **(2)** a custom `MotionScheme`, **(3)** swap the scheme for a specific element by overriding the CompositionLocal.
   - **Fiscus:** expressive app-wide (level 1). Level 3 (standard for dense data views) needs an ADR.
   - Easing and duration (legacy, for transitions): Emphasized 500ms (begin and end on screen), Emphasized decelerate 400ms (enter), Emphasized accelerate 200ms (exit permanently), Standard 300/250/200ms. Exits are shorter than enters, and duration scales with the area covered.
+
+### Transitions (M3 transition patterns, read 2026-11-15)
+- **Transitions still use the legacy easing-and-duration system**, not springs, and that system is no longer maintained. material3 does **not** expose its easing/duration tokens publicly (they are `internal`).
+- **Fiscus rule (ADR-019 amendment):** screen-to-screen transitions use **Navigation 3's default `NavDisplay` transitions**. Never write our own transition specs and never copy internal library tokens. Revisit when Google ships public M3 transition APIs.
+- Pattern guide (to judge library defaults and future APIs): container transform (FAB/card → detail, most expressive; needs user approval for Fiscus), forward/backward (Android: slide + fade), lateral (tabs, slide in unison), top level (fade out, then fade in), enter/exit (expand/collapse along x or y, **no scale**, direction away from the nearest edge), skeleton loaders.
+- In-screen motion (component state changes, section swaps, color changes) uses `MaterialTheme.motionScheme` springs (motion physics system). Prefer built-in component motion over hand animation.
 - Motion responds to touch. For example, neighboring notifications "subtly respond to your drag" with haptics. [S2] Pair key interactions with haptics.
 
 ## 6. Containment, size, and layout
@@ -195,7 +202,8 @@ MaterialExpressiveTheme(
 ## 9. Checklist for every screen
 - [ ] One clear hero or primary action, emphasized with size, color role, or an emphasized type style
 - [ ] Data (amounts, lists, forms) is calm, labeled, and familiar
-- [ ] Every animation uses `motionScheme` tokens, spatial vs effects chosen correctly
+- [ ] Every animation uses `motionScheme` tokens, spatial vs effects chosen correctly; no `tween`, no copied internal tokens; no scale for enter/exit
+- [ ] Screen transitions are the library defaults (no custom `transitionSpec`)
 - [ ] Shapes come from the shape scale or MaterialShapes; decorative shapes only on accents
 - [ ] Color comes from roles only; works with dynamic color on and off, light and dark and in standard, medium, and high contrast
 - [ ] Expressive shapes only where they carry meaning or decoration (not on data); motion uses default speed unless the element is small or full-screen
