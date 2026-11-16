@@ -35,6 +35,8 @@ import com.prajwalpawar.fiscus.ui.feature.budgets.BudgetsRoute
 import com.prajwalpawar.fiscus.ui.feature.accountdetail.AccountDetailRoute
 import com.prajwalpawar.fiscus.ui.feature.accounteditor.AccountEditorRoute
 import com.prajwalpawar.fiscus.ui.feature.accounts.AccountsRoute
+import com.prajwalpawar.fiscus.ui.feature.categories.CategoriesRoute
+import com.prajwalpawar.fiscus.ui.feature.categoryeditor.CategoryEditorRoute
 import com.prajwalpawar.fiscus.ui.feature.home.HomeRoute
 import com.prajwalpawar.fiscus.ui.feature.insights.InsightsRoute
 import com.prajwalpawar.fiscus.ui.feature.settings.SettingsRoute
@@ -44,6 +46,8 @@ import com.prajwalpawar.fiscus.ui.feature.transactions.TransactionsRoute
 import com.prajwalpawar.fiscus.ui.navigation.AccountDetailNavKey
 import com.prajwalpawar.fiscus.ui.navigation.AccountEditorNavKey
 import com.prajwalpawar.fiscus.ui.navigation.AccountsNavKey
+import com.prajwalpawar.fiscus.ui.navigation.CategoriesNavKey
+import com.prajwalpawar.fiscus.ui.navigation.CategoryEditorNavKey
 import com.prajwalpawar.fiscus.ui.navigation.BudgetsNavKey
 import com.prajwalpawar.fiscus.ui.navigation.HomeNavKey
 import com.prajwalpawar.fiscus.ui.navigation.InsightsNavKey
@@ -156,7 +160,31 @@ fun FiscusApp(modifier: Modifier = Modifier) {
                             }
                             entry<BudgetsNavKey> { BudgetsRoute(onOpenSettings = openSettings) }
                             entry<InsightsNavKey> { InsightsRoute(onOpenSettings = openSettings) }
-                            entry<SettingsNavKey> { SettingsRoute(onBack = navigator::goBack) }
+                            entry<SettingsNavKey> {
+                                SettingsRoute(
+                                    onBack = navigator::goBack,
+                                    onOpenAccounts = { navigator.navigate(AccountsNavKey) },
+                                    onOpenCategories = { navigator.navigate(CategoriesNavKey) },
+                                )
+                            }
+                            entry<CategoriesNavKey> {
+                                CategoriesRoute(
+                                    onBack = navigator::goBack,
+                                    onOpenCategory = { id ->
+                                        navigator.navigate(CategoryEditorNavKey(categoryId = id))
+                                    },
+                                    onAddCategory = { kind ->
+                                        navigator.navigate(CategoryEditorNavKey(kind = kind))
+                                    },
+                                )
+                            }
+                            entry<CategoryEditorNavKey> { key ->
+                                CategoryEditorRoute(
+                                    navKey = key,
+                                    onBack = navigator::goBack,
+                                    onFinished = finishWith,
+                                )
+                            }
                             entry<TransactionEditorNavKey> { key ->
                                 TransactionEditorRoute(
                                     navKey = key,

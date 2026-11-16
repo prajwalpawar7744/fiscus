@@ -92,4 +92,20 @@ class MigrationTest {
             assertEquals(listOf(2L), defaults)
         }
     }
+
+    @Test
+    fun migrate3To4_marksTheStarterCategoriesAsSeeded() = runTest {
+        helper.createDatabase(3).use { connection ->
+            val rows = (1..14).joinToString { id -> "($id, 'C$id', 'EXPENSE', 'category', 0)" }
+            connection.execSQL("INSERT INTO categories (id, name, kind, iconKey, archived) VALUES $rows")
+        }
+
+        helper.runMigrationsAndValidate(4, listOf(Migration3To4)).use { connection ->
+            val seeded = connection.prepare("SELECT id FROM categories WHERE isSeeded = 1")
+                .use { statement ->
+                    buildList { while (statement.step()) add(statement.getLong(0)) }
+                }
+            assertEquals((1L..13L).toList(), seeded)
+        }
+    }
 }

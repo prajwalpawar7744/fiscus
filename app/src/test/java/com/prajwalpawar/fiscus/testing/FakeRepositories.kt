@@ -7,6 +7,7 @@ import com.prajwalpawar.fiscus.model.Account
 import com.prajwalpawar.fiscus.model.AccountWithBalance
 import com.prajwalpawar.fiscus.model.Category
 import com.prajwalpawar.fiscus.model.CategoryKind
+import com.prajwalpawar.fiscus.model.CategoryWithUsage
 import com.prajwalpawar.fiscus.model.Transaction
 import com.prajwalpawar.fiscus.model.TransactionFilter
 import com.prajwalpawar.fiscus.model.TransactionType
@@ -77,7 +78,8 @@ class FakeAccountRepository(
                         else -> total
                     }
                 }
-                AccountWithBalance(account, balance)
+                val count = transactions.count { it.accountId == account.id || it.toAccountId == account.id }
+                AccountWithBalance(account, balance, count)
             }
         }
 
@@ -118,7 +120,9 @@ class FakeAccountRepository(
     }
 }
 
-class FakeCategoryRepository : CategoryRepository {
+class FakeCategoryRepository(
+    private val transactionRepository: FakeTransactionRepository = FakeTransactionRepository(),
+) : CategoryRepository {
     val categories = MutableStateFlow<List<Category>>(emptyList())
     private var nextId = 1L
 
@@ -135,4 +139,16 @@ class FakeCategoryRepository : CategoryRepository {
 
     override suspend fun setArchived(id: Long, archived: Boolean) =
         categories.update { list -> list.map { if (it.id == id) it.copy(archived = archived) else it } }
+
+    override fun observeCategoriesWithUsage(): Flow<List<CategoryWithUsage>> =
+        combine(categories, transactionRepository.transactions) { categories, transactions ->
+            categories.map { category ->
+                CategoryWithUsage(category, transactions.count { it.categoryId == category.id })
+            }
+        }
+
+    override fun observeCategory(id: Long): Flow<Category?> =
+        categories.map { list -> list.find { it.id == id } }
+
+    override suspend fun delete(id: Long) = categories.update { list -> list.filterNot { it.id == id } }
 }

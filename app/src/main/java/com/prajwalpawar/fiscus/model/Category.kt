@@ -10,6 +10,8 @@ data class Category(
     val kind: CategoryKind,
     val iconKey: String,
     val archived: Boolean = false,
+    /** A starter category (shown as "Default"); false when the user added it (ADR-041). */
+    val isSeeded: Boolean = false,
 ) {
     init {
         require(name.isNotBlank()) { "Category name must not be blank" }

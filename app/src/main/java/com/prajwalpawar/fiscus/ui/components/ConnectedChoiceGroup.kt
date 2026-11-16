@@ -31,7 +31,7 @@ import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
  * Shared component: one choice from **2–5 fixed options** as the M3 Expressive connected button
  * group (ADR-018 3b, ADR-036): a `Row` of [ToggleButton]s with connected shapes that change on
  * press and selection, radio semantics, equal widths. For open-ended lists use
- * [SingleChoiceToggleGroup].
+ * [SingleChoiceToggleGroup]. When not [enabled], the choice is shown but locked.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class) // connected button shapes
 @Composable
@@ -42,6 +42,7 @@ fun <T> ConnectedChoiceGroup(
     label: @Composable (T) -> String,
     modifier: Modifier = Modifier,
     icon: ((T) -> Int?)? = null, // a drawable res, or null for none
+    enabled: Boolean = true,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -51,6 +52,7 @@ fun <T> ConnectedChoiceGroup(
             ToggleButton(
                 checked = option == selected,
                 onCheckedChange = { onSelect(option) },
+                enabled = enabled,
                 shapes = when (index) {
                     0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
                     options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()

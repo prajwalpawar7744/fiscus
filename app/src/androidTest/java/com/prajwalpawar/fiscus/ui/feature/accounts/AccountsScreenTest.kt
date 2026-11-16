@@ -33,7 +33,7 @@ class AccountsScreenTest {
                 AccountsScreen(
                     uiState = AccountsUiState(
                         isLoading = false,
-                        active = listOf(AccountWithBalance(cash, Money(458_000, "INR"))),
+                        active = listOf(AccountWithBalance(cash, Money(458_000, "INR"), transactionCount = 3)),
                         archived = listOf(AccountWithBalance(oldCard, Money(0, "INR"))),
                     ),
                     onBack = {},
@@ -46,8 +46,10 @@ class AccountsScreenTest {
         composeRule.onNodeWithText("Archived").assertIsDisplayed()
         composeRule.onNodeWithText("Old card", substring = true, useUnmergedTree = true)
             .assertIsDisplayed()
-        // "Cash" is both the name and the type, so tap the row by its TalkBack label.
-        composeRule.onNodeWithContentDescription("Cash, Balance", substring = true).performClick()
+        // "Cash" is both the name and the type, so tap the row by its TalkBack label, which
+        // includes the supporting line with the transaction count (ADR-041).
+        composeRule.onNodeWithContentDescription("Cash, Cash · 3 transactions, Balance", substring = true)
+            .performClick()
         assertEquals(1L, opened)
         composeRule.onNodeWithText("Add account", useUnmergedTree = true).performClick()
         assertTrue(added)

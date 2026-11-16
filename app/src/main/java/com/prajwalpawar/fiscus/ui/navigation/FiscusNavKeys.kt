@@ -1,6 +1,7 @@
 package com.prajwalpawar.fiscus.ui.navigation
 
 import androidx.navigation3.runtime.NavKey
+import com.prajwalpawar.fiscus.model.CategoryKind
 import com.prajwalpawar.fiscus.model.TransactionType
 import kotlinx.serialization.Serializable
 
@@ -43,3 +44,14 @@ data class AccountDetailNavKey(val accountId: Long) : NavKey
 /** Add ([accountId] null) or edit an account (ADR-036). */
 @Serializable
 data class AccountEditorNavKey(val accountId: Long? = null) : NavKey
+
+/** Every category of each kind, active and archived, with Add (ADR-040). */
+@Serializable
+data object CategoriesNavKey : NavKey
+
+/** Add ([categoryId] null, starting as [kind]) or edit a category, with archive/delete (ADR-040). */
+@Serializable
+data class CategoryEditorNavKey(
+    val categoryId: Long? = null,
+    val kind: CategoryKind = CategoryKind.EXPENSE,
+) : NavKey

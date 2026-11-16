@@ -130,7 +130,6 @@
     <!-- Placeholders -->
     <string name="budgets_empty">Your budgets will appear here.</string>
     <string name="insights_empty">Your spending insights will appear here.</string>
-    <string name="settings_empty">Settings will appear here.</string>
     <!-- Seed data (inserted once when the database is created, then user-editable) -->
     <string name="seed_account_cash">Cash</string>
     <string name="seed_category_food">Food &amp; dining</string>
@@ -188,4 +187,70 @@
     <string name="account_save">Save</string>
     <string name="account_result_added">Account added</string>
     <string name="account_result_updated">Account updated</string>
+
+    <!-- Settings (ADR-040) -->
+    <string name="settings_accounts_supporting">Add, edit and archive accounts</string>
+    <string name="settings_categories">Categories</string>
+    <string name="settings_categories_supporting">Add, edit and archive categories</string>
+
+    <!-- Categories (ADR-040) -->
+    <string name="categories_title">Categories</string>
+    <string name="categories_add">Add category</string>
+    <string name="categories_empty">No categories of this kind yet.</string>
+    <plurals name="transaction_count">
+        <item quantity="one">%d transaction</item>
+        <item quantity="other">%d transactions</item>
+    </plurals>
+    <string name="category_seeded_short">Default</string>
+    <string name="category_custom_short">Custom</string>
+    <string name="categories_active">Active</string>
+    <string name="categories_archived">Archived</string>
+    <string name="category_editor_title_add">Add category</string>
+    <string name="category_editor_title_edit">Edit category</string>
+    <string name="category_name">Name</string>
+    <string name="category_kind">Kind</string>
+    <string name="category_kind_locked">Used by transactions, so the kind can\'t change.</string>
+    <string name="category_icon">Icon</string>
+    <string name="category_hint_name">Add a name</string>
+    <string name="category_save">Save</string>
+    <string name="category_archive">Archive</string>
+    <string name="category_unarchive">Unarchive</string>
+    <string name="category_delete_title">Delete category?</string>
+    <string name="category_delete_message">No transaction uses this category. Deleting it can\'t be undone.</string>
+    <string name="category_result_added">Category added</string>
+    <string name="category_result_updated">Category updated</string>
+    <string name="category_result_deleted">Category deleted</string>
+    <string name="category_result_archived">Category archived</string>
+    <string name="category_result_unarchived">Category restored</string>
+    <string name="category_icon_restaurant">Dining</string>
+    <string name="category_icon_cafe">Café</string>
+    <string name="category_icon_groceries">Groceries</string>
+    <string name="category_icon_shopping">Shopping</string>
+    <string name="category_icon_clothing">Clothing</string>
+    <string name="category_icon_home">Home</string>
+    <string name="category_icon_bills">Bills</string>
+    <string name="category_icon_electricity">Electricity</string>
+    <string name="category_icon_internet">Internet</string>
+    <string name="category_icon_phone">Phone</string>
+    <string name="category_icon_transport">Transport</string>
+    <string name="category_icon_fuel">Fuel</string>
+    <string name="category_icon_travel">Travel</string>
+    <string name="category_icon_health">Health</string>
+    <string name="category_icon_fitness">Fitness</string>
+    <string name="category_icon_personal_care">Personal care</string>
+    <string name="category_icon_entertainment">Entertainment</string>
+    <string name="category_icon_games">Games</string>
+    <string name="category_icon_celebrations">Celebrations</string>
+    <string name="category_icon_education">Education</string>
+    <string name="category_icon_kids">Kids</string>
+    <string name="category_icon_pets">Pets</string>
+    <string name="category_icon_repairs">Repairs</string>
+    <string name="category_icon_charity">Charity</string>
+    <string name="category_icon_gifts">Gifts</string>
+    <string name="category_icon_salary">Salary</string>
+    <string name="category_icon_business">Business</string>
+    <string name="category_icon_payments">Payments</string>
+    <string name="category_icon_investments">Investments</string>
+    <string name="category_icon_savings">Savings</string>
+    <string name="category_icon_other">Other</string>
 </resources>

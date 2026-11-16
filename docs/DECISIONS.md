@@ -304,3 +304,24 @@ Format: `## ADR-NNN: Title`, then Date, Status, Context, Decision, Consequences.
   5. Home's `LargeFlexibleTopAppBar` has a subtitle with the current month ("November 2026", locale best pattern), the period the hero's totals cover.
   6. Hero restraint (ADR-010): the transaction and account detail heroes step down from `displayLargeEmphasized` to `displayMedium`, so only Home's balance and the add-transaction editor use the emphasized display style.
 
+## ADR-040: Category management, Settings entry points
+- **Date**: 2026-11-16 · **Status**: Accepted (user chose "Settings row, and add Accounts too for consistency", "Editor directly", "Curated ~30 icons")
+- **Decision**:
+  1. **Settings** becomes one contained segmented group of `SegmentedListItem` rows, each with a `ShapeAccentIcon`: **Accounts** (opens `AccountsNavKey`; Home's Manage button stays) and **Categories** (`CategoriesNavKey`). `SettingsUiState` is a `data object` until settings with values arrive (M5).
+  2. **Categories page**: built like the Accounts page (ADR-036). A `ConnectedChoiceGroup` of [Expense | Income] picks the kind (held in the ViewModel), then that kind's active and archived categories as contained segmented groups, sorted by name. Each row has the category icon in a `ShapeAccentIcon` with the kind's accent pair (same as its transactions, ADR-023). The "Add category" extended FAB collapses on scroll and opens the editor preset to the chosen kind.
+  3. **No category page**: a row opens the **editor** (`CategoryEditorNavKey(categoryId?, kind)`) directly. It holds the name (required), the kind (`ConnectedChoiceGroup`, **locked once a transaction uses the category**, with a reason line, since the kind must match its transactions' type), and the icon. Actions in `ActionButtonGroup`: [Save] when adding; **[Delete | Save]** when unused (error-role `AlertDialog`, then closes); **[Archive | Save]** / **[Unarchive | Save]** when used (applies at once, snackbar on the page).
+  4. **Delete only if unused**: the `categoryId` FK is SET NULL, but income/expense transactions need a category (DOMAIN), so used categories are archived, never deleted. Usage is counted from `TransactionRepository.observeTransactions(TransactionFilter(categoryIds))`; the ViewModel re-checks it before deleting and saving.
+  5. **Archived categories** drop out of the transaction editor's choices, unless the edited transaction already uses one (same rule as accounts, ADR-036). They stay in the Transactions category filter, so old transactions remain findable.
+  6. **Icons**: a curated list of 31 Material Symbols Rounded icons (`CategoryIcons` in `ui/components/`, each with a label used as its accessibility name), picked with the shared `SingleChoiceToggleGroup` in a new `iconOnly` mode (icon-only `ToggleButton`s, radio semantics). `local_grocery_store` (seed) is an alias of `shopping_cart`.
+  7. **Shared**: `CategoryKindUi.kt` (`CategoryKindDisplayOrder`, `labelRes`/`iconRes`/`accentRoles()` via the matching `TransactionType`); `ConnectedChoiceGroup` gains `enabled` (shown but locked).
+- **Consequences**: No schema change. A category can't move between kinds once used; the user makes a new one instead.
+
+## ADR-041: Usage and origin on account and category rows
+- **Date**: 2026-11-16 · **Status**: Accepted (user: "in subtitle add type, status and transaction count", for accounts and categories). Amends ADR-036 item 1 and ADR-040 item 2.
+- **Decision**:
+  1. **Account rows** (Accounts page): the supporting line ends with the transaction count: "Bank · Default · In debt · 3 transactions". The count includes transfers in, from the same query as the balances (`AccountDao.observeBalances`, now also `transactionCount`, carried on `AccountWithBalance`). The row's TalkBack label now includes the supporting line.
+  2. **Category rows** (Categories page): "Expense · Default · 3 transactions". The status is **Default** for a starter category and **Custom** for one the user added. The counts come from `CategoryDao.observeUsage()` via `CategoryRepository.observeCategoriesWithUsage()` (`CategoryWithUsage`).
+  3. **Schema v4**: `categories.isSeeded`. The seed sets it; `Migration3To4` marks the 13 lowest ids (the starter set). Editing a category keeps the flag.
+  4. One shared `transaction_count` plural for both rows.
+- **Consequences**: Archived status stays shown by the Active/Archived groups, not repeated on each row.
+

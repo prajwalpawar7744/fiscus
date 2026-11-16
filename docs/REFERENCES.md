@@ -273,3 +273,5 @@ for (const k of ['lightScheme','darkScheme']) console.log(k, ['primary','onPrima
 - `DatePickerDefaults.TonalElevation` and `DatePickerDefaults.shape` are public; there is no public shadow-elevation token for a docked picker.
 - `Small`/`Medium`/`LargeExtendedFloatingActionButton` exist.
 - Material Symbols `archive` (Rounded) downloaded from the official repo as `ic_archive_rounded` (account status row).
+- Checked 2026-11-16 (category icons, ADR-040): `card_giftcard` has no Rounded Android file in the repo (404), so `celebration` is used. In the repo files `android:tint="…"` sits on the same line as the `<vector>` tag's closing `>`: strip only the attribute, never the whole line.
+- `ToggleButton(checked, onCheckedChange, modifier, …, enabled, …)` takes `enabled`; an icon-only toggle puts the `Icon` (with a content description) in `content` and leaves the `icon` slot empty.

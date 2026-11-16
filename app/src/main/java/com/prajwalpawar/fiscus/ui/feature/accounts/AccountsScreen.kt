@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -193,22 +194,24 @@ private fun LazyListScope.accountGroup(
 
 /**
  * One account: type icon in a [ShapeAccentIcon], name, "Card · Default · In debt", and the
- * balance with no sign or arrow (ADR-037). TalkBack reads "Card, Balance, −₹5,000".
+ * balance with no sign or arrow (ADR-037). TalkBack reads "Card, Card · 3 transactions, Balance,
+ * −₹5,000".
  */
 @Composable
 private fun AccountRow(item: AccountWithBalance, index: Int, count: Int, onClick: () -> Unit) {
     val account = item.account
     val description =
         stringResource(R.string.account_balance_description, formatMoney(item.balance))
+    val supporting = accountSupportingText(item)
     SegmentedListItem(
         onClick = onClick,
         shapes = ListItemDefaults.segmentedShapes(index, count),
         colors = containedSegmentedColors(),
         modifier = Modifier
             .sharedContainer(accountContainerKey(account.id))
-            .clearAndSetSemantics { contentDescription = "${account.name}, $description" },
+            .clearAndSetSemantics { contentDescription = "${account.name}, $supporting, $description" },
         leadingContent = { ShapeAccentIcon(icon = account.type.iconRes) },
-        supportingContent = { Text(accountSupportingText(item)) },
+        supportingContent = { Text(supporting) },
         trailingContent = {
             AmountText(
                 text = netAmountText(item.balance),
@@ -225,12 +228,13 @@ private fun AccountRow(item: AccountWithBalance, index: Int, count: Int, onClick
     }
 }
 
-/** "Bank", plus "Default" and "In debt" when they apply (ADR-037). */
+/** "Bank", plus "Default" and "In debt" when they apply (ADR-037), then "3 transactions" (ADR-041). */
 @Composable
 private fun accountSupportingText(item: AccountWithBalance): String = buildList {
     add(stringResource(item.account.type.labelRes))
     if (item.account.isDefault) add(stringResource(R.string.account_default_short))
     if (item.balance.isNegative) add(stringResource(R.string.account_in_debt_short))
+    add(pluralStringResource(R.plurals.transaction_count, item.transactionCount, item.transactionCount))
 }.joinToString(stringResource(R.string.list_separator))
 
 @Preview(name = "Light", showBackground = true)
@@ -244,7 +248,7 @@ private fun AccountsScreenPreview() {
             uiState = AccountsUiState(
                 isLoading = false,
                 active = listOf(
-                    AccountWithBalance(cash, Money(458_000, "INR")),
+                    AccountWithBalance(cash, Money(458_000, "INR"), transactionCount = 12),
                     AccountWithBalance(
                         cash.copy(
                             id = 2,

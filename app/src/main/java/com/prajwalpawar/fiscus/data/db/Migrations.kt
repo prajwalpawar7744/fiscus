@@ -50,3 +50,20 @@ object Migration2To3 : Migration(2, 3) {
         )
     }
 }
+
+/**
+ * v3 → v4: adds `categories.isSeeded` (ADR-041). The starter set was inserted first when the
+ * database was created, and categories couldn't be deleted before v4, so the lowest
+ * [SEEDED_CATEGORY_COUNT] ids are the seeded ones.
+ */
+object Migration3To4 : Migration(3, 4) {
+    const val SEEDED_CATEGORY_COUNT = 13
+
+    override suspend fun migrate(connection: SQLiteConnection) {
+        connection.execSQL("ALTER TABLE categories ADD COLUMN isSeeded INTEGER NOT NULL DEFAULT 0")
+        connection.execSQL(
+            "UPDATE categories SET isSeeded = 1 WHERE id IN " +
+                "(SELECT id FROM categories ORDER BY id LIMIT $SEEDED_CATEGORY_COUNT)",
+        )
+    }
+}

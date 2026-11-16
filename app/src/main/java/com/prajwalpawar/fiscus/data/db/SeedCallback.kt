@@ -30,7 +30,7 @@ class SeedCallback(
             statement.step()
         }
         connection.prepare(
-            "INSERT INTO categories (name, kind, iconKey, archived) VALUES (?, ?, ?, 0)",
+            "INSERT INTO categories (name, kind, iconKey, archived, isSeeded) VALUES (?, ?, ?, 0, 1)",
         ).use { statement ->
             STARTER_CATEGORIES.forEach { seed ->
                 statement.bindText(1, context.getString(seed.name))

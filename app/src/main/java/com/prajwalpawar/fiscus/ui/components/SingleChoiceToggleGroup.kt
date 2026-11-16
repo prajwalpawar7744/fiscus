@@ -26,7 +26,8 @@ import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
  * Shared component: a titled single choice from an open-ended list, as Expressive [ToggleButton]s
  * (optional icon + label) in a wrapping grid, so every option is visible (ADR-018). The checked
  * button changes shape and fills with the primary role by itself; options are exposed to
- * accessibility as radio buttons. Shows [emptyMessage] when [options] is empty.
+ * accessibility as radio buttons. Shows [emptyMessage] when [options] is empty. With [iconOnly],
+ * each button shows just its icon and [label] becomes its accessibility name (the icon picker).
  *
  * Use it for account, category, account type and similar choices (DESIGN_SYSTEM.md "Shared
  * components"). For 2–5 fixed options in a row, use the connected button group instead.
@@ -43,6 +44,7 @@ fun <T> SingleChoiceToggleGroup(
     modifier: Modifier = Modifier,
     /** Drawable resource for each option's icon, or null for text-only options. */
     icon: ((T) -> Int)? = null,
+    iconOnly: Boolean = false,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -62,15 +64,25 @@ fun <T> SingleChoiceToggleGroup(
             ) {
                 options.forEach { option ->
                     val optionKey = key(option)
-                    ToggleButton(
-                        checked = optionKey == selectedKey,
-                        onCheckedChange = { onSelect(optionKey) },
-                        icon = icon?.let { res ->
-                            { Icon(painterResource(res(option)), contentDescription = null) }
-                        },
-                        modifier = Modifier.semantics { role = Role.RadioButton },
-                    ) {
-                        Text(label(option), maxLines = 1)
+                    if (iconOnly && icon != null) {
+                        ToggleButton(
+                            checked = optionKey == selectedKey,
+                            onCheckedChange = { onSelect(optionKey) },
+                            modifier = Modifier.semantics { role = Role.RadioButton },
+                        ) {
+                            Icon(painterResource(icon(option)), contentDescription = label(option))
+                        }
+                    } else {
+                        ToggleButton(
+                            checked = optionKey == selectedKey,
+                            onCheckedChange = { onSelect(optionKey) },
+                            icon = icon?.let { res ->
+                                { Icon(painterResource(res(option)), contentDescription = null) }
+                            },
+                            modifier = Modifier.semantics { role = Role.RadioButton },
+                        ) {
+                            Text(label(option), maxLines = 1)
+                        }
                     }
                 }
             }

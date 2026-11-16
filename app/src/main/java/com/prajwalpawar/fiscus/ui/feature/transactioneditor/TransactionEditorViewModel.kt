@@ -73,7 +73,8 @@ class TransactionEditorViewModel @AssistedInject constructor(
     private val categories = form.map { it.type }
         .distinctUntilChanged()
         .flatMapLatest { type ->
-            type.categoryKind?.let(categoryRepository::observeActiveCategories) ?: flowOf(emptyList())
+            val kind = type.categoryKind ?: return@flatMapLatest flowOf(emptyList())
+            categoryRepository.observeCategories().map { list -> list.filter { it.kind == kind } }
         }
 
     val uiState: StateFlow<TransactionEditorUiState> = combine(
@@ -206,6 +207,8 @@ private data class EditorForm(
 private fun EditorForm.toUiState(accounts: List<Account>, categories: List<Category>): TransactionEditorUiState {
     // Archived accounts stay selectable only if this transaction already uses them.
     val usable = accounts.filter { !it.archived || it.id == accountId || it.id == toAccountId }
+    // Same for archived categories (ADR-040).
+    val usableCategories = categories.filter { !it.archived || it.id == categoryId }
     // New transactions start on the default account (ADR-037), else the first.
     val selectedAccount = usable.find { it.id == accountId }
         ?: usable.find { it.isDefault && !it.archived }
@@ -228,8 +231,8 @@ private fun EditorForm.toUiState(accounts: List<Account>, categories: List<Categ
         accounts = usable,
         accountId = selectedAccount?.id,
         toAccountId = toAccountId,
-        categories = categories,
-        categoryId = categoryId?.takeIf { id -> categories.any { it.id == id } },
+        categories = usableCategories,
+        categoryId = categoryId?.takeIf { id -> usableCategories.any { it.id == id } },
         date = date,
         note = note,
         isSaving = isSaving,

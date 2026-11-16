@@ -31,9 +31,9 @@ fun Account.asEntity() = AccountEntity(
     isDefault = isDefault,
 )
 
-fun CategoryEntity.asModel() = Category(id = id, name = name, kind = kind, iconKey = iconKey, archived = archived)
+fun CategoryEntity.asModel() = Category(id = id, name = name, kind = kind, iconKey = iconKey, archived = archived, isSeeded = isSeeded)
 
-fun Category.asEntity() = CategoryEntity(id = id, name = name, kind = kind, iconKey = iconKey, archived = archived)
+fun Category.asEntity() = CategoryEntity(id = id, name = name, kind = kind, iconKey = iconKey, archived = archived, isSeeded = isSeeded)
 
 fun TransactionEntity.asModel() = Transaction(
     id = id,

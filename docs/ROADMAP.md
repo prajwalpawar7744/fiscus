@@ -29,7 +29,7 @@
 
 ## M2 Accounts & Categories
 - [x] Manage accounts and balances: list, page, add/edit, archive, delete-if-unused, reconcile (ADR-036)
-- [ ] Manage categories; seed defaults
+- [x] Manage categories (list by kind, add/edit, icon picker, archive, delete-if-unused) from Settings; defaults seeded (ADR-040)
 
 ## M3 Budgets
 - [ ] Per-category and overall budgets with progress

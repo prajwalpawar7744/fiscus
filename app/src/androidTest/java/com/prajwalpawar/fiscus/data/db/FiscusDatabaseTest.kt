@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -48,6 +49,7 @@ class FiscusDatabaseTest {
         val categories = database.categoryDao().observeAll().first()
         assertEquals(9, categories.count { it.kind == CategoryKind.EXPENSE })
         assertEquals(4, categories.count { it.kind == CategoryKind.INCOME })
+        assertTrue(categories.all { it.isSeeded })
     }
 
     @Test
@@ -109,6 +111,30 @@ class FiscusDatabaseTest {
             "RESTRICT foreign key should block deleting a used account",
             runCatching { dao.deleteById(cashId) }.isFailure,
         )
+    }
+
+    @Test
+    fun usageCountsTransactionsPerCategoryAndAccount() = runTest {
+        val cashId = database.accountDao().observeAll().first().single().id
+        val categoryId = database.categoryDao().observeAll().first().first().id
+        val bankId = database.accountDao().upsert(account("Bank", openingMinor = 0))
+        database.transactionDao().upsert(transaction(TransactionType.EXPENSE, 100, cashId, categoryId = categoryId))
+        database.transactionDao().upsert(transaction(TransactionType.TRANSFER, 50, cashId, toAccountId = bankId))
+
+        val usage = database.categoryDao().observeUsage().first().associate { it.categoryId to it.transactionCount }
+        assertEquals(1, usage[categoryId])
+        val counts = database.accountDao().observeBalances().first().associate { it.accountId to it.transactionCount }
+        assertEquals(mapOf(cashId to 2, bankId to 1), counts)
+    }
+
+    @Test
+    fun categoriesArchiveAndDelete() = runTest {
+        val dao = database.categoryDao()
+        val category = dao.observeAll().first().first()
+        dao.setArchived(category.id, true)
+        assertTrue(dao.observeById(category.id).first()?.archived == true)
+        dao.deleteById(category.id)
+        assertNull(dao.observeById(category.id).first())
     }
 
     @Test

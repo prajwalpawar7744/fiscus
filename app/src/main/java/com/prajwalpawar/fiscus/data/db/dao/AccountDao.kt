@@ -16,7 +16,7 @@ interface AccountDao {
     fun observeById(id: Long): Flow<AccountEntity?>
 
     /**
-     * Balance per account (DOMAIN.md): opening + income − expense − transfers out + transfers in.
+     * Balance and transaction count (transfers in included) per account (DOMAIN.md): opening + income − expense − transfers out + transfers in.
      */
     @Query(
         """
@@ -26,7 +26,9 @@ interface AccountDao {
                 FROM transactions t WHERE t.accountId = a.id), 0)
             + COALESCE((SELECT SUM(t.amountMinor)
                 FROM transactions t WHERE t.type = 'TRANSFER' AND t.toAccountId = a.id), 0)
-            AS balanceMinor
+            AS balanceMinor,
+            (SELECT COUNT(*) FROM transactions t WHERE t.accountId = a.id OR t.toAccountId = a.id)
+            AS transactionCount
         FROM accounts a
         """,
     )
@@ -52,4 +54,4 @@ interface AccountDao {
 }
 
 /** Result row of [AccountDao.observeBalances]. */
-data class AccountBalance(val accountId: Long, val balanceMinor: Long)
+data class AccountBalance(val accountId: Long, val balanceMinor: Long, val transactionCount: Int)

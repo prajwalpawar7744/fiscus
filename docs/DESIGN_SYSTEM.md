@@ -75,9 +75,10 @@
 |---|---|---|
 | `AddTransactionFabMenu` | Quick add (Expense / Income / Transfer) | Home and Transactions only (ADR-018) |
 | `DockedDatePickerField(date, onDateSelected, label)` | Picking one date inside a form | Docked `DatePicker` in a `Popup`, expands on the theme springs; container uses `DatePickerDefaults.colors().containerColor` + `DatePickerDefaults.TonalElevation` (no app-made elevation, ADR-039); UTC conversion is inside |
-| `SingleChoiceToggleGroup(title, options, selectedKey, key, label, onSelect, emptyMessage, icon?)` | One choice from an open-ended list (account, category, account type) | `ToggleButton`s in a wrapping `FlowRow`, radio semantics. For 2–5 fixed options, use the connected button group |
+| `SingleChoiceToggleGroup(title, options, selectedKey, key, label, onSelect, emptyMessage, icon?, iconOnly?)` | One choice from an open-ended list (account, category, account type, category icon) | `ToggleButton`s in a wrapping `FlowRow`, radio semantics. `iconOnly` shows just the icon, with `label` as its accessibility name (ADR-040). For 2–5 fixed options, use the connected button group |
 | `CurrencyPrefixTransformation(symbol)` | Showing a currency symbol in an amount field | Display only; works with centered text, unlike `prefix` |
-| `categoryIconRes(iconKey)` | Category icon drawable | Unknown keys fall back to "category" |
+| `categoryIconRes(iconKey)`, `CategoryIcons` | Category icon drawable; the curated pickable icons with labels | Unknown keys fall back to "category" (ADR-040) |
+| `CategoryKindDisplayOrder`, `CategoryKind.labelRes`/`iconRes`/`accentRoles()` | Category kind labels, icons, accents | Taken from the matching `TransactionType` (ADR-040) |
 | `ShapeAccentIcon(icon, containerColor?, contentColor?, size?, iconSize?)` | The one decorative shape accent (icon in a `MaterialShapes.Cookie9Sided`) | Pass a matching role pair; accents only, never data containers. Empty states: `FiscusLayout.LargeAccentSize` / `LargeAccentIconSize` |
 | `ActionButtonGroup(actions: List<GroupAction>)` | **Every page's actions** (Save; Delete/Edit; Clear/Done) | One Expressive `ButtonGroup`, medium buttons; `ActionStyle.Primary/Secondary/Danger`; loading state (ADR-028). Never a lone `Button` row |
 | `Modifier.sharedContainer(key)` + `transactionContainerKey(id)` | An item that opens its own page | Grows into the page and shrinks back (`sharedBounds`, bounds on `slowSpatialSpec`, fades on effects specs; ADR-028/030); no-op outside `NavDisplay` |
@@ -98,7 +99,7 @@
 | `DetailRow(icon, label, value, shapes)` | One labelled fact on a detail page | Contained `SegmentedListItem`, label as overline, value `titleMedium` tabular (transaction and account pages) |
 | `SwitchRow(label, checked, onCheckedChange, supportingText?, shapes?)` | An on/off setting in a form | Contained toggleable `SegmentedListItem(checked, onCheckedChange, shapes)` with an M3 `Switch` (no click of its own) as trailing content, `Role.Switch`; the thumb shows the rounded check icon (`SwitchDefaults.IconSize`) when on. Rows of one form are one segmented group (`segmentedShapes(index, count)`, `SegmentedGap`) (in debt + default account; ADR-039) |
 | `DayHeader(date, today, net)` | The header above one day of transactions | `dayLabel`, Today emphasized, net after its arrow; a heading (Transactions, account page) |
-| `ConnectedChoiceGroup(options, selected, onSelect, label, icon?)` | One choice from **2–5 fixed options** (transaction type, account type, balance mode) | M3 Expressive connected `ToggleButton` row, radio semantics, equal widths (ADR-018 3b, ADR-036). Open-ended lists use `SingleChoiceToggleGroup` |
+| `ConnectedChoiceGroup(options, selected, onSelect, label, icon?, enabled?)` | One choice from **2–5 fixed options** (transaction type, account type, balance mode) | M3 Expressive connected `ToggleButton` row, radio semantics, equal widths (ADR-018 3b, ADR-036). Open-ended lists use `SingleChoiceToggleGroup` |
 | `SaveHint(hint)` | Why a form's Save is disabled, above the action group | Expands/collapses vertically on the theme springs, polite live region |
 | `accountContainerKey(id)` | An account card/row and its page | With `sharedContainer` (ADR-036) |
 | `AccountType.labelRes` / `AccountTypeDisplayOrder` | Account type label and order | Cash, Bank, Card, Wallet |

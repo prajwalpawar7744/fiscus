@@ -220,6 +220,31 @@ class TransactionEditorViewModelTest {
         }
 
     @Test
+    fun `archived categories are hidden unless the edited transaction uses them`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val archivedFood = FoodCategory.copy(archived = true)
+            categories.categories.value = listOf(archivedFood, SalaryCategory)
+            assertEquals(emptyList<Any>(), viewModel().uiState.value.categories)
+
+            val at = Instant.parse("2026-11-01T08:15:00Z")
+            transactions.save(
+                Transaction(
+                    type = TransactionType.EXPENSE,
+                    title = "Coffee",
+                    amount = Money(1999, "INR"),
+                    accountId = CashAccount.id,
+                    categoryId = FoodCategory.id,
+                    occurredAt = at,
+                    createdAt = at,
+                    updatedAt = at,
+                ),
+            )
+            val state = viewModel(TransactionEditorNavKey(transactionId = 1)).uiState.value
+            assertEquals(listOf(archivedFood), state.categories)
+            assertEquals(FoodCategory.id, state.categoryId)
+        }
+
+    @Test
     fun `editing a missing transaction finishes immediately`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val viewModel = viewModel(TransactionEditorNavKey(transactionId = 42))

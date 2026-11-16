@@ -10,6 +10,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun SettingsRoute(
     onBack: () -> Unit,
+    onOpenAccounts: () -> Unit,
+    onOpenCategories: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -17,6 +19,8 @@ fun SettingsRoute(
     SettingsScreen(
         uiState = uiState,
         onBack = onBack,
+        onOpenAccounts = onOpenAccounts,
+        onOpenCategories = onOpenCategories,
         modifier = modifier,
     )
 }

@@ -25,12 +25,14 @@ class OfflineFirstAccountRepository @Inject constructor(
 
     override fun observeAccountsWithBalance(): Flow<List<AccountWithBalance>> =
         combine(accountDao.observeAll(), accountDao.observeBalances()) { entities, balances ->
-            val balanceById = balances.associate { it.accountId to it.balanceMinor }
+            val balanceById = balances.associateBy { it.accountId }
             entities.map { entity ->
                 val account = entity.asModel()
+                val balance = balanceById[account.id]
                 AccountWithBalance(
                     account = account,
-                    balance = Money(balanceById[account.id] ?: entity.openingBalanceMinor, account.currencyCode),
+                    balance = Money(balance?.balanceMinor ?: entity.openingBalanceMinor, account.currencyCode),
+                    transactionCount = balance?.transactionCount ?: 0,
                 )
             }
         }.flowOn(ioDispatcher)
