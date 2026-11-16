@@ -16,6 +16,8 @@
         <item quantity="one">Across %d account</item>
         <item quantity="other">Across %d accounts</item>
     </plurals>
+    <string name="home_balance_in_debt">%1$s · In debt</string>
+    <string name="account_in_debt_short">In debt</string>
     <string name="home_spent_share">Spent %1$d%% of this month\'s income</string>
     <string name="home_spent_over">Spent more than this month\'s income</string>
     <string name="home_spent_nothing">Nothing spent this month yet</string>
@@ -144,4 +146,46 @@
     <string name="seed_category_business">Business</string>
     <string name="seed_category_gifts">Gifts</string>
     <string name="seed_category_other_income">Other income</string>
+
+    <!-- Accounts (ADR-036) -->
+    <string name="account_type_cash">Cash</string>
+    <string name="account_type_bank">Bank</string>
+    <string name="account_type_card">Card</string>
+    <string name="account_type_wallet">Wallet</string>
+    <string name="home_manage_accounts">Manage</string>
+    <string name="accounts_title">Accounts</string>
+    <string name="accounts_active">Active</string>
+    <string name="accounts_archived">Archived</string>
+    <string name="accounts_add">Add account</string>
+    <string name="accounts_empty">No accounts yet.</string>
+    <string name="account_detail_title">Account</string>
+    <string name="account_balance_description">Balance, %1$s</string>
+    <string name="account_detail_transactions">Transactions</string>
+    <string name="account_detail_status">Status</string>
+    <string name="account_default">Default account</string>
+    <string name="account_default_hint">New transactions start on this account</string>
+    <string name="account_default_short">Default</string>
+    <string name="list_separator">" · "</string>
+    <string name="account_yes">Yes</string>
+    <string name="account_no">No</string>
+    <string name="account_archive">Archive</string>
+    <string name="account_unarchive">Unarchive</string>
+    <string name="account_delete_title">Delete account?</string>
+    <string name="account_delete_message">This account has no transactions. Deleting it can\'t be undone.</string>
+    <string name="account_result_deleted">Account deleted</string>
+    <string name="account_result_archived">Account archived</string>
+    <string name="account_result_unarchived">Account restored</string>
+    <string name="account_editor_title_add">New account</string>
+    <string name="account_editor_title_edit">Edit account</string>
+    <string name="account_name">Name</string>
+    <string name="account_type">Type</string>
+    <string name="account_balance_mode_opening">Opening balance</string>
+    <string name="account_balance_mode_current">Current balance</string>
+    <string name="account_in_debt">In debt (balance below zero)</string>
+    <string name="account_opening_becomes">Opening balance becomes %1$s</string>
+    <string name="account_amount_error">Enter a valid amount</string>
+    <string name="account_hint_name">Add a name</string>
+    <string name="account_save">Save</string>
+    <string name="account_result_added">Account added</string>
+    <string name="account_result_updated">Account updated</string>
 </resources>

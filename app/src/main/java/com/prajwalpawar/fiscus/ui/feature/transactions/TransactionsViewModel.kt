@@ -13,7 +13,7 @@ import com.prajwalpawar.fiscus.model.Transaction
 import com.prajwalpawar.fiscus.model.TransactionFilter
 import com.prajwalpawar.fiscus.model.TransactionType
 import com.prajwalpawar.fiscus.model.summarize
-import com.prajwalpawar.fiscus.model.toListEntries
+import com.prajwalpawar.fiscus.model.groupByDay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.time.Clock
@@ -66,7 +66,7 @@ class TransactionsViewModel @Inject constructor(
         TransactionsUiState(
             isLoading = false,
             today = clock.now().toLocalDateTime(timeZone).date,
-            sections = groupByDay(transactions, accounts, categories),
+            sections = transactions.groupByDay(timeZone, accounts, categories),
             selectedTypes = form.types,
             selectedAccountIds = form.accountIds,
             selectedCategoryIds = form.categoryIds,
@@ -118,23 +118,6 @@ class TransactionsViewModel @Inject constructor(
         )
     }
 
-    private fun groupByDay(
-        transactions: List<Transaction>,
-        accounts: List<Account>,
-        categories: List<Category>,
-    ): List<TransactionDaySection> {
-        // Transactions arrive newest first, and groupBy keeps that order for days and items.
-        return transactions
-            .groupBy { it.occurredAt.toLocalDateTime(timeZone).date }
-            .map { (date, dayTransactions) ->
-                TransactionDaySection(
-                    date = date,
-                    items = dayTransactions.toListEntries(accounts, categories),
-                    net = dayNet(dayTransactions),
-                )
-            }
-    }
-
     /** What the user chose; everything else is derived. */
     private data class ListForm(
         val query: String = "",
@@ -152,8 +135,5 @@ class TransactionsViewModel @Inject constructor(
         }
     }
 }
-
-/** Income minus expense for one day; null like [summarize]. */
-internal fun dayNet(transactions: List<Transaction>): Money? = summarize(transactions)?.net
 
 private fun <T> Set<T>.toggle(item: T): Set<T> = if (item in this) this - item else this + item

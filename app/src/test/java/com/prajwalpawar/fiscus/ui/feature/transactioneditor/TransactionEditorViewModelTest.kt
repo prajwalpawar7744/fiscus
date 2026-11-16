@@ -76,6 +76,14 @@ class TransactionEditorViewModelTest {
         }
 
     @Test
+    fun `new transactions start on the default account`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            accounts.accounts.value = listOf(CashAccount, BankAccount.copy(isDefault = true))
+
+            assertEquals(BankAccount.id, viewModel().uiState.value.accountId)
+        }
+
+    @Test
     fun `saving an expense stores it in minor units and finishes`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val viewModel = viewModel()

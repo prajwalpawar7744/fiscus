@@ -28,7 +28,7 @@
 - [ ] Transactions list-detail (two panes) on medium/expanded widths (ADR-022; needs the material3-adaptive Navigation 3 scene strategy)
 
 ## M2 Accounts & Categories
-- [ ] Manage accounts and balances
+- [x] Manage accounts and balances: list, page, add/edit, archive, delete-if-unused, reconcile (ADR-036)
 - [ ] Manage categories; seed defaults
 
 ## M3 Budgets

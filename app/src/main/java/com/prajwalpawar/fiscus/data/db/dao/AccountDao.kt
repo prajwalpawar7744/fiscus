@@ -34,6 +34,21 @@ interface AccountDao {
 
     @Upsert
     suspend fun upsert(account: AccountEntity): Long
+
+    /** Archiving also clears the default, since an archived account can't be preselected. */
+    @Query(
+        "UPDATE accounts SET archived = :archived, " +
+            "isDefault = CASE WHEN :archived THEN 0 ELSE isDefault END WHERE id = :id",
+    )
+    suspend fun setArchived(id: Long, archived: Boolean)
+
+    /** Makes [id] the only default account (ADR-037), in one statement so there's never two. */
+    @Query("UPDATE accounts SET isDefault = (id = :id)")
+    suspend fun setDefault(id: Long)
+
+    /** Fails (FK RESTRICT, ADR-017) if any transaction still refers to the account. */
+    @Query("DELETE FROM accounts WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }
 
 /** Result row of [AccountDao.observeBalances]. */

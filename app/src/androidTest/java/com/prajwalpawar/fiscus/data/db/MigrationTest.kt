@@ -8,6 +8,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.prajwalpawar.fiscus.model.TransactionType
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,11 +18,18 @@ import org.junit.runner.RunWith
 class MigrationTest {
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
+    private val file = instrumentation.targetContext.getDatabasePath("migration-test.db")
+
+    /** Each test creates its own starting version, so no file may be left from the last one. */
+    @Before
+    fun deleteOldDatabase() {
+        file.delete()
+    }
 
     @get:Rule
     val helper = MigrationTestHelper(
         instrumentation = instrumentation,
-        file = instrumentation.targetContext.getDatabasePath("migration-test.db"),
+        file = file,
         driver = BundledSQLiteDriver(),
         databaseClass = FiscusDatabase::class,
     )
@@ -62,6 +70,26 @@ class MigrationTest {
                 buildList { while (statement.step()) add(statement.getText(0)) }
             }
             assertEquals(listOf("Food", "Taxi home", "Transfer", "Income"), titles)
+        }
+    }
+
+    @Test
+    fun migrate2To3_makesTheOldestActiveAccountTheDefault() = runTest {
+        helper.createDatabase(2).use { connection ->
+            connection.execSQL(
+                "INSERT INTO accounts " +
+                    "(id, name, type, currencyCode, openingBalanceMinor, archived) VALUES " +
+                    "(1, 'Old', 'CASH', 'INR', 0, 1), (2, 'Cash', 'CASH', 'INR', 0, 0), " +
+                    "(3, 'Bank', 'BANK', 'INR', 0, 0)",
+            )
+        }
+
+        helper.runMigrationsAndValidate(3, listOf(Migration2To3)).use { connection ->
+            val defaults = connection.prepare("SELECT id FROM accounts WHERE isDefault = 1")
+                .use { statement ->
+                    buildList { while (statement.step()) add(statement.getLong(0)) }
+                }
+            assertEquals(listOf(2L), defaults)
         }
     }
 }

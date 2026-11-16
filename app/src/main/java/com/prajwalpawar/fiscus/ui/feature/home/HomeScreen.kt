@@ -37,7 +37,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.WavyProgressIndicatorDefaults
+import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -72,9 +73,11 @@ import com.prajwalpawar.fiscus.ui.components.LocalSnackbarHostState
 import com.prajwalpawar.fiscus.ui.components.PeriodTotal
 import com.prajwalpawar.fiscus.ui.components.ShapeAccentIcon
 import com.prajwalpawar.fiscus.ui.components.TransactionListItem
+import com.prajwalpawar.fiscus.ui.components.accountContainerKey
 import com.prajwalpawar.fiscus.ui.components.categoryIconRes
 import com.prajwalpawar.fiscus.ui.components.heroRoles
 import com.prajwalpawar.fiscus.ui.components.iconRes
+import com.prajwalpawar.fiscus.ui.components.netAmountText
 import com.prajwalpawar.fiscus.ui.components.sharedContainer
 import com.prajwalpawar.fiscus.ui.components.transactionContainerKey
 import com.prajwalpawar.fiscus.ui.components.transactionSupportingText
@@ -98,6 +101,8 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     onAddTransaction: (TransactionType) -> Unit,
     onOpenTransaction: (Long) -> Unit,
+    onOpenAccount: (Long) -> Unit,
+    onManageAccounts: () -> Unit,
     onSeeAllTransactions: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -159,7 +164,7 @@ fun HomeScreen(
                                 monthSummary = uiState.monthSummary,
                             )
                         }
-                        accountsSection(uiState.accounts)
+                        accountsSection(uiState.accounts, onOpenAccount, onManageAccounts)
                         recentSection(uiState.recent, onOpenTransaction, onSeeAllTransactions)
                     }
                 }
@@ -169,11 +174,12 @@ fun HomeScreen(
 }
 
 /**
- * Hero moment 1 (ADR-010, ADR-033/034): the total balance, centered in `displayLargeEmphasized` on
- * a `primaryContainer` card one shape step above the other heroes (`extraLargeIncreased`), led by a
- * [SpentRing] (ADR-035). This month's income and expense sit below on tiles
- * in each type's hero pair (`shapes.large`: 32dp card − 16dp padding, optical roundness). The spent
- * line in words is the ring's TalkBack text only. TalkBack reads the total as one node.
+ * Hero moment 1 (ADR-010, ADR-033/034/038): the total balance, left-aligned in
+ * `displayLargeEmphasized` on a `primaryContainer` card one shape step above the other heroes
+ * (`extraLargeIncreased`), with a small [SpentRing] in the top-end corner (ADR-035/038). This
+ * month's income and expense sit below on tiles in each type's hero pair (`shapes.large`: 32dp
+ * card − 16dp padding, optical roundness). The spent line in words is the ring's TalkBack text
+ * only. TalkBack reads the total as one node.
  */
 @Composable
 private fun BalanceHero(
@@ -183,8 +189,10 @@ private fun BalanceHero(
     modifier: Modifier = Modifier,
 ) {
     val label = stringResource(R.string.home_balance_label)
+    // Spoken signed; shown unsigned after a ↓ when below zero (ADR-032).
     val totalText = total?.let { formatMoney(it) }
         ?: stringResource(R.string.home_balance_mixed)
+    val shownTotal = total?.let { netAmountText(it) } ?: totalText
     val accountsLine =
         pluralStringResource(R.plurals.home_balance_accounts, accountCount, accountCount)
     Card(
@@ -202,37 +210,42 @@ private fun BalanceHero(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(FiscusLayout.ScreenMargin),
-            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(FiscusLayout.ItemSpacing),
         ) {
-            val spent = spentShare(monthSummary)
-            SpentRing(
-                spent = spent,
-                modifier = Modifier.padding(
-                    top = FiscusLayout.ItemSpacing,
-                    bottom = FiscusLayout.ItemSpacing,
-                ),
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clearAndSetSemantics {
-                        contentDescription = "$label, $totalText, $accountsLine"
-                    },
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(FiscusLayout.ItemSpacing),
+            // Amount left-aligned; the spent ring in the top-end corner, at the indicator's
+            // own default size (ADR-038).
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(FiscusLayout.ItemSpacing),
             ) {
-                // One line at any size: big amounts step down instead of wrapping (ADR-027).
-                AmountText(
-                    text = totalText,
-                    style = MaterialTheme.typography.displayLargeEmphasized,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = accountsLine,
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center,
-                )
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = FiscusLayout.ItemSpacing)
+                        .clearAndSetSemantics {
+                            contentDescription = "$label, $totalText, $accountsLine"
+                        },
+                    verticalArrangement = Arrangement.spacedBy(FiscusLayout.ItemSpacing),
+                ) {
+                    // One line at any size: big amounts step down instead of wrapping (ADR-027).
+                    AmountText(
+                        text = shownTotal,
+                        style = MaterialTheme.typography.displayLargeEmphasized,
+                    )
+                    Text(
+                        // No arrow on the hero (user, 2026-11-16): below zero says so in words.
+                        text = if (total?.isNegative == true) {
+                            stringResource(R.string.home_balance_in_debt, accountsLine)
+                        } else {
+                            accountsLine
+                        },
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+                // Only once something was spent this month (ADR-037): no empty 0% ring.
+                if (monthSummary != null && !monthSummary.expense.isZero) {
+                    SpentRing(spent = spentShare(monthSummary))
+                }
             }
             monthSummary?.let { summary ->
                 Row(
@@ -320,7 +333,7 @@ private fun spentShare(summary: PeriodSummary?): SpentShare {
 private fun SpentRing(spent: SpentShare, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
-            .size(FiscusLayout.LargeAccentSize)
+            .size(WavyProgressIndicatorDefaults.CircularContainerSize)
             .clearAndSetSemantics { contentDescription = spent.line },
         contentAlignment = Alignment.Center,
     ) {
@@ -330,7 +343,7 @@ private fun SpentRing(spent: SpentShare, modifier: Modifier = Modifier) {
         )
         Text(
             text = spent.label,
-            style = MaterialTheme.typography.titleMediumEmphasized.tabularNumbers,
+            style = MaterialTheme.typography.labelSmallEmphasized.tabularNumbers,
         )
     }
 }
@@ -339,30 +352,47 @@ private fun SpentRing(spent: SpentShare, modifier: Modifier = Modifier) {
 internal fun percentOf(part: Long, whole: Long): Int = (part * 100 / whole).toInt()
 
 /**
- * The active accounts as an M3 multi-browse carousel (ADR-034): each item is a card in the
+ * The active accounts as an M3 uncontained carousel (ADR-034, ADR-037): each item is a card in the
  * secondary container pair with the account type in a [ShapeAccentIcon], the name and the balance.
- * The carousel masks and resizes items as they scroll (built-in motion); `maskClip` keeps the
- * card's shape while it narrows.
+ * Items keep one width (`CarouselItemWidth`) and scroll freely; `maskClip` clips the card's
+ * shape at the edges.
  */
-private fun LazyListScope.accountsSection(accounts: List<AccountWithBalance>) {
-    if (accounts.isEmpty()) return
+private fun LazyListScope.accountsSection(
+    accounts: List<AccountWithBalance>,
+    onOpenAccount: (Long) -> Unit,
+    onManageAccounts: () -> Unit,
+) {
     item(key = "accountsHeader") {
-        SectionHeader(title = stringResource(R.string.home_accounts))
+        SectionHeader(
+            title = stringResource(R.string.home_accounts),
+            action = {
+                FilledTonalButton(onClick = onManageAccounts, shapes = ButtonDefaults.shapes()) {
+                    Text(stringResource(R.string.home_manage_accounts))
+                }
+            },
+        )
     }
+    if (accounts.isEmpty()) return
     item(key = "accounts") {
         val state = rememberCarouselState { accounts.size }
-        HorizontalMultiBrowseCarousel(
+        // Uncontained: every card keeps the same width, however many accounts there are (ADR-037).
+        HorizontalUncontainedCarousel(
             state = state,
-            preferredItemWidth = FiscusLayout.CarouselItemWidth,
+            itemWidth = FiscusLayout.CarouselItemWidth,
             itemSpacing = FiscusLayout.ItemSpacing,
             modifier = Modifier.fillMaxWidth(),
         ) { index ->
             val item = accounts[index]
             val balance = formatMoney(item.balance)
             Surface(
+                onClick = { onOpenAccount(item.account.id) },
                 color = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier
+                    // Fill the carousel's fixed item width, whatever the content's size (ADR-037).
+                    .fillMaxWidth()
+                    // Grows into the account page and shrinks back on Back (ADR-028, ADR-036).
+                    .sharedContainer(accountContainerKey(item.account.id))
                     .maskClip(MaterialTheme.shapes.extraLarge)
                     .clearAndSetSemantics {
                         contentDescription = "${item.account.name}, $balance"
@@ -384,7 +414,17 @@ private fun LazyListScope.accountsSection(accounts: List<AccountWithBalance>) {
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    AmountText(text = balance, style = MaterialTheme.typography.headlineSmall)
+                    AmountText(
+                        text = netAmountText(item.balance),
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                    // No arrow on the card (user, 2026-11-16): below zero says so in words.
+                    if (item.balance.isNegative) {
+                        Text(
+                            text = stringResource(R.string.account_in_debt_short),
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                    }
                 }
             }
         }
@@ -480,6 +520,8 @@ private fun HomeScreenPreview() {
             onOpenSettings = {},
             onAddTransaction = {},
             onOpenTransaction = {},
+            onOpenAccount = {},
+            onManageAccounts = {},
             onSeeAllTransactions = {},
         )
     }
@@ -498,6 +540,8 @@ private fun HomeScreenEmptyPreview() {
             onOpenSettings = {},
             onAddTransaction = {},
             onOpenTransaction = {},
+            onOpenAccount = {},
+            onManageAccounts = {},
             onSeeAllTransactions = {},
         )
     }

@@ -34,6 +34,22 @@ fun parseMoneyInput(text: String, currencyCode: String): Money? {
 }
 
 /**
+ * Parses an opening or current balance ([parseMoneyInput] rules, ADR-036): blank is zero and zero
+ * is allowed. The text has no sign; the caller applies "in debt". Null for malformed or
+ * overflowing input, or too many decimals.
+ */
+fun parseBalanceInput(text: String, currencyCode: String): Money? {
+    val normalized = text.trim().replace(',', '.')
+    if (normalized.isEmpty()) return Money.zero(currencyCode)
+    if (normalized == "." || !AmountInput.matches(normalized)) return null
+    val value = runCatching { BigDecimal(normalized) }.getOrNull() ?: return null
+    val digits = currencyFractionDigits(currencyCode)
+    if (value.stripTrailingZeros().scale() > digits) return null
+    val minor = runCatching { value.movePointRight(digits).longValueExact() }.getOrNull()
+    return minor?.let { Money(it, currencyCode) }
+}
+
+/**
  * Plain editable text for [money], e.g. 1999 INR → "19.99", 20000 INR → "200" (no symbol or
  * grouping; decimals only when there are any, ADR-029).
  */

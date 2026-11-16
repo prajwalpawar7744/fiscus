@@ -36,3 +36,17 @@ class Migration1To2(private val typeLabels: Map<TransactionType, String>) : Migr
         }
     }
 }
+
+/**
+ * v2 → v3: adds `accounts.isDefault` (ADR-037). The oldest active account becomes the default,
+ * so existing users keep today's behaviour (the first account preselected).
+ */
+object Migration2To3 : Migration(2, 3) {
+    override suspend fun migrate(connection: SQLiteConnection) {
+        connection.execSQL("ALTER TABLE accounts ADD COLUMN isDefault INTEGER NOT NULL DEFAULT 0")
+        connection.execSQL(
+            "UPDATE accounts SET isDefault = 1 " +
+                "WHERE id = (SELECT MIN(id) FROM accounts WHERE archived = 0)",
+        )
+    }
+}

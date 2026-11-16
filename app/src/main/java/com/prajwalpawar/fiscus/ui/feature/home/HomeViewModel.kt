@@ -2,12 +2,16 @@ package com.prajwalpawar.fiscus.ui.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.prajwalpawar.fiscus.core.money.defaultCurrencyCode
 import com.prajwalpawar.fiscus.core.time.currentMonth
 import com.prajwalpawar.fiscus.data.repository.AccountRepository
 import com.prajwalpawar.fiscus.data.repository.CategoryRepository
 import com.prajwalpawar.fiscus.data.repository.TransactionRepository
 import com.prajwalpawar.fiscus.model.AccountWithBalance
 import com.prajwalpawar.fiscus.model.Money
+import com.prajwalpawar.fiscus.model.PeriodSummary
+import com.prajwalpawar.fiscus.model.Transaction
+import com.prajwalpawar.fiscus.model.TransactionType
 import com.prajwalpawar.fiscus.model.TransactionFilter
 import com.prajwalpawar.fiscus.model.summarize
 import com.prajwalpawar.fiscus.model.toListEntries
@@ -56,7 +60,7 @@ class HomeViewModel @Inject constructor(
             isLoading = false,
             totalBalance = total(active),
             accounts = active,
-            monthSummary = summarize(monthTransactions),
+            monthSummary = monthSummary(monthTransactions, total(active)),
             recent = transactions
                 .take(RecentTransactionCount)
                 .toListEntries(accountsWithBalance.map { it.account }, categories),
@@ -68,8 +72,19 @@ class HomeViewModel @Inject constructor(
     )
 }
 
-/** Sum of the balances; null with no accounts or mixed currencies (no conversion, ADR-016). */
+/** Sum of the balances; zero with no accounts, null with mixed currencies (ADR-016). */
 internal fun total(accounts: List<AccountWithBalance>): Money? {
+    // No accounts is a total of zero, not "several currencies".
+    if (accounts.isEmpty()) return Money.zero(defaultCurrencyCode())
     val currency = accounts.map { it.balance.currencyCode }.distinct().singleOrNull() ?: return null
     return accounts.fold(Money.zero(currency)) { sum, account -> sum + account.balance }
 }
+
+/**
+ * This month's totals for the hero tiles: zeros when nothing happened yet (the tiles always show;
+ * only the spent ring hides, ADR-037). Null only when currencies are mixed.
+ */
+internal fun monthSummary(transactions: List<Transaction>, total: Money?): PeriodSummary? =
+    summarize(transactions) ?: total
+        ?.takeIf { transactions.none { it.type != TransactionType.TRANSFER } }
+        ?.let { PeriodSummary(Money.zero(it.currencyCode), Money.zero(it.currencyCode)) }

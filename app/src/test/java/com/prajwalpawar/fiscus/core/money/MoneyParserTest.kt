@@ -74,4 +74,14 @@ class MoneyParserTest {
         assertEquals(2, displayFractionDigits(Money(-5_050, "INR")))
         assertEquals(0, displayFractionDigits(Money(1_500, "JPY")))
     }
+
+    @Test
+    fun `balance input allows blank and zero but not malformed`() {
+        assertEquals(Money(0, "INR"), parseBalanceInput("", "INR"))
+        assertEquals(Money(0, "INR"), parseBalanceInput("0", "INR"))
+        assertEquals(Money(450_000, "INR"), parseBalanceInput("4500", "INR"))
+        assertNull(parseBalanceInput(".", "INR"))
+        assertNull(parseBalanceInput("1.234", "INR"))
+        assertNull(parseBalanceInput("99999999999999999999", "INR"))
+    }
 }

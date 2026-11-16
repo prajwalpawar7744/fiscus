@@ -21,8 +21,8 @@ class SeedCallback(
 
     override suspend fun onCreate(connection: SQLiteConnection) {
         connection.prepare(
-            "INSERT INTO accounts (name, type, currencyCode, openingBalanceMinor, archived) " +
-                "VALUES (?, ?, ?, 0, 0)",
+            "INSERT INTO accounts (name, type, currencyCode, openingBalanceMinor, archived, " +
+                "isDefault) VALUES (?, ?, ?, 0, 0, 1)",
         ).use { statement ->
             statement.bindText(1, context.getString(R.string.seed_account_cash))
             statement.bindText(2, AccountType.CASH.name)

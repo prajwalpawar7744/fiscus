@@ -18,6 +18,7 @@ fun AccountEntity.asModel() = Account(
     currencyCode = currencyCode,
     openingBalance = Money(openingBalanceMinor, currencyCode),
     archived = archived,
+    isDefault = isDefault,
 )
 
 fun Account.asEntity() = AccountEntity(
@@ -27,6 +28,7 @@ fun Account.asEntity() = AccountEntity(
     currencyCode = currencyCode,
     openingBalanceMinor = openingBalance.amountMinor,
     archived = archived,
+    isDefault = isDefault,
 )
 
 fun CategoryEntity.asModel() = Category(id = id, name = name, kind = kind, iconKey = iconKey, archived = archived)

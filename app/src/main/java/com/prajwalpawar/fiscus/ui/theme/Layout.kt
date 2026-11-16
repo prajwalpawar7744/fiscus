@@ -35,8 +35,8 @@ object FiscusLayout {
     val LargeAccentIconSize = 48.dp
 
     /**
-     * Preferred width of a large carousel item, from the official `HorizontalMultiBrowseCarousel`
-     * sample (androidx CarouselSamples.kt, checked 2026-11-16; ADR-034). The carousel adjusts it.
+     * Width of a carousel item (Home's account cards, `HorizontalUncontainedCarousel`; ADR-037),
+     * taken from the official carousel sample (androidx CarouselSamples.kt, checked 2026-11-16).
      */
     val CarouselItemWidth = 186.dp
 }

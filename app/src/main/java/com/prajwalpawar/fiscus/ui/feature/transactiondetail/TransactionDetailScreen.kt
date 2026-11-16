@@ -59,6 +59,7 @@ import com.prajwalpawar.fiscus.model.Money
 import com.prajwalpawar.fiscus.model.Transaction
 import com.prajwalpawar.fiscus.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.ActionButtonGroup
+import com.prajwalpawar.fiscus.ui.components.DetailRow
 import com.prajwalpawar.fiscus.ui.components.ActionStyle
 import com.prajwalpawar.fiscus.ui.components.AmountText
 import com.prajwalpawar.fiscus.ui.components.GroupAction
@@ -345,17 +346,12 @@ private fun detailRows(uiState: TransactionDetailUiState, transaction: Transacti
 /** One labeled detail in the joined group: on `surfaceContainer`, the value in `titleMedium`. */
 @Composable
 private fun DetailRow(row: DetailRowData, shapes: ListItemShapes) {
-    SegmentedListItem(
+    DetailRow(
+        icon = row.icon,
+        label = stringResource(row.label),
+        value = row.value ?: stringResource(R.string.detail_unknown),
         shapes = shapes,
-        colors = containedSegmentedColors(),
-        leadingContent = { Icon(painterResource(row.icon), contentDescription = null) },
-        overlineContent = { Text(stringResource(row.label)) },
-    ) {
-        Text(
-            text = row.value ?: stringResource(R.string.detail_unknown),
-            style = MaterialTheme.typography.titleMedium,
-        )
-    }
+    )
 }
 
 

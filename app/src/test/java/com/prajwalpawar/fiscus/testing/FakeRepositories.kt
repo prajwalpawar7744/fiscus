@@ -63,7 +63,6 @@ class FakeAccountRepository(
     private val transactionRepository: FakeTransactionRepository = FakeTransactionRepository(),
 ) : AccountRepository {
     val accounts = MutableStateFlow<List<Account>>(emptyList())
-    private var nextId = 1L
 
     override fun observeAccounts(): Flow<List<Account>> = accounts
 
@@ -82,9 +81,39 @@ class FakeAccountRepository(
             }
         }
 
+    override fun observeAccountWithBalance(id: Long): Flow<AccountWithBalance?> =
+        observeAccountsWithBalance().map { list -> list.find { it.account.id == id } }
+
+    override suspend fun setArchived(id: Long, archived: Boolean) =
+        accounts.update { list ->
+            list.map {
+                if (it.id != id) {
+                    it
+                } else {
+                    it.copy(archived = archived, isDefault = it.isDefault && !archived)
+                }
+            }
+        }
+
+    override suspend fun setDefault(id: Long) =
+        accounts.update { list -> list.map { it.copy(isDefault = it.id == id) } }
+
+    /** Same rule as the FK RESTRICT: an account with transactions can't be deleted. */
+    override suspend fun delete(id: Long) {
+        val used = transactionRepository.transactions.value
+            .any { it.accountId == id || it.toAccountId == id }
+        check(!used) {
+            "FOREIGN KEY constraint failed"
+        }
+        accounts.update { list -> list.filterNot { it.id == id } }
+    }
+
     override suspend fun save(account: Account): Long {
-        val saved = if (account.id == 0L) account.copy(id = nextId++) else account
+        // The next free id, so tests can seed accounts with fixed ids first.
+        val nextId = (accounts.value.maxOfOrNull { it.id } ?: 0L) + 1
+        val saved = if (account.id == 0L) account.copy(id = nextId) else account
         accounts.update { list -> list.filterNot { it.id == saved.id } + saved }
+        if (saved.isDefault) setDefault(saved.id)
         return saved.id
     }
 }

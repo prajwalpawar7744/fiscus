@@ -35,7 +35,25 @@ class OfflineFirstAccountRepository @Inject constructor(
             }
         }.flowOn(ioDispatcher)
 
+    override fun observeAccountWithBalance(id: Long): Flow<AccountWithBalance?> =
+        observeAccountsWithBalance().map { list -> list.find { it.account.id == id } }
+
+    override suspend fun setArchived(id: Long, archived: Boolean) = withContext(ioDispatcher) {
+        accountDao.setArchived(id, archived)
+    }
+
+    override suspend fun setDefault(id: Long) = withContext(ioDispatcher) {
+        accountDao.setDefault(id)
+    }
+
+    override suspend fun delete(id: Long) = withContext(ioDispatcher) {
+        accountDao.deleteById(id)
+    }
+
+    /** A saved default account becomes the only default (ADR-037). */
     override suspend fun save(account: Account): Long = withContext(ioDispatcher) {
-        accountDao.upsert(account.asEntity()).takeIf { it > 0 } ?: account.id
+        val id = accountDao.upsert(account.asEntity()).takeIf { it > 0 } ?: account.id
+        if (account.isDefault) accountDao.setDefault(id)
+        id
     }
 }

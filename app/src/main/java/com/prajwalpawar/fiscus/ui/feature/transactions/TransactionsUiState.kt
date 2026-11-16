@@ -4,6 +4,7 @@ import com.prajwalpawar.fiscus.model.Account
 import com.prajwalpawar.fiscus.model.Category
 import com.prajwalpawar.fiscus.model.Money
 import com.prajwalpawar.fiscus.model.PeriodSummary
+import com.prajwalpawar.fiscus.model.TransactionDaySection
 import com.prajwalpawar.fiscus.model.TransactionListEntry
 import com.prajwalpawar.fiscus.model.TransactionType
 import kotlinx.datetime.LocalDate
@@ -42,13 +43,6 @@ data class TransactionsUiState(
     /** Nothing to show although filters are set: offer to clear them, not "add a transaction". */
     val isFilteredEmpty: Boolean get() = !isLoading && sections.isEmpty() && hasChipFilters
 }
-
-/** One day of transactions. [net] is income minus expense; null if none or mixed currencies. */
-data class TransactionDaySection(
-    val date: LocalDate,
-    val items: List<TransactionListEntry>,
-    val net: Money?,
-)
 
 /** The filter picker that is open, if any. */
 enum class FilterPicker { TYPE, ACCOUNT, CATEGORY, DATE }

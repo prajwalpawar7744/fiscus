@@ -27,6 +27,7 @@ import kotlinx.datetime.TimeZone
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import kotlin.time.Instant
@@ -142,10 +143,22 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `total is null without accounts`() {
-        assertNull(total(emptyList()))
+    fun `total is zero without accounts`() {
+        assertTrue(total(emptyList())?.isZero == true)
         assertEquals(inr(5), total(listOf(AccountWithBalance(CashAccount, inr(5)))))
     }
+
+    @Test
+    fun `after deleting every account the hero shows zero and zero tiles`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            accounts.accounts.value = emptyList()
+
+            val state = viewModel().uiState.value
+
+            assertTrue(state.totalBalance?.isZero == true)
+            assertTrue(state.monthSummary?.income?.isZero == true)
+            assertTrue(state.monthSummary?.expense?.isZero == true)
+        }
 
     @Test
     fun `spent share rounds down and handles large amounts`() {

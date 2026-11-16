@@ -8,6 +8,8 @@ data class Account(
     val currencyCode: String,
     val openingBalance: Money,
     val archived: Boolean = false,
+    /** Preselected for new transactions; at most one account is the default (ADR-037). */
+    val isDefault: Boolean = false,
 ) {
     init {
         require(name.isNotBlank()) { "Account name must not be blank" }

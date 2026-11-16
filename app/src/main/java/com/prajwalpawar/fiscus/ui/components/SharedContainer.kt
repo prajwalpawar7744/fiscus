@@ -60,3 +60,6 @@ fun Modifier.sharedContainer(key: Any): Modifier {
 
 /** The shared-container key that links a transaction's list item and its detail page. */
 fun transactionContainerKey(transactionId: Long): String = "transaction-$transactionId"
+
+/** The shared-container key that links an account's card or row and its page (ADR-036). */
+fun accountContainerKey(accountId: Long): String = "account-$accountId"

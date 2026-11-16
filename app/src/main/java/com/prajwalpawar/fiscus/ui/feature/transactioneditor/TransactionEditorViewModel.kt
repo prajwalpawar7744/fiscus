@@ -206,7 +206,10 @@ private data class EditorForm(
 private fun EditorForm.toUiState(accounts: List<Account>, categories: List<Category>): TransactionEditorUiState {
     // Archived accounts stay selectable only if this transaction already uses them.
     val usable = accounts.filter { !it.archived || it.id == accountId || it.id == toAccountId }
-    val selectedAccount = usable.find { it.id == accountId } ?: usable.firstOrNull()
+    // New transactions start on the default account (ADR-037), else the first.
+    val selectedAccount = usable.find { it.id == accountId }
+        ?: usable.find { it.isDefault && !it.archived }
+        ?: usable.firstOrNull()
     val destinations = selectedAccount?.let { from ->
         usable.filter { it.id != from.id && it.currencyCode == from.currencyCode }
     }.orEmpty()

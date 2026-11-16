@@ -13,6 +13,8 @@ fun HomeRoute(
     onOpenSettings: () -> Unit,
     onAddTransaction: (TransactionType) -> Unit,
     onOpenTransaction: (Long) -> Unit,
+    onOpenAccount: (Long) -> Unit,
+    onManageAccounts: () -> Unit,
     onSeeAllTransactions: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
@@ -23,6 +25,8 @@ fun HomeRoute(
         onOpenSettings = onOpenSettings,
         onAddTransaction = onAddTransaction,
         onOpenTransaction = onOpenTransaction,
+        onOpenAccount = onOpenAccount,
+        onManageAccounts = onManageAccounts,
         onSeeAllTransactions = onSeeAllTransactions,
         modifier = modifier,
     )

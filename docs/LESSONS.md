@@ -84,6 +84,10 @@ Mistakes made while building Fiscus, and the rule each one produced. **Read this
    - What happened: asked to make the Home hero more expressive, the proposal kept the wallet accent icon (it matched the editor and detail heroes) and added a separate linear progress bar. The user suggested putting a circular wavy indicator with the spent % in the icon's place, which is more expressive and drops a redundant element.
    - Rule: when proposing an Expressive upgrade, ask of every decorative slot "could this carry data instead?" (M3 tactic 7: combine tactics into one hero element). Offer that option alongside "add a new element", and don't treat consistency with another hero as fixed.
 
+20. **Building past the ask while the basics were broken.**
+   - What happened: "manage accounts" got a currency picker, a reconcile mode and a transaction list on the account page, none of which the user asked for, while things they would see every day were wrong: arrows they had removed elsewhere came back on balances, an empty 0% ring showed with no spending, and the multi-browse carousel squeezed a lone account into a sliver. The user asked "what did you build even?".
+   - Rule: build the smallest thing that answers the request; offer extras as options, don't ship them. Before reporting done, picture each changed screen with real edge data (one account, zero, negative, nothing spent) and check it against the user's earlier decisions (e.g. ADR-032 "no −/+, arrows only where chosen").
+
 ## Process checklist (every task, including scaffolding)
 1. Read CLAUDE.md and every file in `docs/`, including this one.
 2. Plan: list the docs and ADRs that apply, the §9 checklist answers per screen, and any source still marked unread (ask for it).

@@ -7,6 +7,7 @@ import com.prajwalpawar.fiscus.core.coroutines.IoDispatcher
 import com.prajwalpawar.fiscus.R
 import com.prajwalpawar.fiscus.data.db.FiscusDatabase
 import com.prajwalpawar.fiscus.data.db.Migration1To2
+import com.prajwalpawar.fiscus.data.db.Migration2To3
 import com.prajwalpawar.fiscus.data.db.SeedCallback
 import com.prajwalpawar.fiscus.data.db.dao.AccountDao
 import com.prajwalpawar.fiscus.data.db.dao.CategoryDao
@@ -41,6 +42,7 @@ object DatabaseModule {
                     TransactionType.TRANSFER to context.getString(R.string.transaction_type_transfer),
                 ),
             ),
+            Migration2To3,
         )
         .build()
 

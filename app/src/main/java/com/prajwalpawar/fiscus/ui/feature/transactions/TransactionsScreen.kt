@@ -85,6 +85,7 @@ import com.prajwalpawar.fiscus.model.Category
 import com.prajwalpawar.fiscus.model.CategoryKind
 import com.prajwalpawar.fiscus.model.Money
 import com.prajwalpawar.fiscus.model.PeriodSummary
+import com.prajwalpawar.fiscus.model.TransactionDaySection
 import com.prajwalpawar.fiscus.model.TransactionListEntry
 import com.prajwalpawar.fiscus.model.Transaction
 import com.prajwalpawar.fiscus.model.TransactionType
@@ -105,6 +106,7 @@ import com.prajwalpawar.fiscus.ui.components.iconRes
 import com.prajwalpawar.fiscus.ui.components.labelRes
 import com.prajwalpawar.fiscus.ui.components.sharedContainer
 import com.prajwalpawar.fiscus.ui.components.netAmountText
+import com.prajwalpawar.fiscus.ui.components.DayHeader
 import com.prajwalpawar.fiscus.ui.components.PeriodTotal
 import com.prajwalpawar.fiscus.ui.components.netIconRes
 import com.prajwalpawar.fiscus.ui.components.signedNetText
@@ -494,7 +496,7 @@ private fun LazyListScope.transactionSections(
     val today = uiState.today ?: return
     uiState.sections.forEach { section ->
         item(key = "day-${section.date}", contentType = "dayHeader") {
-            DayHeader(section = section, today = today)
+            DayHeader(date = section.date, today = today, net = section.net)
         }
         itemsIndexed(
             items = section.items,
@@ -570,49 +572,6 @@ private fun SummaryCard(summary: PeriodSummary, period: String, modifier: Modifi
                 PeriodTotal(TransactionType.INCOME, summary.income, Modifier.weight(1f))
                 PeriodTotal(TransactionType.EXPENSE, summary.expense, Modifier.weight(1f))
             }
-        }
-    }
-}
-
-@Composable
-private fun DayHeader(section: TransactionDaySection, today: LocalDate) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = FiscusLayout.ScreenMargin,
-                end = FiscusLayout.ScreenMargin,
-                top = FiscusLayout.ScreenMargin,
-                bottom = FiscusLayout.TightSpacing,
-            )
-            .semantics(mergeDescendants = true) { heading() },
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        // The current day is the key group: emphasized type (M3 tactic 3), the rest stays regular.
-        val isToday = section.date == today
-        Text(
-            text = dayLabel(section.date, today),
-            style = if (isToday) {
-                MaterialTheme.typography.titleMediumEmphasized
-            } else {
-                MaterialTheme.typography.titleSmall
-            },
-            color = if (isToday) {
-                MaterialTheme.colorScheme.onSurface
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            },
-        )
-        section.net?.let { net ->
-            val netText = signedNetText(net)
-            AmountText(
-                text = netAmountText(net),
-                style = MaterialTheme.typography.labelLarge,
-                icon = netIconRes(net),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.clearAndSetSemantics { contentDescription = netText },
-            )
         }
     }
 }

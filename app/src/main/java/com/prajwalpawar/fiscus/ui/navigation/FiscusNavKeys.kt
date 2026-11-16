@@ -31,3 +31,15 @@ data class TransactionEditorNavKey(
 /** Read-only view of one transaction, with edit and delete actions. */
 @Serializable
 data class TransactionDetailNavKey(val transactionId: Long) : NavKey
+
+/** Every account, active and archived, with Add (ADR-036). */
+@Serializable
+data object AccountsNavKey : NavKey
+
+/** One account: balance hero, its transactions, archive/delete and edit (ADR-036). */
+@Serializable
+data class AccountDetailNavKey(val accountId: Long) : NavKey
+
+/** Add ([accountId] null) or edit an account (ADR-036). */
+@Serializable
+data class AccountEditorNavKey(val accountId: Long? = null) : NavKey

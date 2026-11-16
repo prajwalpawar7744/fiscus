@@ -20,6 +20,7 @@
   | Determinate progress | `LinearWavyProgressIndicator` / `CircularWavyProgressIndicator` | flat indicators, unless a calm data context calls for them (ADR) |
   | Lists | `ListItem` content-lambda overload, `SegmentedListItem` | `ListItem(headlineContent = …)` (deprecated) |
   | Search | `SearchBar(state, inputField)` + `ExpandedFullScreenSearchBar` / `ExpandedDockedSearchBar`, `AppBarWithSearch`, `SearchBarDefaults.InputField(textFieldState, searchBarState, …)` | `TopSearchBar` (renamed), query-style `SearchBar`/`DockedSearchBar`, `InputField(query, …)` / `InputField(state, expanded, …)` (all deprecated) |
+  | Selectable menu item | `SelectableDropdownMenuItem(selected, onClick, text, shapes = MenuDefaults.itemShape(i, n))` | `DropdownMenuItem(selected, …)` (deprecated, hidden) |
   | Sheet state | `rememberBottomSheetState(initialValue = Hidden, enabledValues = …)` | `rememberModalBottomSheetState(...)` (deprecated) |
   | Filter chips | `FilterChip(selected, onClick, label, shapes = FilterChipDefaults.shapes(), …)` | `FilterChip` without `shapes` |
   | Theme | `MaterialExpressiveTheme` + `MotionScheme.expressive()` | `MaterialTheme` |
@@ -93,6 +94,13 @@
 | `PeriodTotal(type, amount, labelColor?)` | A period's income or expense total | Type arrow in a `ShapeAccentIcon` (accent roles), `labelMedium` label, `titleMedium` tabular amount. Default label `onSurfaceVariant` only on surface-family containers; elsewhere pass the container's on-color (Home tiles, ADR-034) |
 | `transactionSupportingText(entry)` | The supporting line of a `TransactionListItem` | "Food · Cash", or "Cash → Bank" for transfers; "Unknown" for removed refs |
 | `AccountType.iconRes` | Account type icon | Cash `payments`, Bank `account_balance`, Card `credit_card`, Wallet `account_balance_wallet` (ADR-033) |
+| `DetailRow(icon, label, value, shapes)` | One labelled fact on a detail page | Contained `SegmentedListItem`, label as overline, value `titleMedium` tabular (transaction and account pages) |
+| `SwitchRow(label, checked, onCheckedChange, supportingText?)` | An on/off setting in a form | Full-width `toggleable` row (`Role.Switch`, ≥ 48dp) with an M3 `Switch` (in debt, default account) |
+| `DayHeader(date, today, net)` | The header above one day of transactions | `dayLabel`, Today emphasized, net after its arrow; a heading (Transactions, account page) |
+| `ConnectedChoiceGroup(options, selected, onSelect, label, icon?)` | One choice from **2–5 fixed options** (transaction type, account type, balance mode) | M3 Expressive connected `ToggleButton` row, radio semantics, equal widths (ADR-018 3b, ADR-036). Open-ended lists use `SingleChoiceToggleGroup` |
+| `SaveHint(hint)` | Why a form's Save is disabled, above the action group | Expands/collapses vertically on the theme springs, polite live region |
+| `accountContainerKey(id)` | An account card/row and its page | With `sharedContainer` (ADR-036) |
+| `AccountType.labelRes` / `AccountTypeDisplayOrder` | Account type label and order | Cash, Bank, Card, Wallet |
 | `dayLabel(date, today)` | Day headers | "Today", "Yesterday", else the localized full date; `today` from the injected clock |
 
 Kept inside a feature on purpose: the editor's `AmountHero` (hero moment 2, type colors). Extract a plain shared `AmountField` when a second screen (budgets, opening balance) needs amount input.
@@ -108,7 +116,7 @@ Reference only: what each component animates by itself. Hand-animating something
 | `FilterChip(shapes = …)` | Subtle corner change on select. |
 | `LoadingIndicator` | Shape-morphing polygons. |
 | Flexible top app bars | Collapse on scroll (`exitUntilCollapsedScrollBehavior`). |
-| `HorizontalMultiBrowseCarousel` | Items mask and resize between large, medium and small as they scroll; single-advance fling by default. |
+| `HorizontalMultiBrowseCarousel` / `HorizontalUncontainedCarousel` | Multi-browse masks and resizes items (large/medium/small) as they scroll; uncontained keeps one `itemWidth` and scrolls freely (no snap by default). |
 | `LinearWavyProgressIndicator` / `CircularWavyProgressIndicator` (determinate) | The wave's amplitude follows progress (`indicatorAmplitude`); it moves at one wavelength per second. |
 
 ## Component map (Fiscus need → M3 component)
@@ -124,9 +132,10 @@ Reference only: what each component animates by itself. Hand-animating something
 | Search | Collapsed `SearchBar` + `ExpandedFullScreenSearchBar` (ADR-022) |
 | Lists | `ListItem`, `SegmentedListItem` |
 | Containers | `Card`, `ElevatedCard`, `OutlinedCard` |
-| Forms | `OutlinedTextField`, `DatePicker`, `TimePicker`, `ExposedDropdownMenuBox` |
+| Forms | `OutlinedTextField`, `DatePicker`, `TimePicker`, `ExposedDropdownMenuBox` + `SelectableDropdownMenuItem`, `SwitchRow` (in debt, default account) |
+| A list page's create action | `ExtendedFloatingActionButton(text, icon, onClick, expanded)` (Accounts; collapses on scroll) |
 | Sheets and dialogs | `ModalBottomSheet`, `AlertDialog` |
-| Browsing peers (accounts) | `HorizontalMultiBrowseCarousel` + `rememberCarouselState`, items clipped with `maskClip` (ADR-034) |
+| Browsing peers (accounts) | `HorizontalUncontainedCarousel(itemWidth)` + `rememberCarouselState`, items clipped with `maskClip`; one width for every card (ADR-037) |
 | Progress (budgets, Home spent ring) | `LinearWavyProgressIndicator` / `CircularWavyProgressIndicator` (or the flat versions) |
 | Loading | `LoadingIndicator`, `ContainedLoadingIndicator` |
 | Feedback | `Snackbar` via `SnackbarHost` |

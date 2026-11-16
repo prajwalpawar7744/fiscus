@@ -93,6 +93,38 @@ class FiscusDatabaseTest {
     }
 
     @Test
+    fun accountsArchiveAndUnusedOnesDelete() = runTest {
+        val dao = database.accountDao()
+        val cashId = dao.observeAll().first().single().id
+        val categoryId = database.categoryDao().observeAll().first().first().id
+        val bankId = dao.upsert(account("Bank", openingMinor = -5_000))
+        val lunch = transaction(TransactionType.EXPENSE, 100, cashId, categoryId = categoryId)
+        database.transactionDao().upsert(lunch)
+
+        dao.setArchived(cashId, true)
+        assertTrue(dao.observeById(cashId).first()?.archived == true)
+        dao.deleteById(bankId)
+        assertEquals(listOf(cashId), dao.observeAll().first().map { it.id })
+        assertTrue(
+            "RESTRICT foreign key should block deleting a used account",
+            runCatching { dao.deleteById(cashId) }.isFailure,
+        )
+    }
+
+    @Test
+    fun onlyOneAccountIsDefaultAndArchivingClearsIt() = runTest {
+        val dao = database.accountDao()
+        val cashId = dao.observeAll().first().single().id
+        assertTrue("Seeded Cash is the default", dao.observeById(cashId).first()?.isDefault == true)
+        val bankId = dao.upsert(account("Bank", openingMinor = 0))
+
+        dao.setDefault(bankId)
+        assertEquals(listOf(bankId), dao.observeAll().first().filter { it.isDefault }.map { it.id })
+        dao.setArchived(bankId, true)
+        assertTrue(dao.observeAll().first().none { it.isDefault })
+    }
+
+    @Test
     fun filteredQueryAppliesEveryCondition() = runTest {
         val cashId = database.accountDao().observeAll().first().single().id
         val bankId = database.accountDao().upsert(account("Bank", openingMinor = 0))

@@ -32,12 +32,18 @@ import com.prajwalpawar.fiscus.ui.components.LocalSharedTransitionScope
 import com.prajwalpawar.fiscus.ui.components.LocalSnackbarHostState
 import com.prajwalpawar.fiscus.ui.components.navVisibilityScopeDecorator
 import com.prajwalpawar.fiscus.ui.feature.budgets.BudgetsRoute
+import com.prajwalpawar.fiscus.ui.feature.accountdetail.AccountDetailRoute
+import com.prajwalpawar.fiscus.ui.feature.accounteditor.AccountEditorRoute
+import com.prajwalpawar.fiscus.ui.feature.accounts.AccountsRoute
 import com.prajwalpawar.fiscus.ui.feature.home.HomeRoute
 import com.prajwalpawar.fiscus.ui.feature.insights.InsightsRoute
 import com.prajwalpawar.fiscus.ui.feature.settings.SettingsRoute
 import com.prajwalpawar.fiscus.ui.feature.transactiondetail.TransactionDetailRoute
 import com.prajwalpawar.fiscus.ui.feature.transactioneditor.TransactionEditorRoute
 import com.prajwalpawar.fiscus.ui.feature.transactions.TransactionsRoute
+import com.prajwalpawar.fiscus.ui.navigation.AccountDetailNavKey
+import com.prajwalpawar.fiscus.ui.navigation.AccountEditorNavKey
+import com.prajwalpawar.fiscus.ui.navigation.AccountsNavKey
 import com.prajwalpawar.fiscus.ui.navigation.BudgetsNavKey
 import com.prajwalpawar.fiscus.ui.navigation.HomeNavKey
 import com.prajwalpawar.fiscus.ui.navigation.InsightsNavKey
@@ -128,6 +134,10 @@ fun FiscusApp(modifier: Modifier = Modifier) {
                                     onOpenTransaction = { id ->
                                         navigator.navigate(TransactionDetailNavKey(id))
                                     },
+                                    onOpenAccount = { id ->
+                                        navigator.navigate(AccountDetailNavKey(id))
+                                    },
+                                    onManageAccounts = { navigator.navigate(AccountsNavKey) },
                                     onSeeAllTransactions = {
                                         navigator.navigateToTopLevel(
                                             TopLevelDestination.TRANSACTIONS,
@@ -149,6 +159,32 @@ fun FiscusApp(modifier: Modifier = Modifier) {
                             entry<SettingsNavKey> { SettingsRoute(onBack = navigator::goBack) }
                             entry<TransactionEditorNavKey> { key ->
                                 TransactionEditorRoute(
+                                    navKey = key,
+                                    onBack = navigator::goBack,
+                                    onFinished = finishWith,
+                                )
+                            }
+                            entry<AccountsNavKey> {
+                                AccountsRoute(
+                                    onBack = navigator::goBack,
+                                    onOpenAccount = { id ->
+                                        navigator.navigate(AccountDetailNavKey(id))
+                                    },
+                                    onAddAccount = { navigator.navigate(AccountEditorNavKey()) },
+                                )
+                            }
+                            entry<AccountDetailNavKey> { key ->
+                                AccountDetailRoute(
+                                    navKey = key,
+                                    onBack = navigator::goBack,
+                                    onEdit = { id ->
+                                        navigator.navigate(AccountEditorNavKey(accountId = id))
+                                    },
+                                    onFinished = finishWith,
+                                )
+                            }
+                            entry<AccountEditorNavKey> { key ->
+                                AccountEditorRoute(
                                     navKey = key,
                                     onBack = navigator::goBack,
                                     onFinished = finishWith,

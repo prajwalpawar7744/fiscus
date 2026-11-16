@@ -8,11 +8,11 @@ import com.prajwalpawar.fiscus.model.TransactionListEntry
 /** Immutable UI state for the Home screen (ADR-033). */
 data class HomeUiState(
     val isLoading: Boolean = true,
-    /** Sum of every active account's balance; null when the accounts mix currencies (ADR-016). */
+    /** Sum of every active account's balance (zero with none); null if currencies mix (ADR-016). */
     val totalBalance: Money? = null,
     /** Active accounts with their balances, in the order the database returns them. */
     val accounts: List<AccountWithBalance> = emptyList(),
-    /** This month's income and expense; null when there are none or currencies are mixed. */
+    /** This month's income and expense (zeros when nothing yet); null if currencies are mixed. */
     val monthSummary: PeriodSummary? = null,
     /** The newest transactions, at most [RecentTransactionCount]. */
     val recent: List<TransactionListEntry> = emptyList(),

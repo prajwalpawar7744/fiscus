@@ -1,5 +1,6 @@
 package com.prajwalpawar.fiscus.data.db.entity
 
+import androidx.room3.ColumnInfo
 import androidx.room3.Entity
 import androidx.room3.PrimaryKey
 import com.prajwalpawar.fiscus.model.AccountType
@@ -12,4 +13,6 @@ data class AccountEntity(
     val currencyCode: String,
     val openingBalanceMinor: Long,
     val archived: Boolean,
+    /** At most one row is the default (ADR-037); kept by [AccountDao.setDefault]. */
+    @ColumnInfo(defaultValue = "0") val isDefault: Boolean = false,
 )

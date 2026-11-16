@@ -84,6 +84,8 @@ import com.prajwalpawar.fiscus.model.CategoryKind
 import com.prajwalpawar.fiscus.model.Money
 import com.prajwalpawar.fiscus.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.ActionButtonGroup
+import com.prajwalpawar.fiscus.ui.components.ConnectedChoiceGroup
+import com.prajwalpawar.fiscus.ui.components.SaveHint
 import com.prajwalpawar.fiscus.ui.components.CurrencyPrefixTransformation
 import com.prajwalpawar.fiscus.ui.components.DockedDatePickerField
 import com.prajwalpawar.fiscus.ui.components.GroupAction
@@ -218,9 +220,12 @@ private fun EditorForm(
             .animateContentSize(motion.defaultSpatialSpec()),
         verticalArrangement = Arrangement.spacedBy(FiscusLayout.SectionSpacing),
     ) {
-        TypeSelector(
+        ConnectedChoiceGroup(
+            options = TransactionTypeDisplayOrder,
             selected = uiState.type,
             onSelect = { onEvent(TransactionEditorEvent.TypeChanged(it)) },
+            label = { stringResource(it.labelRes) },
+            icon = { it.iconRes },
             modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),
         )
         AmountHero(
@@ -307,40 +312,6 @@ private fun EditorForm(
                 .fillMaxWidth()
                 .padding(horizontal = FiscusLayout.ScreenMargin),
         )
-    }
-}
-
-/** Single-select connected button group (M3 Expressive "connected" variant); shapes morph on selection. */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class) // connected button shapes
-@Composable
-private fun TypeSelector(
-    selected: TransactionType,
-    onSelect: (TransactionType) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val types = TransactionTypeDisplayOrder
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-    ) {
-        types.forEachIndexed { index, type ->
-            ToggleButton(
-                checked = type == selected,
-                onCheckedChange = { onSelect(type) },
-                shapes = when (index) {
-                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                    types.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .semantics { role = Role.RadioButton },
-            ) {
-                Icon(painterResource(type.iconRes), contentDescription = null)
-                Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                Text(stringResource(type.labelRes), maxLines = 1)
-            }
-        }
     }
 }
 
@@ -487,45 +458,6 @@ private fun HeroSummary(uiState: TransactionEditorUiState, modifier: Modifier = 
     }
 }
 
-/**
- * Says why Save is disabled ("Choose a category"). Enters and exits by expanding and collapsing
- * vertically (M3 enter/exit pattern: no scale) on the theme's springs; text changes cross-fade.
- */
-@Composable
-private fun SaveHint(@StringRes hint: Int?) {
-    val motion = MaterialTheme.motionScheme
-    AnimatedVisibility(
-        visible = hint != null,
-        enter = expandVertically(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
-        exit = shrinkVertically(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec()),
-    ) {
-        // Keep the last hint while collapsing, so the text doesn't vanish before the space does.
-        var lastHint by remember { mutableIntStateOf(0) }
-        if (hint != null) lastHint = hint
-        AnimatedContent(
-            targetState = lastHint,
-            transitionSpec = {
-                fadeIn(motion.fastEffectsSpec())
-                    .togetherWith(fadeOut(motion.fastEffectsSpec()))
-                    .using(SizeTransform { _, _ -> motion.fastSpatialSpec() })
-            },
-            label = "saveHint",
-        ) { res ->
-            if (res != 0) {
-                Text(
-                    text = stringResource(res),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = FiscusLayout.ItemSpacing)
-                        .semantics { liveRegion = LiveRegionMode.Polite },
-                )
-            }
-        }
-    }
-}
 
 
 private val PreviewAccounts = listOf(
