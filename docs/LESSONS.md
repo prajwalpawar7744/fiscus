@@ -92,6 +92,16 @@ Mistakes made while building Fiscus, and the rule each one produced. **Read this
    - What happened: one long session re-read whole files and sources-jar excerpts, ran full build + lint + device tests after every small edit, wrote long reports, and built unrequested features that were later removed or reverted. The user asked why so many tokens were used.
    - Rule: build only what's asked (offer extras, don't build them). Grep for the lines you need instead of reading whole files; re-read only the docs that apply to the task. Build after edits, but run the full test/lint/device suite once at the end. Keep replies short unless detail is asked for. Suggest a fresh session for each new feature; decisions live in the ADRs, LESSONS and git.
 
+## 2026-11-16: Categories (M2)
+
+22. **Recommending an option that broke an existing pattern.**
+   - What happened: I offered "tap opens the editor directly" for categories and marked it recommended. Accounts already went list → detail page (container transform) → editor, so the option broke User Guideline 2.
+   - Rule: a new feature with a sibling copies the sibling's whole flow. Never offer an option that deviates from it.
+
+23. **Committing without being asked.**
+   - What happened: the user said "fix this" and I made three commits on my own.
+   - Rule: commit (or run any history-changing git command) only when the user explicitly says so in that message. End with the changes uncommitted and a proposed commit message (CLAUDE.md rule 0c).
+
 ## Process checklist (every task, including scaffolding)
 1. Read CLAUDE.md, this checklist, and the docs and sections that apply to the task.
 2. Plan: list the docs and ADRs that apply, the §9 checklist answers per screen, and any source still marked unread (ask for it).
