@@ -31,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -217,15 +218,6 @@ private fun AccountForm(
             )
         }
         BalanceSection(uiState = uiState, onEvent = onEvent)
-        if (uiState.canBeDefault) {
-            SwitchRow(
-                label = stringResource(R.string.account_default),
-                supportingText = stringResource(R.string.account_default_hint),
-                checked = uiState.isDefault,
-                onCheckedChange = { onEvent(AccountEditorEvent.DefaultChanged(it)) },
-                modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),
-            )
-        }
     }
 }
 
@@ -267,12 +259,29 @@ private fun BalanceSection(uiState: AccountEditorUiState, onEvent: (AccountEdito
                 .fillMaxWidth()
                 .padding(horizontal = FiscusLayout.ScreenMargin),
         )
-        SwitchRow(
-            label = stringResource(R.string.account_in_debt),
-            checked = uiState.inDebt,
-            onCheckedChange = { onEvent(AccountEditorEvent.InDebtChanged(it)) },
+        // The account's switches as one segmented group: "In debt", then "Default account"
+        // (hidden for archived accounts).
+        val switchCount = if (uiState.canBeDefault) 2 else 1
+        Column(
+            verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),
-        )
+        ) {
+            SwitchRow(
+                label = stringResource(R.string.account_in_debt),
+                checked = uiState.inDebt,
+                onCheckedChange = { onEvent(AccountEditorEvent.InDebtChanged(it)) },
+                shapes = ListItemDefaults.segmentedShapes(index = 0, count = switchCount),
+            )
+            if (uiState.canBeDefault) {
+                SwitchRow(
+                    label = stringResource(R.string.account_default),
+                    supportingText = stringResource(R.string.account_default_hint),
+                    checked = uiState.isDefault,
+                    onCheckedChange = { onEvent(AccountEditorEvent.DefaultChanged(it)) },
+                    shapes = ListItemDefaults.segmentedShapes(index = 1, count = switchCount),
+                )
+            }
+        }
         AnimatedVisibility(
             visible = uiState.openingPreview != null,
             enter = expandVertically(motion.defaultSpatialSpec()) +

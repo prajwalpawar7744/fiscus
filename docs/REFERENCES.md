@@ -268,6 +268,7 @@ for (const k of ['lightScheme','darkScheme']) console.log(k, ['primary','onPrima
 ## Expressive buttons, toggleable list item, date picker tokens (checked 2026-11-16 with `javap` on the material3-android 1.5.0-rc01 classes)
 - `IconButton(onClick, shapes: IconButtonShapes, modifier, enabled, colors, interactionSource, content)` is the Expressive overload; `IconButtonDefaults.shapes()` (and `shapes(shape, pressedShape)`). The `shape: Shape` overload and the plain one still exist.
 - `TextButton(onClick, shapes: ButtonShapes, …)` is the Expressive overload, with `ButtonDefaults.shapes()`.
+- `Switch(checked, onCheckedChange, modifier, thumbContent: (@Composable () -> Unit)? = null, …)`: an icon in the thumb is opt-in through `thumbContent`, sized `SwitchDefaults.IconSize` (official "Switch with icon" sample, https://developer.android.com/develop/ui/compose/components/switch, checked 2026-11-16; compiles against rc01).
 - `SegmentedListItem(checked: Boolean, onCheckedChange: (Boolean) -> Unit, shapes: ListItemShapes, …)` is the toggleable overload (also a `selected`/`onClick` one).
 - `DatePickerDefaults.TonalElevation` and `DatePickerDefaults.shape` are public; there is no public shadow-elevation token for a docked picker.
 - `Small`/`Medium`/`LargeExtendedFloatingActionButton` exist.

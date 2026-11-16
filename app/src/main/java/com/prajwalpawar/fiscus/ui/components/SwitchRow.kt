@@ -2,23 +2,28 @@ package com.prajwalpawar.fiscus.ui.components
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import com.prajwalpawar.fiscus.R
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 
 /**
  * Shared component: an on/off setting in a form, a contained, toggleable M3 [SegmentedListItem]
- * with the M3 [Switch] as trailing content (like [DetailRow]). The whole item toggles (one touch
+ * with the M3 [Switch] as trailing content (like [DetailRow]); the thumb shows a check when on. The whole item toggles (one touch
  * target, `Role.Switch`), so the switch itself has no click. Optional [supportingText] below the
  * label. Pass [shapes] from `ListItemDefaults.segmentedShapes(index, count)` when rows are grouped.
  */
@@ -38,7 +43,23 @@ fun SwitchRow(
         colors = containedSegmentedColors(),
         modifier = modifier.semantics { role = Role.Switch },
         supportingContent = supportingText?.let { { Text(it) } },
-        trailingContent = { Switch(checked = checked, onCheckedChange = null) },
+        trailingContent = {
+            Switch(
+                checked = checked,
+                onCheckedChange = null,
+                thumbContent = if (checked) {
+                    {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_check_rounded),
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                        )
+                    }
+                } else {
+                    null
+                },
+            )
+        },
     ) {
         Text(label)
     }
