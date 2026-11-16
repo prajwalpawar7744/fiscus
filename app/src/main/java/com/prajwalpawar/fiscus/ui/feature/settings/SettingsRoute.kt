@@ -1,23 +1,21 @@
 package com.prajwalpawar.fiscus.ui.feature.settings
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-/** Stateful entry point for Settings: connects [SettingsViewModel] to the stateless [SettingsScreen]. */
+/**
+ * Entry point for Settings. Its rows only navigate for now, so there is no ViewModel or UI state
+ * yet (ADR-040); settings with values (M5: theme, app lock) bring them back with the usual
+ * feature pattern.
+ */
 @Composable
 fun SettingsRoute(
     onBack: () -> Unit,
     onOpenAccounts: () -> Unit,
     onOpenCategories: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: SettingsViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     SettingsScreen(
-        uiState = uiState,
         onBack = onBack,
         onOpenAccounts = onOpenAccounts,
         onOpenCategories = onOpenCategories,

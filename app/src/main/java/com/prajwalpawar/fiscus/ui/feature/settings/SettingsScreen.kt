@@ -36,12 +36,11 @@ import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 
 /**
  * Stateless Settings screen (ADR-040): one contained segmented group of rows that open the
- * Accounts and Categories pages. All actions go out through lambdas.
+ * Accounts and Categories pages. No state yet; all actions go out through lambdas.
  */
 @OptIn(ExperimentalMaterial3Api::class) // TopAppBarDefaults scroll behavior
 @Composable
 fun SettingsScreen(
-    @Suppress("UNUSED_PARAMETER") uiState: SettingsUiState,
     onBack: () -> Unit,
     onOpenAccounts: () -> Unit,
     onOpenCategories: () -> Unit,
@@ -127,7 +126,6 @@ private fun SettingsRow(
 private fun SettingsScreenPreview() {
     FiscusTheme(dynamicColor = false) {
         SettingsScreen(
-            uiState = SettingsUiState,
             onBack = {},
             onOpenAccounts = {},
             onOpenCategories = {},
