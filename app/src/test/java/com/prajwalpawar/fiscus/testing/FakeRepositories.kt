@@ -147,6 +147,9 @@ class FakeCategoryRepository(
             }
         }
 
+    override fun observeCategoryWithUsage(id: Long): Flow<CategoryWithUsage?> =
+        observeCategoriesWithUsage().map { list -> list.find { it.category.id == id } }
+
     override fun observeCategory(id: Long): Flow<Category?> =
         categories.map { list -> list.find { it.id == id } }
 

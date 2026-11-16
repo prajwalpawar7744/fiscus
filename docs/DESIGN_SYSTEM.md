@@ -78,7 +78,7 @@
 | `SingleChoiceToggleGroup(title, options, selectedKey, key, label, onSelect, emptyMessage, icon?, iconOnly?)` | One choice from an open-ended list (account, category, account type, category icon) | `ToggleButton`s in a wrapping `FlowRow`, radio semantics. `iconOnly` shows just the icon, with `label` as its accessibility name (ADR-040). For 2–5 fixed options, use the connected button group |
 | `CurrencyPrefixTransformation(symbol)` | Showing a currency symbol in an amount field | Display only; works with centered text, unlike `prefix` |
 | `categoryIconRes(iconKey)`, `CategoryIcons` | Category icon drawable; the curated pickable icons with labels | Unknown keys fall back to "category" (ADR-040) |
-| `CategoryKindDisplayOrder`, `CategoryKind.labelRes`/`iconRes`/`accentRoles()` | Category kind labels, icons, accents | Taken from the matching `TransactionType` (ADR-040) |
+| `CategoryKindDisplayOrder`, `CategoryKind.labelRes`/`iconRes`/`accentRoles()`/`heroRoles()` | Category kind labels, icons, accents | Taken from the matching `TransactionType` (ADR-040) |
 | `ShapeAccentIcon(icon, containerColor?, contentColor?, size?, iconSize?)` | The one decorative shape accent (icon in a `MaterialShapes.Cookie9Sided`) | Pass a matching role pair; accents only, never data containers. Empty states: `FiscusLayout.LargeAccentSize` / `LargeAccentIconSize` |
 | `ActionButtonGroup(actions: List<GroupAction>)` | **Every page's actions** (Save; Delete/Edit; Clear/Done) | One Expressive `ButtonGroup`, medium buttons; `ActionStyle.Primary/Secondary/Danger`; loading state (ADR-028). Never a lone `Button` row |
 | `Modifier.sharedContainer(key)` + `transactionContainerKey(id)` | An item that opens its own page | Grows into the page and shrinks back (`sharedBounds`, bounds on `slowSpatialSpec`, fades on effects specs; ADR-028/030); no-op outside `NavDisplay` |
@@ -102,6 +102,7 @@
 | `ConnectedChoiceGroup(options, selected, onSelect, label, icon?, enabled?)` | One choice from **2–5 fixed options** (transaction type, account type, balance mode) | M3 Expressive connected `ToggleButton` row, radio semantics, equal widths (ADR-018 3b, ADR-036). Open-ended lists use `SingleChoiceToggleGroup` |
 | `SaveHint(hint)` | Why a form's Save is disabled, above the action group | Expands/collapses vertically on the theme springs, polite live region |
 | `accountContainerKey(id)` | An account card/row and its page | With `sharedContainer` (ADR-036) |
+| `categoryContainerKey(id)` | A category row and its page | With `sharedContainer` (ADR-042) |
 | `AccountType.labelRes` / `AccountTypeDisplayOrder` | Account type label and order | Cash, Bank, Card, Wallet |
 | `dayLabel(date, today)` | Day headers | "Today", "Yesterday", else the localized full date; `today` from the injected clock |
 

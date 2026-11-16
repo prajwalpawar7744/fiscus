@@ -8,9 +8,4 @@ sealed interface CategoryEditorEvent {
     data class KindChanged(val kind: CategoryKind) : CategoryEditorEvent
     data class IconChanged(val iconKey: String) : CategoryEditorEvent
     data object Save : CategoryEditorEvent
-    data object ArchiveToggled : CategoryEditorEvent
-    data object DeleteRequested : CategoryEditorEvent
-    data object DeleteDismissed : CategoryEditorEvent
-    data object DeleteConfirmed : CategoryEditorEvent
-    data object UserMessageShown : CategoryEditorEvent
 }

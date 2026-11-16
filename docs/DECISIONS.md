@@ -325,3 +325,13 @@ Format: `## ADR-NNN: Title`, then Date, Status, Context, Decision, Consequences.
   4. One shared `transaction_count` plural for both rows.
 - **Consequences**: Archived status stays shown by the Active/Archived groups, not repeated on each row.
 
+## ADR-042: Category page, same flow as accounts
+- **Date**: 2026-11-16 · **Status**: Accepted (user: "where is the consistency then?"). Supersedes ADR-040 item 3 ("no category page").
+- **Context**: Category rows opened the editor directly, with archive/delete in the editor. Account rows grow into an account page that holds those actions, and the editor only saves. The difference broke User Guideline 2. It also hid a bug: an archived category that no transaction used showed Delete and couldn't be unarchived.
+- **Decision**: Categories follow the account flow exactly.
+  1. **Category page** (`CategoryDetailNavKey`): the row grows into it (container transform, `categoryContainerKey`). The detail-hero card in the kind's hero pair (`CategoryKind.heroRoles()`, as on the transaction page), the icon in a large accent, the name in `displayMedium`, and "Expense · 3 transactions". Below: Kind, Source (Default/Custom), Transactions, Status as one contained group of `DetailRow`s.
+  2. **Actions** as on the account page, in the same priority: **[Unarchive | Edit]** when archived, **[Delete | Edit]** while unused, **[Archive | Edit]** once used. Archive/Unarchive have no icon (Secondary); Delete is Danger with an `AlertDialog`.
+  3. **Editor**: form + Save only (name, kind locked once used, icon), like the account editor.
+  4. Counts come from `CategoryRepository.observeCategoryWithUsage(id)`, mirroring `observeAccountWithBalance(id)`.
+- **Consequences**: Opening a category for editing takes one more tap (page, then Edit), the same as for accounts.
+

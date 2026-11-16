@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -34,7 +32,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -48,7 +45,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.prajwalpawar.fiscus.R
 import com.prajwalpawar.fiscus.model.CategoryKind
 import com.prajwalpawar.fiscus.ui.components.ActionButtonGroup
-import com.prajwalpawar.fiscus.ui.components.ActionStyle
 import com.prajwalpawar.fiscus.ui.components.CategoryIcons
 import com.prajwalpawar.fiscus.ui.components.CategoryKindDisplayOrder
 import com.prajwalpawar.fiscus.ui.components.ConnectedChoiceGroup
@@ -64,9 +60,8 @@ import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 /**
  * Stateless add/edit category form (ADR-040). Not a hero moment (ADR-010): a standard M3 form with
  * the name, the kind (connected button group, locked once transactions use the category) and the
- * icon (icon-only toggle buttons). The actions sit in the shared action group within thumb reach
- * (ADR-028): [Save] when adding; [Delete | Save] for an unused category; [Archive | Save] or
- * [Unarchive | Save] for a used one.
+ * icon (icon-only toggle buttons). Save sits in the shared action group within thumb reach
+ * (ADR-028); archive and delete are on the category's page (ADR-042), as for accounts.
  */
 @OptIn(
     ExperimentalMaterial3Api::class, // TopAppBarDefaults scroll behavior
@@ -119,7 +114,14 @@ fun CategoryEditorScreen(
                 ) {
                     SaveHint(hint = uiState.saveHint)
                     ActionButtonGroup(
-                        actions = editorActions(uiState, onEvent),
+                        actions = listOf(
+                            GroupAction(
+                                label = stringResource(R.string.category_save),
+                                onClick = { onEvent(CategoryEditorEvent.Save) },
+                                enabled = uiState.canSave,
+                                isLoading = uiState.isSaving,
+                            ),
+                        ),
                         modifier = Modifier.widthIn(max = FiscusLayout.MaxContentWidth),
                     )
                 }
@@ -160,73 +162,6 @@ fun CategoryEditorScreen(
         }
     }
 
-    if (uiState.showDeleteConfirmation) {
-        AlertDialog(
-            onDismissRequest = { onEvent(CategoryEditorEvent.DeleteDismissed) },
-            icon = {
-                Icon(painterResource(R.drawable.ic_delete_rounded), contentDescription = null)
-            },
-            iconContentColor = MaterialTheme.colorScheme.error,
-            title = { Text(stringResource(R.string.category_delete_title)) },
-            text = { Text(stringResource(R.string.category_delete_message)) },
-            confirmButton = {
-                TextButton(
-                    shapes = ButtonDefaults.shapes(),
-                    onClick = { onEvent(CategoryEditorEvent.DeleteConfirmed) },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error,
-                    ),
-                ) {
-                    Text(stringResource(R.string.action_delete))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    shapes = ButtonDefaults.shapes(),
-                    onClick = { onEvent(CategoryEditorEvent.DeleteDismissed) },
-                ) {
-                    Text(stringResource(R.string.action_cancel))
-                }
-            },
-        )
-    }
-}
-
-/** Save always; before it, Delete for an unused category or Archive/Unarchive for a used one. */
-@Composable
-private fun editorActions(
-    uiState: CategoryEditorUiState,
-    onEvent: (CategoryEditorEvent) -> Unit,
-): List<GroupAction> = buildList {
-    when {
-        uiState.isNew -> Unit
-        uiState.canDelete -> add(
-            GroupAction(
-                label = stringResource(R.string.action_delete),
-                onClick = { onEvent(CategoryEditorEvent.DeleteRequested) },
-                icon = R.drawable.ic_delete_rounded,
-                style = ActionStyle.Danger,
-            ),
-        )
-        else -> add(
-            GroupAction(
-                label = stringResource(
-                    if (uiState.archived) R.string.category_unarchive else R.string.category_archive,
-                ),
-                onClick = { onEvent(CategoryEditorEvent.ArchiveToggled) },
-                icon = R.drawable.ic_archive_rounded,
-                style = ActionStyle.Secondary,
-            ),
-        )
-    }
-    add(
-        GroupAction(
-            label = stringResource(R.string.category_save),
-            onClick = { onEvent(CategoryEditorEvent.Save) },
-            enabled = uiState.canSave,
-            isLoading = uiState.isSaving,
-        ),
-    )
 }
 
 @Composable

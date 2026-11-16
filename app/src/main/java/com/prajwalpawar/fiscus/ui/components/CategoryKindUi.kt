@@ -25,3 +25,7 @@ val CategoryKind.iconRes: Int get() = transactionType.iconRes
 /** The same accent pair as the kind's transactions (ADR-023): expense tertiary, income secondary. */
 @Composable
 fun CategoryKind.accentRoles(): AccentRoles = transactionType.accentRoles()
+
+/** The kind's hero card pair, as on the transaction page (ADR-025). */
+@Composable
+fun CategoryKind.heroRoles(): AccentRoles = transactionType.heroRoles()

@@ -56,18 +56,21 @@ import com.prajwalpawar.fiscus.ui.components.EmptyState
 import com.prajwalpawar.fiscus.ui.components.LocalSnackbarHostState
 import com.prajwalpawar.fiscus.ui.components.ShapeAccentIcon
 import com.prajwalpawar.fiscus.ui.components.accentRoles
+import com.prajwalpawar.fiscus.ui.components.categoryContainerKey
 import com.prajwalpawar.fiscus.ui.components.categoryIconRes
 import com.prajwalpawar.fiscus.ui.components.containedSegmentedColors
 import com.prajwalpawar.fiscus.ui.components.iconRes
 import com.prajwalpawar.fiscus.ui.components.labelRes
+import com.prajwalpawar.fiscus.ui.components.sharedContainer
 import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 
 /**
  * Stateless Categories page (ADR-040), built like the Accounts page (ADR-036): a connected choice
  * of [Expense | Income], then that kind's active categories and archived ones, each as one
- * contained segmented group. A row opens the category's editor. Not a hero moment: standard M3,
- * calm data. "Add category" is an extended FAB that collapses to its icon while scrolling down.
+ * contained segmented group. A row grows into the category's page (ADR-028, ADR-042). Not a
+ * hero moment: standard M3, calm data. "Add category" is an extended FAB that collapses to its
+ * icon while scrolling down.
  */
 @OptIn(
     ExperimentalMaterial3Api::class, // TopAppBarDefaults scroll behavior
@@ -215,6 +218,7 @@ private fun CategoryRow(item: CategoryWithUsage, index: Int, count: Int, onClick
         onClick = onClick,
         shapes = ListItemDefaults.segmentedShapes(index, count),
         colors = containedSegmentedColors(),
+        modifier = Modifier.sharedContainer(categoryContainerKey(category.id)),
         leadingContent = {
             ShapeAccentIcon(
                 icon = categoryIconRes(category.iconKey),

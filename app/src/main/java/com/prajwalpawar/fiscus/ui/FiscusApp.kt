@@ -36,6 +36,7 @@ import com.prajwalpawar.fiscus.ui.feature.accountdetail.AccountDetailRoute
 import com.prajwalpawar.fiscus.ui.feature.accounteditor.AccountEditorRoute
 import com.prajwalpawar.fiscus.ui.feature.accounts.AccountsRoute
 import com.prajwalpawar.fiscus.ui.feature.categories.CategoriesRoute
+import com.prajwalpawar.fiscus.ui.feature.categorydetail.CategoryDetailRoute
 import com.prajwalpawar.fiscus.ui.feature.categoryeditor.CategoryEditorRoute
 import com.prajwalpawar.fiscus.ui.feature.home.HomeRoute
 import com.prajwalpawar.fiscus.ui.feature.insights.InsightsRoute
@@ -47,6 +48,7 @@ import com.prajwalpawar.fiscus.ui.navigation.AccountDetailNavKey
 import com.prajwalpawar.fiscus.ui.navigation.AccountEditorNavKey
 import com.prajwalpawar.fiscus.ui.navigation.AccountsNavKey
 import com.prajwalpawar.fiscus.ui.navigation.CategoriesNavKey
+import com.prajwalpawar.fiscus.ui.navigation.CategoryDetailNavKey
 import com.prajwalpawar.fiscus.ui.navigation.CategoryEditorNavKey
 import com.prajwalpawar.fiscus.ui.navigation.BudgetsNavKey
 import com.prajwalpawar.fiscus.ui.navigation.HomeNavKey
@@ -171,11 +173,21 @@ fun FiscusApp(modifier: Modifier = Modifier) {
                                 CategoriesRoute(
                                     onBack = navigator::goBack,
                                     onOpenCategory = { id ->
-                                        navigator.navigate(CategoryEditorNavKey(categoryId = id))
+                                        navigator.navigate(CategoryDetailNavKey(id))
                                     },
                                     onAddCategory = { kind ->
                                         navigator.navigate(CategoryEditorNavKey(kind = kind))
                                     },
+                                )
+                            }
+                            entry<CategoryDetailNavKey> { key ->
+                                CategoryDetailRoute(
+                                    navKey = key,
+                                    onBack = navigator::goBack,
+                                    onEdit = { id ->
+                                        navigator.navigate(CategoryEditorNavKey(categoryId = id))
+                                    },
+                                    onFinished = finishWith,
                                 )
                             }
                             entry<CategoryEditorNavKey> { key ->

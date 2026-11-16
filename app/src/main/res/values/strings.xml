@@ -205,6 +205,11 @@
     <string name="category_custom_short">Custom</string>
     <string name="categories_active">Active</string>
     <string name="categories_archived">Archived</string>
+    <string name="category_detail_title">Category</string>
+    <string name="category_detail_kind">Kind</string>
+    <string name="category_detail_origin">Source</string>
+    <string name="category_detail_transactions">Transactions</string>
+    <string name="category_detail_status">Status</string>
     <string name="category_editor_title_add">Add category</string>
     <string name="category_editor_title_edit">Edit category</string>
     <string name="category_name">Name</string>

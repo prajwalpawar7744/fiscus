@@ -9,13 +9,12 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.prajwalpawar.fiscus.ui.components.LocalSnackbarHostState
 import com.prajwalpawar.fiscus.ui.navigation.CategoryEditorNavKey
 
 /**
  * Stateful entry point for the category editor: connects [CategoryEditorViewModel] to
- * [CategoryEditorScreen]. Archive confirmations show here and are then cleared; on save or
- * delete it confirms with a haptic and hands the confirmation text to [onFinished].
+ * [CategoryEditorScreen]. On save it confirms with a haptic and hands the confirmation text to
+ * [onFinished].
  */
 @Composable
 fun CategoryEditorRoute(
@@ -31,18 +30,11 @@ fun CategoryEditorRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val haptics = LocalHapticFeedback.current
     val resources = LocalResources.current
-    val snackbarHostState = LocalSnackbarHostState.current
     LaunchedEffect(uiState.isFinished) {
         if (!uiState.isFinished) return@LaunchedEffect
         val message = uiState.resultMessage?.let(resources::getString)
         if (message != null) haptics.performHapticFeedback(HapticFeedbackType.Confirm)
         onFinished(message)
-    }
-    LaunchedEffect(uiState.userMessage) {
-        val message = uiState.userMessage ?: return@LaunchedEffect
-        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-        viewModel.onEvent(CategoryEditorEvent.UserMessageShown)
-        snackbarHostState.showSnackbar(resources.getString(message))
     }
     CategoryEditorScreen(
         uiState = uiState,

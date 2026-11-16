@@ -49,7 +49,11 @@ data class AccountEditorNavKey(val accountId: Long? = null) : NavKey
 @Serializable
 data object CategoriesNavKey : NavKey
 
-/** Add ([categoryId] null, starting as [kind]) or edit a category, with archive/delete (ADR-040). */
+/** One category: hero, facts, archive/delete and edit (ADR-042). */
+@Serializable
+data class CategoryDetailNavKey(val categoryId: Long) : NavKey
+
+/** Add ([categoryId] null, starting as [kind]) or edit a category (ADR-040, ADR-042). */
 @Serializable
 data class CategoryEditorNavKey(
     val categoryId: Long? = null,

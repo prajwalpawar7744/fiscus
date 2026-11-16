@@ -31,8 +31,8 @@ import kotlinx.coroutines.launch
 /**
  * Screen-level state holder for adding or editing a category (ADR-040). What the user typed lives
  * in [form]; the edited category and its usage come from repository streams; [uiState] combines
- * them with `stateIn` (ARCHITECTURE.md "Forms"). Also archives/unarchives a used category and
- * deletes an unused one. Receives its nav key through assisted injection (ADR-018).
+ * them with `stateIn` (ARCHITECTURE.md "Forms"). Archive and delete live on the category's page
+ * (ADR-042). Receives its nav key through assisted injection (ADR-018).
  */
 @HiltViewModel(assistedFactory = CategoryEditorViewModel.Factory::class)
 class CategoryEditorViewModel @AssistedInject constructor(
@@ -76,13 +76,6 @@ class CategoryEditorViewModel @AssistedInject constructor(
                 if (!uiState.value.isKindLocked) form.update { it.copy(kind = event.kind) }
             is CategoryEditorEvent.IconChanged -> form.update { it.copy(iconKey = event.iconKey) }
             CategoryEditorEvent.Save -> save()
-            CategoryEditorEvent.ArchiveToggled -> toggleArchived()
-            CategoryEditorEvent.DeleteRequested ->
-                form.update { it.copy(showDeleteConfirmation = uiState.value.canDelete) }
-            CategoryEditorEvent.DeleteDismissed ->
-                form.update { it.copy(showDeleteConfirmation = false) }
-            CategoryEditorEvent.DeleteConfirmed -> delete()
-            CategoryEditorEvent.UserMessageShown -> form.update { it.copy(userMessage = null) }
         }
     }
 
@@ -136,51 +129,25 @@ class CategoryEditorViewModel @AssistedInject constructor(
             form.update { it.copy(isSaving = false, isFinished = true, resultMessage = message) }
         }
     }
-
-    private fun toggleArchived() {
-        val id = navKey.categoryId ?: return
-        viewModelScope.launch {
-            val existing = original.first() ?: return@launch
-            categoryRepository.setArchived(id, !existing.archived)
-            val message = if (existing.archived) {
-                R.string.category_result_unarchived
-            } else {
-                R.string.category_result_archived
-            }
-            form.update { it.copy(userMessage = message) }
-        }
-    }
-
-    private fun delete() {
-        form.update { it.copy(showDeleteConfirmation = false) }
-        val id = navKey.categoryId ?: return
-        viewModelScope.launch {
-            // Re-checked here: a transaction may have been added since the dialog opened.
-            if (transactionCount.first() > 0) return@launch
-            // Mark first, so the missing category that follows reads as "deleted".
-            form.update { it.copy(deleted = true) }
-            categoryRepository.delete(id)
-        }
-    }
 }
 
-/** What the user has entered or done here. The edited category itself is not stored here. */
+/** What the user has entered or chosen. The edited category itself is not stored here. */
 private data class CategoryForm(
     val isLoaded: Boolean = false,
     val isNew: Boolean = true,
     val name: String = "",
     val kind: CategoryKind,
     val iconKey: String = "",
-    val showDeleteConfirmation: Boolean = false,
-    val deleted: Boolean = false,
-    @StringRes val userMessage: Int? = null,
     val isSaving: Boolean = false,
     val isFinished: Boolean = false,
     @StringRes val resultMessage: Int? = null,
 )
 
-private fun CategoryForm.toUiState(original: Category?, transactionCount: Int): CategoryEditorUiState {
-    // The edited category disappeared after loading: deleted here, or elsewhere.
+private fun CategoryForm.toUiState(
+    original: Category?,
+    transactionCount: Int,
+): CategoryEditorUiState {
+    // The edited category disappeared after loading (deleted elsewhere): close quietly.
     val gone = isLoaded && !isNew && original == null
     return CategoryEditorUiState(
         isLoading = !isLoaded,
@@ -190,15 +157,8 @@ private fun CategoryForm.toUiState(original: Category?, transactionCount: Int): 
         kind = if (transactionCount > 0 && original != null) original.kind else kind,
         iconKey = iconKey,
         transactionCount = transactionCount,
-        archived = original?.archived ?: false,
-        showDeleteConfirmation = showDeleteConfirmation,
-        userMessage = userMessage,
         isSaving = isSaving,
         isFinished = isFinished || gone,
-        resultMessage = when {
-            gone && deleted -> R.string.category_result_deleted
-            gone -> null
-            else -> resultMessage
-        },
+        resultMessage = if (gone) null else resultMessage,
     )
 }

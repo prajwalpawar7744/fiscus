@@ -12,6 +12,9 @@ interface CategoryRepository {
     /** Every category with its transaction count (ADR-041). */
     fun observeCategoriesWithUsage(): Flow<List<CategoryWithUsage>>
 
+    /** One category with its transaction count, or null once it's deleted (ADR-042). */
+    fun observeCategoryWithUsage(id: Long): Flow<CategoryWithUsage?>
+
     /** One category, or null once it's deleted. */
     fun observeCategory(id: Long): Flow<Category?>
 

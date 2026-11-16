@@ -33,6 +33,9 @@ class OfflineFirstCategoryRepository @Inject constructor(
             entities.map { CategoryWithUsage(it.asModel(), countById[it.id] ?: 0) }
         }.flowOn(ioDispatcher)
 
+    override fun observeCategoryWithUsage(id: Long): Flow<CategoryWithUsage?> =
+        observeCategoriesWithUsage().map { list -> list.find { it.category.id == id } }
+
     override fun observeCategory(id: Long): Flow<Category?> =
         categoryDao.observeById(id).map { it?.asModel() }.flowOn(ioDispatcher)
 

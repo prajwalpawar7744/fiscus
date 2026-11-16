@@ -63,3 +63,6 @@ fun transactionContainerKey(transactionId: Long): String = "transaction-$transac
 
 /** The shared-container key that links an account's card or row and its page (ADR-036). */
 fun accountContainerKey(accountId: Long): String = "account-$accountId"
+
+/** The shared-container key that links a category's row and its page (ADR-042). */
+fun categoryContainerKey(categoryId: Long): String = "category-$categoryId"

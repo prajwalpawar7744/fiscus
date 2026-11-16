@@ -22,7 +22,6 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -63,7 +62,8 @@ class CategoryEditorViewModelTest {
     )
 
     @Test
-    fun `adds a trimmed category of the preset kind`() = runTest(mainDispatcherRule.testDispatcher) {
+    fun `adds a trimmed category of the preset kind`() =
+        runTest(mainDispatcherRule.testDispatcher) {
         val viewModel = viewModel(CategoryEditorNavKey(kind = CategoryKind.INCOME))
         assertFalse(viewModel.uiState.value.canSave)
         viewModel.onEvent(CategoryEditorEvent.NameChanged("  Freelance "))
@@ -79,48 +79,28 @@ class CategoryEditorViewModelTest {
     }
 
     @Test
-    fun `an unused category can change kind and be deleted`() =
-        runTest(mainDispatcherRule.testDispatcher) {
-            val viewModel = viewModel(CategoryEditorNavKey(categoryId = FoodCategory.id))
-            assertFalse(viewModel.uiState.value.isKindLocked)
-            assertTrue(viewModel.uiState.value.canDelete)
-
-            viewModel.onEvent(CategoryEditorEvent.DeleteRequested)
-            advanceUntilIdle()
-            assertTrue(viewModel.uiState.value.showDeleteConfirmation)
-            viewModel.onEvent(CategoryEditorEvent.DeleteConfirmed)
-            advanceUntilIdle()
-
-            assertTrue(categories.categories.value.isEmpty())
-            assertTrue(viewModel.uiState.value.isFinished)
-            assertEquals(R.string.category_result_deleted, viewModel.uiState.value.resultMessage)
-        }
+    fun `an unused category can change kind`() = runTest(mainDispatcherRule.testDispatcher) {
+        val viewModel = viewModel(CategoryEditorNavKey(categoryId = FoodCategory.id))
+        assertFalse(viewModel.uiState.value.isKindLocked)
+        viewModel.onEvent(CategoryEditorEvent.KindChanged(CategoryKind.INCOME))
+        viewModel.onEvent(CategoryEditorEvent.Save)
+        advanceUntilIdle()
+        assertEquals(CategoryKind.INCOME, categories.categories.value.single().kind)
+        assertEquals(R.string.category_result_updated, viewModel.uiState.value.resultMessage)
+    }
 
     @Test
-    fun `a used category locks its kind, archives instead of deleting`() =
-        runTest(mainDispatcherRule.testDispatcher) {
-            useFood()
-            val viewModel = viewModel(CategoryEditorNavKey(categoryId = FoodCategory.id))
-            assertTrue(viewModel.uiState.value.isKindLocked)
-            assertFalse(viewModel.uiState.value.canDelete)
-
-            viewModel.onEvent(CategoryEditorEvent.KindChanged(CategoryKind.INCOME))
-            advanceUntilIdle()
-            assertEquals(CategoryKind.EXPENSE, viewModel.uiState.value.kind)
-            viewModel.onEvent(CategoryEditorEvent.DeleteRequested)
-            advanceUntilIdle()
-            assertFalse(viewModel.uiState.value.showDeleteConfirmation)
-
-            viewModel.onEvent(CategoryEditorEvent.ArchiveToggled)
-            advanceUntilIdle()
-            assertTrue(categories.categories.value.single().archived)
-            assertTrue(viewModel.uiState.value.archived)
-            assertEquals(R.string.category_result_archived, viewModel.uiState.value.userMessage)
-
-            viewModel.onEvent(CategoryEditorEvent.UserMessageShown)
-            advanceUntilIdle()
-            assertNull(viewModel.uiState.value.userMessage)
-        }
+    fun `a used category keeps its kind`() = runTest(mainDispatcherRule.testDispatcher) {
+        useFood()
+        val viewModel = viewModel(CategoryEditorNavKey(categoryId = FoodCategory.id))
+        assertTrue(viewModel.uiState.value.isKindLocked)
+        viewModel.onEvent(CategoryEditorEvent.KindChanged(CategoryKind.INCOME))
+        advanceUntilIdle()
+        assertEquals(CategoryKind.EXPENSE, viewModel.uiState.value.kind)
+        viewModel.onEvent(CategoryEditorEvent.Save)
+        advanceUntilIdle()
+        assertEquals(CategoryKind.EXPENSE, categories.categories.value.single().kind)
+    }
 
     @Test
     fun `editing keeps the archived flag`() = runTest(mainDispatcherRule.testDispatcher) {
