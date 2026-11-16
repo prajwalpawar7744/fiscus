@@ -35,7 +35,7 @@ interface CategoryDao {
     @Query("UPDATE categories SET archived = :archived WHERE id = :id")
     suspend fun setArchived(id: Long, archived: Boolean)
 
-    /** Callers delete only unused categories (ADR-040); the FK would otherwise null `categoryId`. */
+    /** Callers delete only unused categories (ADR-040); the FK would null their `categoryId`. */
     @Query("DELETE FROM categories WHERE id = :id")
     suspend fun deleteById(id: Long)
 }

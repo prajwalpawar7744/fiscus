@@ -78,7 +78,9 @@ class FakeAccountRepository(
                         else -> total
                     }
                 }
-                val count = transactions.count { it.accountId == account.id || it.toAccountId == account.id }
+                val count = transactions.count {
+                    it.accountId == account.id || it.toAccountId == account.id
+                }
                 AccountWithBalance(account, balance, count)
             }
         }
@@ -153,5 +155,6 @@ class FakeCategoryRepository(
     override fun observeCategory(id: Long): Flow<Category?> =
         categories.map { list -> list.find { it.id == id } }
 
-    override suspend fun delete(id: Long) = categories.update { list -> list.filterNot { it.id == id } }
+    override suspend fun delete(id: Long) =
+        categories.update { list -> list.filterNot { it.id == id } }
 }

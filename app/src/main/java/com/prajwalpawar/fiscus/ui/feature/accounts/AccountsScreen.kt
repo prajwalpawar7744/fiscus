@@ -209,7 +209,9 @@ private fun AccountRow(item: AccountWithBalance, index: Int, count: Int, onClick
         colors = containedSegmentedColors(),
         modifier = Modifier
             .sharedContainer(accountContainerKey(account.id))
-            .clearAndSetSemantics { contentDescription = "${account.name}, $supporting, $description" },
+            .clearAndSetSemantics {
+                contentDescription = "${account.name}, $supporting, $description"
+            },
         leadingContent = { ShapeAccentIcon(icon = account.type.iconRes) },
         supportingContent = { Text(supporting) },
         trailingContent = {
@@ -228,13 +230,17 @@ private fun AccountRow(item: AccountWithBalance, index: Int, count: Int, onClick
     }
 }
 
-/** "Bank", plus "Default" and "In debt" when they apply (ADR-037), then "3 transactions" (ADR-041). */
+/**
+ * "Bank", plus "Default" and "In debt" when they apply (ADR-037), then "3 transactions"
+ * (ADR-041).
+ */
 @Composable
 private fun accountSupportingText(item: AccountWithBalance): String = buildList {
     add(stringResource(item.account.type.labelRes))
     if (item.account.isDefault) add(stringResource(R.string.account_default_short))
     if (item.balance.isNegative) add(stringResource(R.string.account_in_debt_short))
-    add(pluralStringResource(R.plurals.transaction_count, item.transactionCount, item.transactionCount))
+    val count = item.transactionCount
+    add(pluralStringResource(R.plurals.transaction_count, count, count))
 }.joinToString(stringResource(R.string.list_separator))
 
 @Preview(name = "Light", showBackground = true)

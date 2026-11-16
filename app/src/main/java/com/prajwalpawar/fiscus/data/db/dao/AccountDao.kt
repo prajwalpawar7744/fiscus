@@ -16,7 +16,8 @@ interface AccountDao {
     fun observeById(id: Long): Flow<AccountEntity?>
 
     /**
-     * Balance and transaction count (transfers in included) per account (DOMAIN.md): opening + income − expense − transfers out + transfers in.
+     * Balance and transaction count (transfers in included) per account (DOMAIN.md). Balance =
+     * opening + income − expense − transfers out + transfers in.
      */
     @Query(
         """

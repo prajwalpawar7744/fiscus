@@ -7,7 +7,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.prajwalpawar.fiscus.model.CategoryKind
 
-/** Stateful entry point for the Categories page: connects [CategoriesViewModel] to [CategoriesScreen]. */
+/**
+ * Stateful entry point for the Categories page: connects [CategoriesViewModel] to
+ * [CategoriesScreen].
+ */
 @Composable
 fun CategoriesRoute(
     onBack: () -> Unit,

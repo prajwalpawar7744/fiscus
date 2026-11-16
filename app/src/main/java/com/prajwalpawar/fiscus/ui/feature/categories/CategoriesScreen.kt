@@ -167,7 +167,11 @@ fun CategoriesScreen(
                             }
                         }
                         categoryGroup(R.string.categories_active, uiState.active, onOpenCategory)
-                        categoryGroup(R.string.categories_archived, uiState.archived, onOpenCategory)
+                        categoryGroup(
+                            R.string.categories_archived,
+                            uiState.archived,
+                            onOpenCategory,
+                        )
                     }
                 }
             }
@@ -237,12 +241,16 @@ private fun CategoryRow(item: CategoryWithUsage, index: Int, count: Int, onClick
     }
 }
 
-/** Kind, then "Default" (starter) or "Custom" (user-added), then the transaction count (ADR-041). */
+/** Kind, then "Default" (starter) or "Custom" (user-added), then the count (ADR-041). */
 @Composable
 private fun categorySupportingText(item: CategoryWithUsage): String = listOf(
     stringResource(item.category.kind.labelRes),
     stringResource(
-        if (item.category.isSeeded) R.string.category_seeded_short else R.string.category_custom_short,
+        if (item.category.isSeeded) {
+            R.string.category_seeded_short
+        } else {
+            R.string.category_custom_short
+        },
     ),
     pluralStringResource(R.plurals.transaction_count, item.transactionCount, item.transactionCount),
 ).joinToString(stringResource(R.string.list_separator))
@@ -259,15 +267,29 @@ private fun CategoriesScreenPreview() {
                 isLoading = false,
                 active = listOf(
                     CategoryWithUsage(food, 12),
-                    CategoryWithUsage(food.copy(id = 2, name = "Groceries", iconKey = "shopping_cart"), 1),
                     CategoryWithUsage(
-                        food.copy(id = 3, name = "Coffee", iconKey = "local_cafe", isSeeded = false),
+                        food.copy(id = 2, name = "Groceries", iconKey = "shopping_cart"),
+                        1,
+                    ),
+                    CategoryWithUsage(
+                        food.copy(
+                            id = 3,
+                            name = "Coffee",
+                            iconKey = "local_cafe",
+                            isSeeded = false,
+                        ),
                         0,
                     ),
                 ),
                 archived = listOf(
                     CategoryWithUsage(
-                        food.copy(id = 4, name = "Gym", iconKey = "fitness_center", archived = true, isSeeded = false),
+                        food.copy(
+                            id = 4,
+                            name = "Gym",
+                            iconKey = "fitness_center",
+                            archived = true,
+                            isSeeded = false,
+                        ),
                         4,
                     ),
                 ),

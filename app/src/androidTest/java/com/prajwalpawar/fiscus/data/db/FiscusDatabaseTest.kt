@@ -118,12 +118,17 @@ class FiscusDatabaseTest {
         val cashId = database.accountDao().observeAll().first().single().id
         val categoryId = database.categoryDao().observeAll().first().first().id
         val bankId = database.accountDao().upsert(account("Bank", openingMinor = 0))
-        database.transactionDao().upsert(transaction(TransactionType.EXPENSE, 100, cashId, categoryId = categoryId))
-        database.transactionDao().upsert(transaction(TransactionType.TRANSFER, 50, cashId, toAccountId = bankId))
+        val transactions = database.transactionDao()
+        transactions.upsert(
+            transaction(TransactionType.EXPENSE, 100, cashId, categoryId = categoryId),
+        )
+        transactions.upsert(transaction(TransactionType.TRANSFER, 50, cashId, toAccountId = bankId))
 
-        val usage = database.categoryDao().observeUsage().first().associate { it.categoryId to it.transactionCount }
+        val usage = database.categoryDao().observeUsage().first()
+            .associate { it.categoryId to it.transactionCount }
         assertEquals(1, usage[categoryId])
-        val counts = database.accountDao().observeBalances().first().associate { it.accountId to it.transactionCount }
+        val counts = database.accountDao().observeBalances().first()
+            .associate { it.accountId to it.transactionCount }
         assertEquals(mapOf(cashId to 2, bankId to 1), counts)
     }
 

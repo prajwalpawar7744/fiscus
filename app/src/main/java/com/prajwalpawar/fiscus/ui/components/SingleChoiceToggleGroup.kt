@@ -121,6 +121,34 @@ private fun SingleChoiceToggleGroupPreview() {
     }
 }
 
+@Preview(name = "Icon only, light", showBackground = true)
+@Preview(
+    name = "Icon only, dark",
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+)
+@Preview(name = "Icon only, large font", showBackground = true, fontScale = 2f)
+@Composable
+private fun SingleChoiceToggleGroupIconOnlyPreview() {
+    val icons = CategoryIcons.take(8)
+    FiscusTheme(dynamicColor = false) {
+        Surface {
+            SingleChoiceToggleGroup(
+                title = "Icon",
+                options = icons,
+                selectedKey = 0,
+                key = { icons.indexOf(it).toLong() },
+                label = { it.key },
+                onSelect = {},
+                emptyMessage = "",
+                icon = { it.iconRes },
+                iconOnly = true,
+                modifier = Modifier.padding(FiscusLayout.ScreenMargin),
+            )
+        }
+    }
+}
+
 @Preview(name = "Empty", showBackground = true)
 @Composable
 private fun SingleChoiceToggleGroupEmptyPreview() {

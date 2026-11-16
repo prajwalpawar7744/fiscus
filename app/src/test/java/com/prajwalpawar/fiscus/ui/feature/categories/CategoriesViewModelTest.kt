@@ -72,7 +72,8 @@ class CategoriesViewModelTest {
                 ),
             )
         }
-        val counts = viewModel().uiState.value.active.associate { it.category.name to it.transactionCount }
+        val counts = viewModel().uiState.value.active
+            .associate { it.category.name to it.transactionCount }
         assertEquals(mapOf("Bills" to 0, "Food" to 2), counts)
     }
 

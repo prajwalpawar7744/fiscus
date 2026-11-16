@@ -359,7 +359,13 @@ private fun CategoryDetailScreenPreview() {
                 categoryId = 1,
                 isLoading = false,
                 category = CategoryWithUsage(
-                    Category(1, "Food & dining", CategoryKind.EXPENSE, "restaurant", isSeeded = true),
+                    Category(
+                        id = 1,
+                        name = "Food & dining",
+                        kind = CategoryKind.EXPENSE,
+                        iconKey = "restaurant",
+                        isSeeded = true,
+                    ),
                     transactionCount = 12,
                 ),
             ),

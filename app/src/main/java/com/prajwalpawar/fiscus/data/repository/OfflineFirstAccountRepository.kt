@@ -31,7 +31,10 @@ class OfflineFirstAccountRepository @Inject constructor(
                 val balance = balanceById[account.id]
                 AccountWithBalance(
                     account = account,
-                    balance = Money(balance?.balanceMinor ?: entity.openingBalanceMinor, account.currencyCode),
+                    balance = Money(
+                        balance?.balanceMinor ?: entity.openingBalanceMinor,
+                        account.currencyCode,
+                    ),
                     transactionCount = balance?.transactionCount ?: 0,
                 )
             }
