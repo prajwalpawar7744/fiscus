@@ -2,27 +2,25 @@ package com.prajwalpawar.fiscus.ui.components
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.ListItemShapes
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
-import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 
 /**
- * Shared component: an on/off setting in a form, the M3 [Switch] at the end of a full-width row.
- * The whole row toggles (one touch target, at least 48dp, `Role.Switch`), so the switch itself
- * has no click. Optional [supportingText] in `bodyMedium`/`onSurfaceVariant` below the label.
+ * Shared component: an on/off setting in a form, a contained, toggleable M3 [SegmentedListItem]
+ * with the M3 [Switch] as trailing content (like [DetailRow]). The whole item toggles (one touch
+ * target, `Role.Switch`), so the switch itself has no click. Optional [supportingText] below the
+ * label. Pass [shapes] from `ListItemDefaults.segmentedShapes(index, count)` when rows are grouped.
  */
 @Composable
 fun SwitchRow(
@@ -31,26 +29,18 @@ fun SwitchRow(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     supportingText: String? = null,
+    shapes: ListItemShapes = ListItemDefaults.segmentedShapes(index = 0, count = 1),
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .minimumInteractiveComponentSize()
-            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
-            .padding(horizontal = FiscusLayout.ScreenMargin),
-        verticalAlignment = Alignment.CenterVertically,
+    SegmentedListItem(
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+        shapes = shapes,
+        colors = containedSegmentedColors(),
+        modifier = modifier.semantics { role = Role.Switch },
+        supportingContent = supportingText?.let { { Text(it) } },
+        trailingContent = { Switch(checked = checked, onCheckedChange = null) },
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = label, style = MaterialTheme.typography.bodyLarge)
-            supportingText?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-        Switch(checked = checked, onCheckedChange = null)
+        Text(label)
     }
 }
 

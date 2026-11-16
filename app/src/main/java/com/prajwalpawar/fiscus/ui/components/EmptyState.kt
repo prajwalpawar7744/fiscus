@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -70,7 +71,7 @@ private fun EmptyStatePreview() {
             EmptyState(
                 icon = R.drawable.ic_search_rounded,
                 message = "No transactions match these filters.",
-                action = { TextButton(onClick = {}) { Text("Clear filters") } },
+                action = { TextButton(shapes = ButtonDefaults.shapes(), onClick = {}) { Text("Clear filters") } },
             )
         }
     }

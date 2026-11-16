@@ -23,10 +23,12 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
@@ -99,7 +101,7 @@ fun AccountEditorScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = onBack) {
                         Icon(
                             painter = painterResource(R.drawable.ic_arrow_back_rounded),
                             contentDescription = stringResource(R.string.action_navigate_back),
@@ -221,6 +223,7 @@ private fun AccountForm(
                 supportingText = stringResource(R.string.account_default_hint),
                 checked = uiState.isDefault,
                 onCheckedChange = { onEvent(AccountEditorEvent.DefaultChanged(it)) },
+                modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),
             )
         }
     }
@@ -268,6 +271,7 @@ private fun BalanceSection(uiState: AccountEditorUiState, onEvent: (AccountEdito
             label = stringResource(R.string.account_in_debt),
             checked = uiState.inDebt,
             onCheckedChange = { onEvent(AccountEditorEvent.InDebtChanged(it)) },
+            modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),
         )
         AnimatedVisibility(
             visible = uiState.openingPreview != null,

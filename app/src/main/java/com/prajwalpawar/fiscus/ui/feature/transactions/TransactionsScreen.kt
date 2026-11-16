@@ -28,6 +28,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -40,6 +41,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LoadingIndicator
@@ -85,17 +87,19 @@ import com.prajwalpawar.fiscus.model.Category
 import com.prajwalpawar.fiscus.model.CategoryKind
 import com.prajwalpawar.fiscus.model.Money
 import com.prajwalpawar.fiscus.model.PeriodSummary
+import com.prajwalpawar.fiscus.model.Transaction
 import com.prajwalpawar.fiscus.model.TransactionDaySection
 import com.prajwalpawar.fiscus.model.TransactionListEntry
-import com.prajwalpawar.fiscus.model.Transaction
 import com.prajwalpawar.fiscus.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.ActionButtonGroup
 import com.prajwalpawar.fiscus.ui.components.ActionStyle
 import com.prajwalpawar.fiscus.ui.components.AddTransactionFabMenu
 import com.prajwalpawar.fiscus.ui.components.AmountText
+import com.prajwalpawar.fiscus.ui.components.DayHeader
 import com.prajwalpawar.fiscus.ui.components.EmptyState
 import com.prajwalpawar.fiscus.ui.components.GroupAction
 import com.prajwalpawar.fiscus.ui.components.LocalSnackbarHostState
+import com.prajwalpawar.fiscus.ui.components.PeriodTotal
 import com.prajwalpawar.fiscus.ui.components.ShapeAccentIcon
 import com.prajwalpawar.fiscus.ui.components.TransactionListItem
 import com.prajwalpawar.fiscus.ui.components.TransactionTypeDisplayOrder
@@ -104,14 +108,12 @@ import com.prajwalpawar.fiscus.ui.components.categoryIconRes
 import com.prajwalpawar.fiscus.ui.components.dayLabel
 import com.prajwalpawar.fiscus.ui.components.iconRes
 import com.prajwalpawar.fiscus.ui.components.labelRes
-import com.prajwalpawar.fiscus.ui.components.sharedContainer
 import com.prajwalpawar.fiscus.ui.components.netAmountText
-import com.prajwalpawar.fiscus.ui.components.DayHeader
-import com.prajwalpawar.fiscus.ui.components.PeriodTotal
 import com.prajwalpawar.fiscus.ui.components.netIconRes
+import com.prajwalpawar.fiscus.ui.components.sharedContainer
 import com.prajwalpawar.fiscus.ui.components.signedNetText
-import com.prajwalpawar.fiscus.ui.components.transactionSupportingText
 import com.prajwalpawar.fiscus.ui.components.transactionContainerKey
+import com.prajwalpawar.fiscus.ui.components.transactionSupportingText
 import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 import com.prajwalpawar.fiscus.ui.theme.tabularNumbers
@@ -152,7 +154,7 @@ fun TransactionsScreen(
             LargeFlexibleTopAppBar(
                 title = { Text(stringResource(R.string.nav_transactions)) },
                 actions = {
-                    IconButton(onClick = onOpenSettings) {
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = onOpenSettings) {
                         Icon(
                             painter = painterResource(R.drawable.ic_settings_rounded),
                             contentDescription = stringResource(R.string.nav_settings),
@@ -274,7 +276,7 @@ private fun SearchInputField(searchBarState: SearchBarState, queryState: TextFie
         placeholder = { Text(stringResource(R.string.transactions_search_placeholder)) },
         leadingIcon = {
             if (isExpanded) {
-                IconButton(onClick = { scope.launch { searchBarState.animateToCollapsed() } }) {
+                IconButton(shapes = IconButtonDefaults.shapes(), onClick = { scope.launch { searchBarState.animateToCollapsed() } }) {
                     Icon(
                         painter = painterResource(R.drawable.ic_arrow_back_rounded),
                         contentDescription = stringResource(R.string.action_navigate_back),
@@ -286,7 +288,7 @@ private fun SearchInputField(searchBarState: SearchBarState, queryState: TextFie
         },
         trailingIcon = {
             if (isExpanded && queryState.text.isNotEmpty()) {
-                IconButton(onClick = { queryState.clearText() }) {
+                IconButton(shapes = IconButtonDefaults.shapes(), onClick = { queryState.clearText() }) {
                     Icon(
                         painter = painterResource(R.drawable.ic_close_rounded),
                         contentDescription = stringResource(R.string.action_clear_search),
@@ -425,7 +427,7 @@ private fun FilterChipRow(uiState: TransactionsUiState, onEvent: (TransactionsEv
             onClick = { onEvent(TransactionsEvent.PickerOpened(FilterPicker.DATE)) },
         )
         if (uiState.hasChipFilters) {
-            TextButton(onClick = { onEvent(TransactionsEvent.FiltersCleared) }) {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = { onEvent(TransactionsEvent.FiltersCleared) }) {
                 Text(stringResource(R.string.transactions_filter_clear))
             }
         }
@@ -594,7 +596,7 @@ private fun EmptyMessage(
         ),
         action = if (isFiltered) {
             {
-                TextButton(onClick = onClearFilters) {
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = onClearFilters) {
                     Text(stringResource(R.string.transactions_filter_clear))
                 }
             }
@@ -644,7 +646,7 @@ private fun FilterPickers(uiState: TransactionsUiState, onEvent: (TransactionsEv
                     CheckableOption(
                         key = account.id,
                         name = account.name,
-                        icon = null,
+                        icon = account.type.iconRes,
                         checked = account.id in uiState.selectedAccountIds,
                         onToggle = { onEvent(TransactionsEvent.AccountToggled(account.id)) },
                     )
@@ -775,6 +777,7 @@ private fun DateRangeDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(
+                shapes = ButtonDefaults.shapes(),
                 enabled = start != null,
                 onClick = {
                     val startDate = start?.let(::utcDate) ?: return@TextButton
@@ -787,11 +790,11 @@ private fun DateRangeDialog(
         },
         dismissButton = {
             if (range != null) {
-                TextButton(onClick = { onConfirm(null) }) {
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = { onConfirm(null) }) {
                     Text(stringResource(R.string.transactions_filter_clear))
                 }
             } else {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
             }
         },
     ) {

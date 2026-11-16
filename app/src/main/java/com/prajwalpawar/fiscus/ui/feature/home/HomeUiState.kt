@@ -4,10 +4,13 @@ import com.prajwalpawar.fiscus.model.AccountWithBalance
 import com.prajwalpawar.fiscus.model.Money
 import com.prajwalpawar.fiscus.model.PeriodSummary
 import com.prajwalpawar.fiscus.model.TransactionListEntry
+import kotlinx.datetime.LocalDate
 
 /** Immutable UI state for the Home screen (ADR-033). */
 data class HomeUiState(
     val isLoading: Boolean = true,
+    /** First day of the current month (from the injected clock), for the top bar subtitle. */
+    val monthStart: LocalDate? = null,
     /** Sum of every active account's balance (zero with none); null if currencies mix (ADR-016). */
     val totalBalance: Money? = null,
     /** Active accounts with their balances, in the order the database returns them. */

@@ -1,6 +1,7 @@
 package com.prajwalpawar.fiscus.ui.feature.home
 
 import android.content.res.Configuration
+import android.text.format.DateFormat
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.fadeIn
@@ -25,8 +26,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LoadingIndicator
@@ -35,15 +38,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.WavyProgressIndicatorDefaults
 import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -84,7 +88,10 @@ import com.prajwalpawar.fiscus.ui.components.transactionSupportingText
 import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
 import com.prajwalpawar.fiscus.ui.theme.tabularNumbers
+import java.time.format.DateTimeFormatter
 import kotlin.time.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.toJavaLocalDate
 
 /**
  * Stateless Home screen (ADR-033): the balance hero (hero moment 1, ADR-010), then the accounts
@@ -113,8 +120,10 @@ fun HomeScreen(
         topBar = {
             LargeFlexibleTopAppBar(
                 title = { Text(stringResource(R.string.nav_home)) },
+                // The month the hero's totals cover, e.g. "November 2026" (ADR-039).
+                subtitle = uiState.monthStart?.let { start -> { Text(monthLabel(start)) } },
                 actions = {
-                    IconButton(onClick = onOpenSettings) {
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = onOpenSettings) {
                         Icon(
                             painter = painterResource(R.drawable.ic_settings_rounded),
                             contentDescription = stringResource(R.string.nav_settings),
@@ -348,6 +357,16 @@ private fun SpentRing(spent: SpentShare, modifier: Modifier = Modifier) {
     }
 }
 
+/** [date]'s month and year in the user's locale, e.g. "November 2026" or "2026年11月". */
+@Composable
+private fun monthLabel(date: LocalDate): String {
+    val locale = LocalConfiguration.current.locales[0]
+    return remember(date, locale) {
+        val pattern = DateFormat.getBestDateTimePattern(locale, "MMMMyyyy")
+        DateTimeFormatter.ofPattern(pattern, locale).format(date.toJavaLocalDate())
+    }
+}
+
 /** [part] as a whole percentage of [whole] (> 0), rounded down, in Long maths (ADR-003). */
 internal fun percentOf(part: Long, whole: Long): Int = (part * 100 / whole).toInt()
 
@@ -560,6 +579,7 @@ private val PreviewNow = Instant.parse("2026-11-15T10:30:00Z")
 
 private val PreviewState = HomeUiState(
     isLoading = false,
+    monthStart = LocalDate(2026, 11, 1),
     totalBalance = Money(12_458_000, "INR"),
     accounts = listOf(
         AccountWithBalance(PreviewCash, Money(458_000, "INR")),

@@ -8,11 +8,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -33,23 +35,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.prajwalpawar.fiscus.R
 import com.prajwalpawar.fiscus.ui.theme.FiscusLayout
 import com.prajwalpawar.fiscus.ui.theme.FiscusTheme
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toLocalDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
-import kotlin.time.Instant
-
-/** M3 docked date picker container elevation (level 3). */
-private val DockedPickerElevation = 6.dp
 
 /**
  * Shared component: a read-only date field with an M3 **docked** date picker shown below it (the
@@ -83,7 +81,7 @@ fun DockedDatePickerField(
             readOnly = true,
             label = { Text(label) },
             trailingIcon = {
-                IconButton(onClick = { showPicker = !showPicker }) {
+                IconButton(shapes = IconButtonDefaults.shapes(), onClick = { showPicker = !showPicker }) {
                     Icon(
                         painter = painterResource(R.drawable.ic_calendar_today_rounded),
                         contentDescription = stringResource(R.string.action_choose_date),
@@ -120,8 +118,9 @@ fun DockedDatePickerField(
                 ) {
                     Surface(
                         shape = DatePickerDefaults.shape,
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        shadowElevation = DockedPickerElevation,
+                        // The picker's own container color and elevation token (no app-made values).
+                        color = DatePickerDefaults.colors().containerColor,
+                        tonalElevation = DatePickerDefaults.TonalElevation,
                     ) {
                         DatePicker(
                             state = pickerState,

@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -37,6 +38,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalContentColor
@@ -85,10 +87,10 @@ import com.prajwalpawar.fiscus.model.Money
 import com.prajwalpawar.fiscus.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.ActionButtonGroup
 import com.prajwalpawar.fiscus.ui.components.ConnectedChoiceGroup
-import com.prajwalpawar.fiscus.ui.components.SaveHint
 import com.prajwalpawar.fiscus.ui.components.CurrencyPrefixTransformation
 import com.prajwalpawar.fiscus.ui.components.DockedDatePickerField
 import com.prajwalpawar.fiscus.ui.components.GroupAction
+import com.prajwalpawar.fiscus.ui.components.SaveHint
 import com.prajwalpawar.fiscus.ui.components.ShapeAccentIcon
 import com.prajwalpawar.fiscus.ui.components.SingleChoiceToggleGroup
 import com.prajwalpawar.fiscus.ui.components.TransactionTypeDisplayOrder
@@ -131,7 +133,7 @@ fun TransactionEditorScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = onBack) {
                         Icon(
                             painter = painterResource(R.drawable.ic_arrow_back_rounded),
                             contentDescription = stringResource(R.string.action_navigate_back),
@@ -254,6 +256,7 @@ private fun EditorForm(
             selectedKey = uiState.accountId,
             key = Account::id,
             label = Account::name,
+            icon = { it.type.iconRes },
             onSelect = { onEvent(TransactionEditorEvent.AccountSelected(it)) },
             emptyMessage = stringResource(R.string.editor_no_accounts),
             modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),
@@ -276,6 +279,7 @@ private fun EditorForm(
                     selectedKey = uiState.toAccountId,
                     key = Account::id,
                     label = Account::name,
+                    icon = { it.type.iconRes },
                     onSelect = { onEvent(TransactionEditorEvent.ToAccountSelected(it)) },
                     emptyMessage = stringResource(R.string.editor_no_transfer_accounts),
                     modifier = Modifier.padding(horizontal = FiscusLayout.ScreenMargin),

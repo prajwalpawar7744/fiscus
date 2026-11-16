@@ -11,8 +11,8 @@ import com.prajwalpawar.fiscus.model.AccountWithBalance
 import com.prajwalpawar.fiscus.model.Money
 import com.prajwalpawar.fiscus.model.PeriodSummary
 import com.prajwalpawar.fiscus.model.Transaction
-import com.prajwalpawar.fiscus.model.TransactionType
 import com.prajwalpawar.fiscus.model.TransactionFilter
+import com.prajwalpawar.fiscus.model.TransactionType
 import com.prajwalpawar.fiscus.model.summarize
 import com.prajwalpawar.fiscus.model.toListEntries
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -58,6 +58,7 @@ class HomeViewModel @Inject constructor(
         val active = accountsWithBalance.filterNot { it.account.archived }
         HomeUiState(
             isLoading = false,
+            monthStart = month.start,
             totalBalance = total(active),
             accounts = active,
             monthSummary = monthSummary(monthTransactions, total(active)),

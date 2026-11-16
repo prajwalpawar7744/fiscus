@@ -27,6 +27,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.ListItemShapes
@@ -59,9 +60,9 @@ import com.prajwalpawar.fiscus.model.Money
 import com.prajwalpawar.fiscus.model.Transaction
 import com.prajwalpawar.fiscus.model.TransactionType
 import com.prajwalpawar.fiscus.ui.components.ActionButtonGroup
-import com.prajwalpawar.fiscus.ui.components.DetailRow
 import com.prajwalpawar.fiscus.ui.components.ActionStyle
 import com.prajwalpawar.fiscus.ui.components.AmountText
+import com.prajwalpawar.fiscus.ui.components.DetailRow
 import com.prajwalpawar.fiscus.ui.components.GroupAction
 import com.prajwalpawar.fiscus.ui.components.LocalSnackbarHostState
 import com.prajwalpawar.fiscus.ui.components.ShapeAccentIcon
@@ -142,7 +143,7 @@ fun TransactionDetailScreen(
                 // "Today · 7:30 pm": when it happened, at a glance (ADR-024).
                 subtitle = detailSubtitle(uiState)?.let { subtitle -> { Text(subtitle) } },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = onBack) {
                         Icon(
                             painter = painterResource(R.drawable.ic_arrow_back_rounded),
                             contentDescription = stringResource(R.string.action_navigate_back),
@@ -194,6 +195,7 @@ fun TransactionDetailScreen(
             text = { Text(stringResource(R.string.detail_delete_message)) },
             confirmButton = {
                 TextButton(
+                    shapes = ButtonDefaults.shapes(),
                     onClick = { onEvent(TransactionDetailEvent.DeleteConfirmed) },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error,
@@ -203,7 +205,7 @@ fun TransactionDetailScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { onEvent(TransactionDetailEvent.DeleteDismissed) }) {
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = { onEvent(TransactionDetailEvent.DeleteDismissed) }) {
                     Text(stringResource(R.string.action_cancel))
                 }
             },
@@ -286,7 +288,7 @@ private fun AmountHero(
             // One line at any size: big amounts step down instead of wrapping (ADR-027).
             AmountText(
                 text = formatMoney(transaction.amount),
-                style = MaterialTheme.typography.displayLargeEmphasized,
+                style = MaterialTheme.typography.displayMedium,
                 textAlign = TextAlign.Center,
             )
             Text(
@@ -307,7 +309,9 @@ private data class DetailRowData(
 /** Type, category, account(s), date and note, as one segmented group (ADR-026). */
 @Composable
 private fun detailRows(uiState: TransactionDetailUiState, transaction: Transaction) = buildList {
-    val account = R.drawable.ic_payments_rounded
+    // Each account's own type icon (ADR-033); payments when the account was removed.
+    val fallback = R.drawable.ic_payments_rounded
+    val account = uiState.account?.type?.iconRes ?: fallback
     add(
         DetailRowData(
             transaction.type.iconRes,
@@ -327,7 +331,13 @@ private fun detailRows(uiState: TransactionDetailUiState, transaction: Transacti
     }
     if (transaction.type == TransactionType.TRANSFER) {
         add(DetailRowData(account, R.string.editor_from_account, uiState.account?.name))
-        add(DetailRowData(account, R.string.editor_to_account, uiState.toAccount?.name))
+        add(
+            DetailRowData(
+                uiState.toAccount?.type?.iconRes ?: fallback,
+                R.string.editor_to_account,
+                uiState.toAccount?.name,
+            ),
+        )
     } else {
         add(DetailRowData(account, R.string.editor_account, uiState.account?.name))
     }

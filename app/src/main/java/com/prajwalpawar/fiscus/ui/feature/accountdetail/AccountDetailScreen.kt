@@ -25,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LoadingIndicator
@@ -100,7 +101,7 @@ fun AccountDetailScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = onBack) {
                         Icon(
                             painter = painterResource(R.drawable.ic_arrow_back_rounded),
                             contentDescription = stringResource(R.string.action_navigate_back),
@@ -178,6 +179,7 @@ fun AccountDetailScreen(
             text = { Text(stringResource(R.string.account_delete_message)) },
             confirmButton = {
                 TextButton(
+                    shapes = ButtonDefaults.shapes(),
                     onClick = { onEvent(AccountDetailEvent.DeleteConfirmed) },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error,
@@ -187,7 +189,7 @@ fun AccountDetailScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { onEvent(AccountDetailEvent.DeleteDismissed) }) {
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = { onEvent(AccountDetailEvent.DeleteDismissed) }) {
                     Text(stringResource(R.string.action_cancel))
                 }
             },
@@ -278,7 +280,7 @@ private fun detailRows(uiState: AccountDetailUiState, item: AccountWithBalance):
             uiState.transactionCount.toString(),
         ),
         AccountFact(
-            R.drawable.ic_category_rounded,
+            R.drawable.ic_archive_rounded,
             stringResource(R.string.account_detail_status),
             stringResource(
                 if (account.archived) R.string.accounts_archived else R.string.accounts_active,
@@ -304,7 +306,7 @@ private fun balanceText(balance: Money): String =
 /**
  * The account's balance on the detail-hero card family (ADR-025): `extraLarge` card in the
  * secondary container pair, type icon in a large [ShapeAccentIcon], the balance in
- * `displayLargeEmphasized` with no sign or arrow (below zero says "In debt" under it), and the
+ * `displayMedium` (calmer than the Home hero, ADR-039) with no sign or arrow (below zero says "In debt" under it), and the
  * type below. TalkBack reads it as one node with the signed balance.
  */
 @Composable
@@ -345,7 +347,7 @@ private fun BalanceHero(account: AccountWithBalance, modifier: Modifier = Modifi
             // One line at any size: big amounts step down instead of wrapping (ADR-027).
             AmountText(
                 text = netAmountText(balance),
-                style = MaterialTheme.typography.displayLargeEmphasized,
+                style = MaterialTheme.typography.displayMedium,
                 textAlign = TextAlign.Center,
             )
             Text(

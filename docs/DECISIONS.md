@@ -293,3 +293,14 @@ Format: `## ADR-NNN: Title`, then Date, Status, Context, Decision, Consequences.
 - **Date**: 2026-11-16 · **Status**: Accepted (user: "do the amount left aligned and show this indicator in right corner with smaller size"). Amends ADR-035.
 - **Decision**: The hero's top is a `Row`: the balance (`displayLargeEmphasized`) and "Across N accounts" left-aligned, taking the spare width; the spent `CircularWavyProgressIndicator` in the top-end corner at its own default size (`WavyProgressIndicatorDefaults.CircularContainerSize`) with the label in `labelSmallEmphasized.tabularNumbers`. Still hidden when nothing was spent (ADR-037). The tiles stay full width below.
 - **Consequences**: The Home hero is left-aligned while the transaction and account heroes stay centered: a deliberate break, since Home is its own hero moment. The amount has less width and steps down sooner (`AmountText`). When budgets arrive (M3), revisit the ring's meaning (ADR-035).
+
+## ADR-039: Expressive-conformance pass (buttons, switch rows, picker tokens, account icons, calmer detail heroes)
+- **Date**: 2026-11-16 · **Status**: Accepted (user, after a full UI audit)
+- **Decision**:
+  1. Every `IconButton` and `TextButton` uses its Expressive `shapes` overload (`IconButtonDefaults.shapes()`, `ButtonDefaults.shapes()`), per ADR-013.
+  2. `SwitchRow` becomes a contained, toggleable `SegmentedListItem` with the `Switch` as trailing content, replacing the hand-built `Row` + `toggleable`.
+  3. `DockedDatePickerField` uses the picker's own `containerColor` and `DatePickerDefaults.TonalElevation`; the app-made 6dp shadow token is removed (rule 0).
+  4. Account rows and pickers show the account type icon everywhere (editor From/To, Transactions account filter, transaction detail rows; ADR-033). Account detail's Status row uses `archive`.
+  5. Home's `LargeFlexibleTopAppBar` has a subtitle with the current month ("November 2026", locale best pattern), the period the hero's totals cover.
+  6. Hero restraint (ADR-010): the transaction and account detail heroes step down from `displayLargeEmphasized` to `displayMedium`, so only Home's balance and the add-transaction editor use the emphasized display style.
+

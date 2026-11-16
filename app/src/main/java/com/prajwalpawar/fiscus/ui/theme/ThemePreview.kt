@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -46,7 +47,7 @@ private fun ThemeCatalog() {
             // Related actions use ButtonGroup, never a plain Row of buttons (ADR-013).
             ButtonGroup(
                 overflowIndicator = { menuState ->
-                    TextButton(onClick = { menuState.show() }) { Text("More") }
+                    TextButton(shapes = ButtonDefaults.shapes(), onClick = { menuState.show() }) { Text("More") }
                 },
             ) {
                 clickableItem(onClick = {}, label = "Add")
