@@ -6,7 +6,7 @@ Mistakes made while building Fiscus, and the rule each one produced. **Read this
 
 1. **Building from one doc instead of all of them.**
    - What happened: the first version was built after reading only DESIGN_SYSTEM.md. It used valid M3 components but had no motion, no hero treatment and no "satisfying save", so it didn't look like M3 Expressive at all, even though this flow is hero moment 2 (ADR-010).
-   - Rule: before planning, read **all** of CLAUDE.md and `docs/*.md` in full (not grep). Before building each screen, run the M3_EXPRESSIVE.md §9 checklist and write down how each item is met.
+   - Rule: before each task, read CLAUDE.md and every part of `docs/` that applies to it (superseded "read all docs in full" on 2026-11-16, #21). Before building each screen, run the M3_EXPRESSIVE.md §9 checklist and write down how each item is met.
 
 2. **Ignoring the documented structure.**
    - What happened: shared composables went into `ui/component/`, but ARCHITECTURE.md says `ui/components/`. Pushed screens used a plain `TopAppBar`, but the feature pattern says `LargeFlexibleTopAppBar`. The detail ViewModel collected into a `MutableStateFlow`, but stream-based state must use `stateIn(WhileSubscribed(5_000))`.
@@ -88,12 +88,16 @@ Mistakes made while building Fiscus, and the rule each one produced. **Read this
    - What happened: "manage accounts" got a currency picker, a reconcile mode and a transaction list on the account page, none of which the user asked for, while things they would see every day were wrong: arrows they had removed elsewhere came back on balances, an empty 0% ring showed with no spending, and the multi-browse carousel squeezed a lone account into a sliver. The user asked "what did you build even?".
    - Rule: build the smallest thing that answers the request; offer extras as options, don't ship them. Before reporting done, picture each changed screen with real edge data (one account, zero, negative, nothing spent) and check it against the user's earlier decisions (e.g. ADR-032 "no −/+, arrows only where chosen").
 
+21. **Spending tokens on process instead of the ask.**
+   - What happened: one long session re-read whole files and sources-jar excerpts, ran full build + lint + device tests after every small edit, wrote long reports, and built unrequested features that were later removed or reverted. The user asked why so many tokens were used.
+   - Rule: build only what's asked (offer extras, don't build them). Grep for the lines you need instead of reading whole files; re-read only the docs that apply to the task. Build after edits, but run the full test/lint/device suite once at the end. Keep replies short unless detail is asked for. Suggest a fresh session for each new feature; decisions live in the ADRs, LESSONS and git.
+
 ## Process checklist (every task, including scaffolding)
-1. Read CLAUDE.md and every file in `docs/`, including this one.
+1. Read CLAUDE.md, this checklist, and the docs and sections that apply to the task.
 2. Plan: list the docs and ADRs that apply, the §9 checklist answers per screen, and any source still marked unread (ask for it).
 3. Check every API's name, status, deprecation and built-in motion in the real library (sources jar or `javap`) and record it in REFERENCES.md and DESIGN_SYSTEM.md.
 4. Build only from public M3 and Jetpack APIs. Anything else needs the user's approval and an ADR. Check DESIGN_SYSTEM.md "Shared components" first; put anything reusable in `ui/components/`.
-5. Verify: a full build with zero warnings, unit tests, lint, and device tests when possible. Report honestly what wasn't verified.
+5. Verify: a full build with zero warnings, unit tests, lint, and device tests when possible, **once at the end** of the task, not after every edit (LESSONS #21). Report honestly what wasn't verified.
 6. **Conformance check:** go through every rule in CONVENTIONS.md, ARCHITECTURE.md (feature pattern, ViewModel rules), DESIGN_SYSTEM.md (allowed/forbidden, shared components, accessibility) and the M3_EXPRESSIVE.md §9 checklist against the changed files. Report the result per rule (✓ or what was fixed) in the summary. Build, tests and lint don't catch these.
 7. **Code vs. docs:** if existing code contradicts a doc, or a rule can't be followed as written, stop and ask the user. Never silently copy the code or work around the rule; once decided, fix the wrong side (code or doc) in the same change.
 8. Record what you learned: REFERENCES.md (facts), DECISIONS.md (choices), LESSONS.md (mistakes).
